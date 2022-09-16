@@ -11,6 +11,7 @@ import SwabPeriod from "~~/models/SwabPeriod";
 import SwabProductHistory from "~~/models/SwabProductHistory";
 import SwabTest from "~~/models/SwabTest";
 import SwabTestBacteria from "~~/models/SwabTestBacteria";
+import SwabTestBacteriaSpecie from "~~/models/SwabTestBacteriaSpecie";
 import { Shift } from "./useDate";
 import {
   LoadAllSwabProductHistoryFilter,
@@ -81,7 +82,9 @@ export const useLab = () => {
   const swabProductHistoryRepo = useRepo(SwabProductHistory);
   const swabTestRepo = useRepo(SwabTest);
   const bacteriaRepo = useRepo(Bacteria);
+  const bacteriaSpecieRepo = useRepo(BacteriaSpecie);
   const swabTestBacteriaRepo = useRepo(SwabTestBacteria);
+  const swabTestBacteriaSpecieRepo = useRepo(SwabTestBacteriaSpecie);
 
   const getBacteriaByIds = (ids: string[]) => {
     const query = bacteriaRepo.where("id", ids);
@@ -104,9 +107,65 @@ export const useLab = () => {
   };
 
   const getBacteriaBySwabTestId = (swabTestId: string) => {
-    const query = swabTestBacteriaRepo.where("swabTestId", swabTestId);
+    let bacteria = [];
+
+    const swabTestBacteria = swabTestBacteriaRepo
+      .where("swabTestId", swabTestId)
+      .get();
+
+    if (swabTestBacteria.length) {
+      const bacteriaIds = [
+        ...new Set(
+          swabTestBacteria.map(({ bacteriaId }) => bacteriaId).filter(Boolean)
+        ),
+      ];
+
+      bacteria = bacteriaRepo.find(bacteriaIds);
+    }
+
+    return bacteria;
+  };
+
+  const getBacteriaSpecieByIds = (ids: string[]) => {
+    const query = bacteriaSpecieRepo.where("id", ids);
 
     return query.get();
+  };
+
+  const getBacteriaSpecieById = (id: string) => {
+    const query = bacteriaSpecieRepo.where("id", id);
+
+    return query.first();
+  };
+
+  const getBacteriaSpecieByNames = (names: string[]) => {
+    return names
+      .map((name) => {
+        return bacteriaSpecieRepo.where("bacteriaSpecieName", name).first();
+      })
+      .filter(Boolean);
+  };
+
+  const getBacteriaSpecieBySwabTestId = (swabTestId: string) => {
+    let bacteriaSpecies = [];
+
+    const swabTestBacteriaSpecies = swabTestBacteriaSpecieRepo
+      .where("swabTestId", swabTestId)
+      .get();
+
+    if (swabTestBacteriaSpecies.length) {
+      const bacteriaSpecieIds = [
+        ...new Set(
+          swabTestBacteriaSpecies
+            .map(({ bacteriaSpecieId }) => bacteriaSpecieId)
+            .filter(Boolean)
+        ),
+      ];
+
+      bacteriaSpecies = bacteriaSpecieRepo.find(bacteriaSpecieIds);
+    }
+
+    return bacteriaSpecies;
   };
 
   const getSwabTestById = (id: string): SwabTest | null => {
@@ -150,7 +209,25 @@ export const useLab = () => {
       watch(error, (e) => {
         console.log(e);
 
-        reject("Load swab periods failed");
+        reject("Load bacteria failed");
+      });
+    });
+  };
+
+  const loadAllBacteriaSpecies = async (): Promise<BacteriaSpecie[]> => {
+    return new Promise((resolve, reject) => {
+      const { data, error } = get<BacteriaSpecie[]>("/bacteria-specie");
+
+      watch(data, (bacteriaSpecieData) => {
+        const bacteriaSpecies = bacteriaSpecieRepo.save(bacteriaSpecieData);
+
+        resolve(bacteriaSpecies);
+      });
+
+      watch(error, (e) => {
+        console.log(e);
+
+        reject("Load bacteria species failed");
       });
     });
   };
@@ -169,6 +246,28 @@ export const useLab = () => {
     return swabTest;
   };
 
+  const mapPivotSwabTestBacteriaSpecie = (swabTest) => {
+    if (swabTest.bacteriaSpecies?.length) {
+      const bacteriaSpecies = [];
+
+      swabTest.bacteriaSpecies.forEach((bacteriaSpecie) => {
+        if (bacteriaSpecie.id) {
+          bacteriaSpecies.push({
+            ...bacteriaSpecie,
+            pivot: {
+              bacteriaSpecieId: bacteriaSpecie.id,
+              swabTestId: swabTest.id,
+            },
+          });
+        }
+      });
+
+      swabTest.bacteriaSpecies = bacteriaSpecies;
+    }
+
+    return swabTest;
+  };
+
   const saveBacteriaRelationBySwabTestId = (
     swabTestId: string,
     bacteriaSpecies: BacteriaSpecieData[]
@@ -181,8 +280,34 @@ export const useLab = () => {
     swabTestBacteriaRepo.insert(insertedSwabTestBacteria);
   };
 
+  const saveBacteriaSpecieRelationBySwabTestId = (
+    swabTestId: string,
+    bacteriaSpecies: BacteriaSpecieData[]
+  ) => {
+    const insertedSwabTestBacteria = [];
+
+    bacteriaSpecies.forEach(({ bacteriaSpecieId }) => {
+      if (bacteriaSpecieId) {
+        insertedSwabTestBacteria.push({
+          bacteriaSpecieId,
+          swabTestId,
+        });
+      }
+    });
+
+    if (insertedSwabTestBacteria.length) {
+      swabTestBacteriaSpecieRepo.insert(insertedSwabTestBacteria);
+    }
+  };
+
   const clearBacteriaRelationBySwabTestId = (swabTestId: string): void => {
     swabTestBacteriaRepo.where("swabTestId", swabTestId).delete();
+  };
+
+  const clearBacteriaSpecieRelationBySwabTestId = (
+    swabTestId: string
+  ): void => {
+    swabTestBacteriaSpecieRepo.where("swabTestId", swabTestId).delete();
   };
 
   const saveRelatedLoadAllLabSwabAreaHistoryResponse = (
@@ -200,7 +325,15 @@ export const useLab = () => {
       swabTests.map((swabTest) => {
         clearBacteriaRelationBySwabTestId(swabTest.id);
 
-        return mapPivotSwabTestBacteria(swabTest);
+        clearBacteriaSpecieRelationBySwabTestId(swabTest.id);
+
+        swabTest = mapPivotSwabTestBacteria(swabTest);
+
+        swabTest = mapPivotSwabTestBacteriaSpecie(swabTest);
+
+        console.log(swabTest);
+
+        return swabTest;
       });
 
       swabTestRepo.save(swabTests);
@@ -364,8 +497,10 @@ export const useLab = () => {
 
         if (!bacteriaSpecies.length) {
           clearBacteriaRelationBySwabTestId(swabTestId);
+          clearBacteriaSpecieRelationBySwabTestId(swabTestId);
         } else {
           saveBacteriaRelationBySwabTestId(swabTestId, bacteriaSpecies);
+          saveBacteriaSpecieRelationBySwabTestId(swabTestId, bacteriaSpecies);
         }
 
         resolve(responseData);
@@ -384,14 +519,21 @@ export const useLab = () => {
     getBacteriaById,
     getBacteriaByNames,
     getBacteriaBySwabTestId,
+    getBacteriaSpecieByIds,
+    getBacteriaSpecieById,
+    getBacteriaSpecieByNames,
+    getBacteriaSpecieBySwabTestId,
     getSwabTestById,
     getBacteriaStateBySwabTestId,
     loadBacteriaToSwabTest,
     saveBacteriaRelationBySwabTestId,
+    saveBacteriaSpecieRelationBySwabTestId,
     clearBacteriaRelationBySwabTestId,
+    clearBacteriaSpecieRelationBySwabTestId,
     api() {
       return {
         loadAllBacteria,
+        loadAllBacteriaSpecies,
         loadAllLabSwabAreaHistory,
         loadAllLabSwabProductHistory,
         updateSwabTestById,

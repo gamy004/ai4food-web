@@ -11,13 +11,13 @@ export interface Props {
   modelValue: SwabTestFilterFormData;
   perPage?: number;
   currentPage?: number;
-  showSpecies?: boolean;
+  editSpecie?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   perPage: 100,
   currentPage: 1,
-  showSpecies: false,
+  editSpecie: false,
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -31,7 +31,11 @@ const {
   getSwabAreaHistoryById,
   getSwabTestById,
 } = useSwab();
-const { getBacteriaStateBySwabTestId, api: labApi } = useLab();
+const {
+  getBacteriaBySwabTestId,
+  getBacteriaStateBySwabTestId,
+  api: labApi,
+} = useLab();
 
 const pagination = usePagination({
   perPage: props.perPage,
@@ -43,23 +47,27 @@ const form = computed({
   set: (value) => emit("update:modelValue", value),
 });
 
-const tableFields = [
-  { key: "order", label: "ลำดับ" },
-  { key: "time", label: "เวลา" },
-  { key: "shift", label: "กะ" },
-  { key: "swabTestCode", label: "รหัส" },
-  { key: "swabPeriodName", label: "ช่วงตรวจ" },
-  { key: "facilityName", label: "เครื่อง" },
-  { key: "facilityItemName", label: "ไลน์" },
-  { key: "swabAreaName", label: "จุดตรวจ" },
-  { key: "status", label: "สถานะ", tdClass: "text-center" },
-  {
-    key: "action",
-    label: "ผลตรวจเชื้อ",
-    thClass: "text-center",
-    tdClass: "text-center",
-  },
-];
+const tableFields = computed(() => {
+  const fields = [
+    { key: "order", label: "ลำดับ" },
+    { key: "time", label: "เวลา" },
+    { key: "shift", label: "กะ" },
+    { key: "swabTestCode", label: "รหัส" },
+    { key: "swabPeriodName", label: "ช่วงตรวจ" },
+    { key: "facilityName", label: "เครื่อง" },
+    { key: "facilityItemName", label: "ไลน์" },
+    { key: "swabAreaName", label: "จุดตรวจ" },
+    { key: "status", label: "สถานะ", tdClass: "text-center" },
+    {
+      key: "action",
+      label: props.editSpecie ? "ผลตรวจเชื้อ" : "ผลตรวจ Species",
+      thClass: "text-center",
+      tdClass: "text-center",
+    },
+  ];
+
+  return fields;
+});
 
 const swabAreaHistoryIds = ref([]);
 const submittingSwabTestId = ref(null);
@@ -67,39 +75,15 @@ const hasData = ref(true);
 const loading = ref(false);
 const error = ref(false);
 
-const fetch = async function fetch(form) {
-  hasData.value = true;
-  error.value = false;
-  loading.value = true;
-  swabAreaHistoryIds.value = [];
-
-  try {
-    const data: SwabAreaHistory[] = await labApi().loadAllLabSwabAreaHistory({
-      ...form.value,
-    });
-
-    if (data && data.length) {
-      swabAreaHistoryIds.value = data.map(({ id }) => id);
-    } else {
-      hasData.value = false;
-    }
-  } catch (e) {
-    error.value = true;
-
-    toast.error("ดึงรายการจุดตรวจ Swab ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", {
-      timeout: 1000,
-    });
-  } finally {
-    loading.value = false;
-  }
-};
-
 const displayData = computed(() => {
   return swabAreaHistoryIds.value.map((swabAreaHistoryId, idx) => {
     const swabAreaHistory = getSwabAreaHistoryById(swabAreaHistoryId);
 
     let facility = null;
     const swabTest = getSwabTestById(swabAreaHistory.swabTestId);
+
+    const bacteria = getBacteriaBySwabTestId(swabAreaHistory.swabTestId);
+
     const stateBacteria = getBacteriaStateBySwabTestId(
       swabAreaHistory.swabTestId
     );
@@ -128,11 +112,39 @@ const displayData = computed(() => {
       swabTestId: swabAreaHistory.swabTestId,
       swabTest,
       stateBacteria,
+      bacteria,
     };
   });
 });
 
 const paginatedData = computed(() => pagination.paginate(displayData.value));
+
+const fetch = async function fetch(form) {
+  hasData.value = true;
+  error.value = false;
+  loading.value = true;
+  swabAreaHistoryIds.value = [];
+
+  try {
+    const data: SwabAreaHistory[] = await labApi().loadAllLabSwabAreaHistory({
+      ...form.value,
+    });
+
+    if (data && data.length) {
+      swabAreaHistoryIds.value = data.map(({ id }) => id);
+    } else {
+      hasData.value = false;
+    }
+  } catch (e) {
+    error.value = true;
+
+    toast.error("ดึงรายการจุดตรวจ Swab ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", {
+      timeout: 1000,
+    });
+  } finally {
+    loading.value = false;
+  }
+};
 
 watch(() => form, fetch, { immediate: true, deep: true });
 </script>
@@ -169,6 +181,11 @@ watch(() => form, fetch, { immediate: true, deep: true });
             :swab-test-id="item.swabTestId"
             v-model="submittingSwabTestId"
           ></swab-test-form-radio-bacteria>
+
+          <swab-test-form-select-bacteria-specie
+            :swab-test-id="item.swabTestId"
+          >
+          </swab-test-form-select-bacteria-specie>
         </template>
       </b-table>
 
@@ -182,7 +199,9 @@ watch(() => form, fetch, { immediate: true, deep: true });
     </div>
 
     <b-card v-else bg-variant="light">
-      <b-card-text class="text-center"> ไม่พบข้อมูลผลการตรวจ swab </b-card-text>
+      <b-card-text class="text-center">
+        ไม่พบข้อมูลรายการจุดตรวจ Swab
+      </b-card-text>
     </b-card>
   </div>
 </template>

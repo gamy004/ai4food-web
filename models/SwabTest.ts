@@ -4,6 +4,7 @@ import SwabProductHistory from "./SwabProductHistory";
 import Bacteria from "./Bacteria";
 import BacteriaSpecie from "./BacteriaSpecie";
 import SwabTestBacteria from "./SwabTestBacteria";
+import SwabTestBacteriaSpecie from "./SwabTestBacteriaSpecie";
 export default class SwabTest extends Model {
   static entity = "swab_test";
 
@@ -27,8 +28,13 @@ export default class SwabTest extends Model {
   )
   bacteria: Bacteria[];
 
-  // @Attr([])
-  // bacteriaSpecies!: BacteriaSpecie[];
+  @BelongsToMany(
+    () => BacteriaSpecie,
+    () => SwabTestBacteriaSpecie,
+    "swabTestId",
+    "bacteriaSpecieId"
+  )
+  bacteriaSpecies: BacteriaSpecie[];
 
   // @Attr([])
   // swabAreaHistoryIds!: string[];
