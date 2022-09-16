@@ -2,13 +2,15 @@ import { format, utcToZonedTime } from "date-fns-tz";
 import { th } from "date-fns/locale";
 
 export enum Shift {
+  ALL = "all",
   DAY = "day",
-  NIGHT = "night"
+  NIGHT = "night",
 }
 
 export enum ShiftMapper {
+  all = "ทั้งหมด",
   day = "กลางวัน",
-  night = "กลางคืน"
+  night = "กลางคืน",
 }
 
 export interface TimePickerTimeInterface {
@@ -21,7 +23,7 @@ export type TimePickerData = {
   hours: number;
   minutes: number;
   seconds: number;
-}
+};
 
 export const useDate = (timeZone = "Asia/Bangkok") => {
   function today() {
@@ -42,10 +44,17 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     return format(date, timeFormat, { timeZone });
   }
 
-  function timePickerToTimeString(timePickerTime: TimePickerTimeInterface, includeSeconds = true) {
+  function timePickerToTimeString(
+    timePickerTime: TimePickerTimeInterface,
+    includeSeconds = true
+  ) {
     const mockDate = new Date();
 
-    mockDate.setHours(timePickerTime.hours, timePickerTime.minutes, timePickerTime.seconds);
+    mockDate.setHours(
+      timePickerTime.hours,
+      timePickerTime.minutes,
+      timePickerTime.seconds
+    );
 
     return onlyTime(mockDate, includeSeconds);
   }
@@ -54,13 +63,15 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     const splittedTimeString = timeString.split(":");
 
     if (splittedTimeString.length !== 3) {
-      throw new Error("(Invalid time string) time string should be formatted in 'HH:mm:ss'");
+      throw new Error(
+        "(Invalid time string) time string should be formatted in 'HH:mm:ss'"
+      );
     }
 
     return {
       hours: Number(splittedTimeString[0]),
       minutes: Number(splittedTimeString[1]),
-      seconds: Number(splittedTimeString[2])
+      seconds: Number(splittedTimeString[2]),
     };
   }
 
@@ -75,7 +86,11 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
   function timePickerToTimeShift(timePickerTime: TimePickerTimeInterface) {
     const mockDate = new Date();
 
-    mockDate.setHours(timePickerTime.hours, timePickerTime.minutes, timePickerTime.seconds);
+    mockDate.setHours(
+      timePickerTime.hours,
+      timePickerTime.minutes,
+      timePickerTime.seconds
+    );
 
     return dateToShift(mockDate);
   }
@@ -94,11 +109,17 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     const timeStringSplitted = timeString.split(":");
 
     if (timeStringSplitted.length !== 3) {
-      throw new Error("Invalid time format: make sure time is in format 'HH:mm:ss'");
-
+      throw new Error(
+        "Invalid time format: make sure time is in format 'HH:mm:ss'"
+      );
     }
 
-    mockDate.setHours(timeStringSplitted[0], timeStringSplitted[1], timeStringSplitted[2], 0);
+    mockDate.setHours(
+      timeStringSplitted[0],
+      timeStringSplitted[1],
+      timeStringSplitted[2],
+      0
+    );
 
     return format(mockDate, formatType, { locale: th });
   }
@@ -112,6 +133,6 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     timePickerToTimeShift,
     stringToShift,
     formatThLocale,
-    formatTimeThLocale
+    formatTimeThLocale,
   };
 };

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { sortBy } from "lodash";
 import vSelect from "vue-select";
 import { useToast } from "vue-toastification";
 import FacilityItem from "~~/models/FacilityItem";
@@ -7,7 +8,7 @@ export type facilitySelectData = {
   id: string;
   facilityId?: string;
   facilityItemName?: string;
-}
+};
 
 export interface Props {
   clearable?: boolean;
@@ -18,20 +19,14 @@ export interface Props {
 
 const toast = useToast();
 
-const {
-  api: facilityApi,
-  getFacilityItemByIds
-} = useFacility();
+const { api: facilityApi, getFacilityItemByIds } = useFacility();
 
-const props = withDefaults(
-  defineProps<Props>(),
-  {
-    clearable: false,
-    disabled: false,
-    facilityId: null,
-    modelValue: () => null
-  }
-);
+const props = withDefaults(defineProps<Props>(), {
+  clearable: false,
+  disabled: false,
+  facilityId: null,
+  modelValue: () => null,
+});
 
 const emit = defineEmits(["update:modelValue"]);
 
@@ -39,20 +34,31 @@ const isFetched = ref(false);
 const loading = ref(false);
 const facilityItemIds = ref([]);
 
-const facilityItems = computed(() => getFacilityItemByIds(facilityItemIds.value));
+const facilityItemOptions = computed(() => {
+  const params: any = {};
+
+  if (props.facilityId) {
+    params.facilityId = props.facilityId;
+  }
+
+  const options = getFacilityItemByIds(facilityItemIds.value, params);
+
+  return sortBy(options, ["facilityItemName"]);
+});
 
 const modelValue = computed({
   get: () => props.modelValue,
 
-  set: value => emit("update:modelValue", value)
+  set: (value) => emit("update:modelValue", value),
 });
 
-const fetch = async (props) => {
+const fetch = async () => {
   if (!isFetched.value) {
     loading.value = true;
 
     try {
-      const facilityItemData: FacilityItem[] = await facilityApi().loadAllFacilityItem(props.facilityId);
+      const facilityItemData: FacilityItem[] =
+        await facilityApi().loadAllFacilityItem();
 
       if (facilityItemData.length) {
         facilityItemIds.value = facilityItemData.map(({ id }) => id);
@@ -66,16 +72,25 @@ const fetch = async (props) => {
   }
 };
 
-watch(() => props, async (value) => {
+onBeforeMount(async () => {
   isFetched.value = false;
 
-  await fetch(value);
-}, { immediate: true, deep: true });
+  await fetch();
+});
 </script>
 
 <template>
-  <v-select v-model="modelValue" :options="facilityItems" label="facilityItemName" :loading="loading"
-    :disabled="disabled" :clearable="clearable" :reduce="({ id }) => ({ id })" deselect-from-dropdown @open="fetch">
+  <v-select
+    v-model="modelValue"
+    :options="facilityItemOptions"
+    label="facilityItemName"
+    :loading="loading"
+    :disabled="disabled"
+    :clearable="clearable"
+    :reduce="({ id }) => ({ id })"
+    deselect-from-dropdown
+    @open="fetch({ facilityId: props.facilityId })"
+  >
     <template #selected-option="{ facilityItemName }">
       {{ facilityItemName }}
     </template>

@@ -5,27 +5,21 @@ import Product from "~~/models/Product";
 
 export type ProductSelectData = {
   id: string;
-}
+};
 
 export interface Props {
   clearable?: boolean;
-  modelValue?: ProductSelectData | null
+  modelValue?: ProductSelectData | null;
 }
 
 const toast = useToast();
 
-const {
-  api: productApi,
-  getProductByIds
-} = useProduct();
+const { api: productApi, getProductByIds } = useProduct();
 
-const props = withDefaults(
-  defineProps<Props>(),
-  {
-    clearable: false,
-    modelValue: () => null
-  }
-);
+const props = withDefaults(defineProps<Props>(), {
+  clearable: false,
+  modelValue: () => null,
+});
 
 const emit = defineEmits(["update:modelValue"]);
 
@@ -38,7 +32,7 @@ const products = computed(() => getProductByIds(productIds.value));
 const modelValue = computed({
   get: () => props.modelValue,
 
-  set: value => emit("update:modelValue", value)
+  set: (value) => emit("update:modelValue", value),
 });
 
 const fetch = async () => {
@@ -60,12 +54,24 @@ const fetch = async () => {
   }
 };
 
-onBeforeMount(fetch);
+onBeforeMount(async () => {
+  isFetched.value = false;
+
+  await fetch();
+});
 </script>
 
 <template>
-  <v-select v-model="modelValue" :options="products" label="productName" :loading="loading" :clearable="clearable"
-    :reduce="({ id }) => ({ id })" deselect-from-dropdown @open="fetch">
+  <v-select
+    v-model="modelValue"
+    :options="products"
+    label="productName"
+    :loading="loading"
+    :clearable="clearable"
+    :reduce="({ id }) => ({ id })"
+    deselect-from-dropdown
+    @open="fetch"
+  >
     <template #selected-option="{ productCode, productName }">
       {{ productCode }}: {{ productName }}
     </template>

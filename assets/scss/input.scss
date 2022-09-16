@@ -1,8 +1,13 @@
 .input {
-    &-group {
-        >:not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback) {
-            border-bottom-left-radius: .25rem;
-            border-top-left-radius: .25rem;
-        }
+  &-group {
+    > :not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback) {
+      border-bottom-left-radius: 0.25rem;
+      border-top-left-radius: 0.25rem;
     }
+
+    .input-group-text {
+      border-bottom-left-radius: 0;
+      border-top-left-radius: 0;
+    }
+  }
 }

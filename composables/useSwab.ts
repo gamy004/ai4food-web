@@ -11,11 +11,15 @@ import SwabEnvironment from "~~/models/SwabEnvironment";
 import SwabPeriod from "~~/models/SwabPeriod";
 import SwabPlan from "~~/models/SwabPlan";
 import SwabTest from "~~/models/SwabTest";
-import BacteriaSpecies from "~~/models/BacteriaSpecies";
 import SwabProductHistory from "~~/models/SwabProductHistory";
 import FacilityItem from "~~/models/FacilityItem";
 import Product from "~~/models/Product";
-import { ResponseErrorT } from "./useRequest";
+import { ResponseErrorT, SearchParams } from "./useRequest";
+import {
+  LoadAllSwabProductHistoryFilter,
+  useFilterSwabProductHistory,
+} from "./useFilterSwabProductHistory";
+import Facility from "~~/models/Facility";
 
 export interface LoadAllSwabPlanForUpdateData {
   date: string;
@@ -34,6 +38,7 @@ export interface LoadSwabProductHistoryData {
 }
 
 export interface LoadSwabProductHistoryResponse {
+  facilities: Facility[];
   facilityItems: FacilityItem[];
   products: Product[];
   swabProductHistories: SwabProductHistory[];
@@ -41,25 +46,25 @@ export interface LoadSwabProductHistoryResponse {
 
 export type ConenctProductData = {
   id: string;
-}
+};
 
 export type ConnectFacilityData = {
   id: string;
-}
+};
 
 export type ConnectFacilityItemData = {
   id: string;
-}
+};
 
 export type UpsertSwabEnvironmentData = {
   id?: string;
   swabEnvironmentName?: string;
-}
+};
 
 export type UpsertSwabAreaHistoryImageData = {
   id?: string;
   file?: UpsertFileData;
-}
+};
 
 export interface BodyUpdateSwabPlanByIdData {
   swabAreaSwabedAt: TimePickerData;
@@ -80,18 +85,18 @@ export interface BodyCreateSwabProductHistory {
   productLot: string;
   productDate: string;
   product: ConenctProductData;
-  facility: ConnectFacilityData,
+  facility: ConnectFacilityData;
   facilityItem: ConnectFacilityItemData;
   shift: Shift;
 }
 
-export interface BodyUpdateSwabProductHistory extends BodyCreateSwabProductHistory {
-
-}
+export interface BodyUpdateSwabProductHistory
+  extends BodyCreateSwabProductHistory {}
 
 export const useSwab = () => {
   const { get, post, put, destroy } = useRequest();
   const { timePickerToTimeString } = useDate();
+  const facilityRepo = useRepo(Facility);
   const facilityItemRepo = useRepo(FacilityItem);
   const productRepo = useRepo(Product);
   const swabAreaRepo = useRepo(SwabArea);
@@ -158,23 +163,76 @@ export const useSwab = () => {
     });
   };
 
-  const loadAllSwabTest = async (swabAreaDate: string): Promise<LabTest[]> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = get<LabTest[]>(`/swab/area-history/lab?swabAreaDate=${swabAreaDate}`);
+  // const loadAllLabSwabAreaHistory = async (
+  //   loadAllSwabTestForUpdateData: LoadAllSwabTestForUpdateData
+  // ): Promise<SwabAreaHistory[]> => {
+  //   return new Promise((resolve, reject) => {
+  //     const {
+  //       date,
+  //       shift,
+  //       facilityId,
+  //       facilityItemId,
+  //       mainSwabAreaId,
+  //       swabPeriodId,
+  //       swabTestCode,
+  //     } = loadAllSwabTestForUpdateData;
+  //     const { onlyDate } = useDate();
 
-      watch(data, (labTestData) => {
-        const labTests = labTestRepo.save(labTestData);
+  //     const params: any = {
+  //       swabAreaDate: onlyDate(new Date(date)),
+  //     };
 
-        resolve(labTests);
-      });
+  //     if (shift !== Shift.ALL) {
+  //       params.shift = shift;
+  //     }
 
-      watch(error, (e) => {
-        console.log(e);
+  //     if (facilityId) {
+  //       params.facilityId = facilityId;
+  //     }
 
-        reject("Load swab test failed");
-      });
-    });
-  };
+  //     if (facilityItemId) {
+  //       params.facilityItemId = facilityItemId;
+  //     }
+
+  //     if (mainSwabAreaId) {
+  //       params.swabAreaId = mainSwabAreaId;
+  //     }
+
+  //     if (swabPeriodId) {
+  //       params.swabPeriodId = swabPeriodId;
+  //     }
+
+  //     if (swabTestCode) {
+  //       params.swabTestCode = swabTestCode;
+  //     }
+
+  //     const { data, error } = get<SwabAreaHistory[]>("/swab/area-history/lab", {
+  //       params,
+  //     });
+
+  //     watch(data, (swabAreaHistoryData) => {
+  //       // swabAreaHistoryData.map((swabTestData) => {
+  //       //   swabAreaHistoryEnvironmentRepo
+  //       //     .where("swabTestId", swabTestData.id)
+  //       //     .delete();
+
+  //       //   return swabTestData;
+  //       // });
+  //       console.log(swabAreaHistoryData);
+
+  //       const updatedSwabAreaHistoryData =
+  //         swabAreaHistoryRepo.save(swabAreaHistoryData);
+
+  //       resolve(updatedSwabAreaHistoryData);
+  //     });
+
+  //     watch(error, (e) => {
+  //       console.log(e);
+
+  //       reject("load all lab swab area history failed");
+  //     });
+  //   });
+  // };
 
   const getSwabPeriodByIds = (ids: string[]) => {
     const query = swabPeriodRepo.where("id", ids);
@@ -189,9 +247,11 @@ export const useSwab = () => {
   };
 
   const getSwabPeriodByNames = (names: string[]) => {
-    return names.map((name) => {
-      return swabPeriodRepo.where("swabPeriodName", name).first();
-    }).filter(Boolean);
+    return names
+      .map((name) => {
+        return swabPeriodRepo.where("swabPeriodName", name).first();
+      })
+      .filter(Boolean);
   };
 
   const getSwabAreaByIds = (ids: string[], filters: any = {}) => {
@@ -210,7 +270,10 @@ export const useSwab = () => {
     return query.first();
   };
 
-  const getSwabAreaHistoriesByIds = (ids: string[], filters: any = {}): SwabAreaHistory[] => {
+  const getSwabAreaHistoriesByIds = (
+    ids: string[],
+    filters: any = {}
+  ): SwabAreaHistory[] => {
     const query = swabAreaHistoryRepo.where("id", ids);
 
     return query.orderBy("swabTestId", "asc").get();
@@ -222,7 +285,10 @@ export const useSwab = () => {
     return query.first();
   };
 
-  const getSwabProductHistoriesByIds = (ids: string[], filters: any = {}): SwabProductHistory[] => {
+  const getSwabProductHistoriesByIds = (
+    ids: string[],
+    filters: any = {}
+  ): SwabProductHistory[] => {
     const query = swabProductHistoryRepo.where("id", ids);
 
     return query.orderBy("swabTestId", "desc").get();
@@ -234,30 +300,42 @@ export const useSwab = () => {
     return query.first();
   };
 
-  const getSwabAreaHistoryImagesByIds = (ids: string[], filters: any = {}): SwabAreaHistoryImage[] => {
+  const getSwabAreaHistoryImagesByIds = (
+    ids: string[],
+    filters: any = {}
+  ): SwabAreaHistoryImage[] => {
     const query = swabAreaHistoryImageRepo.with("file").where("id", ids);
 
     return query.get();
   };
 
-  const getSwabEnvironmentByIds = (ids: string[], filters: any = {}): SwabEnvironment[] => {
+  const getSwabEnvironmentByIds = (
+    ids: string[],
+    filters: any = {}
+  ): SwabEnvironment[] => {
     const query = swabEnvironmentRepo.where("id", ids);
 
     return query.get();
   };
 
-  const getSwabEnvironmentBySwabAreaHistoryId = (swabAreaHistoryId: string, filters: any = {}): SwabEnvironment[] => {
+  const getSwabEnvironmentBySwabAreaHistoryId = (
+    swabAreaHistoryId: string,
+    filters: any = {}
+  ): SwabEnvironment[] => {
     let result = [];
 
-    const mapping = swabAreaHistoryEnvironmentRepo.query()
+    const mapping = swabAreaHistoryEnvironmentRepo
+      .query()
       .where("swabAreaHistoryId", swabAreaHistoryId)
       .get();
 
     if (mapping.length) {
-      result = swabEnvironmentRepo.where(
-        "id",
-        mapping.map(({ swabEnvironmentId }) => swabEnvironmentId)
-      ).get();
+      result = swabEnvironmentRepo
+        .where(
+          "id",
+          mapping.map(({ swabEnvironmentId }) => swabEnvironmentId)
+        )
+        .get();
     }
 
     return result;
@@ -275,19 +353,25 @@ export const useSwab = () => {
     return query.first();
   };
 
-  const loadSwabAreaToSwabAreaHistory = (histories: SwabAreaHistory[]): SwabAreaHistory[] => {
+  const loadSwabAreaToSwabAreaHistory = (
+    histories: SwabAreaHistory[]
+  ): SwabAreaHistory[] => {
     swabAreaHistoryRepo.with("swabArea").load(histories);
 
     return histories;
   };
 
-  const loadFacilityItemToSwabProductHistory = (histories: SwabProductHistory[]): SwabProductHistory[] => {
+  const loadFacilityItemToSwabProductHistory = (
+    histories: SwabProductHistory[]
+  ): SwabProductHistory[] => {
     swabProductHistoryRepo.with("facilityItem").load(histories);
 
     return histories;
   };
 
-  const loadProductToSwabProductHistory = (histories: SwabProductHistory[]): SwabProductHistory[] => {
+  const loadProductToSwabProductHistory = (
+    histories: SwabProductHistory[]
+  ): SwabProductHistory[] => {
     swabProductHistoryRepo.with("product").load(histories);
 
     return histories;
@@ -295,12 +379,15 @@ export const useSwab = () => {
 
   const getSwabPlan = (fromDate: string, toDate: string): Promise<SwabPlan> => {
     return new Promise((resolve, reject) => {
-      const { data, error } = get<SwabAreaHistory[]>("/swab/area-history/export", {
-        params: {
-          fromDate,
-          toDate
+      const { data, error } = get<SwabAreaHistory[]>(
+        "/swab/area-history/export",
+        {
+          params: {
+            fromDate,
+            toDate,
+          },
         }
-      });
+      );
 
       watch(data, (swabPlanData) => {
         resolve(swabPlanData);
@@ -317,12 +404,12 @@ export const useSwab = () => {
   const mapPivotSwabAreaEnvironment = (swabAreaHistory) => {
     if (swabAreaHistory.swabEnvironments?.length) {
       swabAreaHistory.swabEnvironments = swabAreaHistory.swabEnvironments.map(
-        swabEnvironment => ({
+        (swabEnvironment) => ({
           ...swabEnvironment,
           pivot: {
             swabEnvironmentId: swabEnvironment.id,
-            swabAreaHistoryId: swabAreaHistory.id
-          }
+            swabAreaHistoryId: swabAreaHistory.id,
+          },
         })
       );
     }
@@ -330,15 +417,12 @@ export const useSwab = () => {
     return swabAreaHistory;
   };
 
-  const loadAllSwabPlanForUpdate = (loadAllSwabPlanForUpdateData: LoadAllSwabPlanForUpdateData): Promise<SwabAreaHistory[]> => {
+  const loadAllSwabPlanForUpdate = (
+    loadAllSwabPlanForUpdateData: LoadAllSwabPlanForUpdateData
+  ): Promise<SwabAreaHistory[]> => {
     return new Promise((resolve, reject) => {
-      const {
-        date,
-        shift,
-        facilityId,
-        mainSwabAreaId,
-        swabPeriodId
-      } = loadAllSwabPlanForUpdateData;
+      const { date, shift, facilityId, mainSwabAreaId, swabPeriodId } =
+        loadAllSwabPlanForUpdateData;
 
       const { onlyDate } = useDate();
 
@@ -348,22 +432,27 @@ export const useSwab = () => {
           shift,
           facilityId,
           mainSwabAreaId,
-          swabPeriodId
-        }
+          swabPeriodId,
+        },
       });
 
       watch(data, (swabHistoryForUpdateData) => {
         swabHistoryForUpdateData = swabHistoryForUpdateData.map(
           (swabAreaHistoryData) => {
-            swabAreaHistoryEnvironmentRepo.where("swabAreaHistoryId", swabAreaHistoryData.id).delete();
+            swabAreaHistoryEnvironmentRepo
+              .where("swabAreaHistoryId", swabAreaHistoryData.id)
+              .delete();
 
-            swabAreaHistoryData = mapPivotSwabAreaEnvironment(swabAreaHistoryData);
+            swabAreaHistoryData =
+              mapPivotSwabAreaEnvironment(swabAreaHistoryData);
 
             return swabAreaHistoryData;
           }
         );
 
-        const updatedSwabAreaHistories = swabAreaHistoryRepo.save(swabHistoryForUpdateData);
+        const updatedSwabAreaHistories = swabAreaHistoryRepo.save(
+          swabHistoryForUpdateData
+        );
 
         resolve(updatedSwabAreaHistories);
       });
@@ -381,11 +470,17 @@ export const useSwab = () => {
       const { data, error } = get<SwabAreaHistory>(`/swab/area-history/${id}`);
 
       watch(data, (swabHistoryForUpdateData) => {
-        swabAreaHistoryEnvironmentRepo.where("swabAreaHistoryId", swabHistoryForUpdateData.id).delete();
+        swabAreaHistoryEnvironmentRepo
+          .where("swabAreaHistoryId", swabHistoryForUpdateData.id)
+          .delete();
 
-        swabHistoryForUpdateData = mapPivotSwabAreaEnvironment(swabHistoryForUpdateData);
+        swabHistoryForUpdateData = mapPivotSwabAreaEnvironment(
+          swabHistoryForUpdateData
+        );
 
-        const updatedSwabAreaHistory = swabAreaHistoryRepo.save(swabHistoryForUpdateData);
+        const updatedSwabAreaHistory = swabAreaHistoryRepo.save(
+          swabHistoryForUpdateData
+        );
 
         resolve(updatedSwabAreaHistory);
       });
@@ -398,12 +493,18 @@ export const useSwab = () => {
     });
   };
 
-  const updateSwabPlabById = (swabAreaHistoryId: string, body: BodyUpdateSwabPlanByIdData): Promise<any> => {
+  const updateSwabPlabById = (
+    swabAreaHistoryId: string,
+    body: BodyUpdateSwabPlanByIdData
+  ): Promise<any> => {
     return new Promise((resolve, reject) => {
-      const { data, error } = put<any>(`/swab/area-history/${swabAreaHistoryId}`, {
-        ...body,
-        swabAreaSwabedAt: timePickerToTimeString(body.swabAreaSwabedAt)
-      });
+      const { data, error } = put<any>(
+        `/swab/area-history/${swabAreaHistoryId}`,
+        {
+          ...body,
+          swabAreaSwabedAt: timePickerToTimeString(body.swabAreaSwabedAt),
+        }
+      );
 
       watch(data, (responseData) => {
         resolve(responseData);
@@ -417,40 +518,35 @@ export const useSwab = () => {
     });
   };
 
-  const loadSwabProductHistory = (loadSwabProductHistoryData: LoadSwabProductHistoryData): Promise<SwabProductHistory[]> => {
+  const loadSwabProductHistory = (
+    filter: LoadAllSwabProductHistoryFilter
+  ): Promise<SwabProductHistory[]> => {
     return new Promise((resolve, reject) => {
-      const {
-        date,
-        shift,
-        facilityId,
-        facilityItemId,
-        swabPeriodId
-      } = loadSwabProductHistoryData;
+      const { toDto } = useFilterSwabProductHistory();
 
-      const { onlyDate } = useDate();
+      const params: SearchParams = toDto(filter);
 
-      const { data, error } = get<LoadSwabProductHistoryResponse>("/swab/product-history", {
-        params: {
-          swabProductDate: onlyDate(new Date(date)),
-          shift,
-          facilityId,
-          facilityItemId,
-          swabPeriodId
-        }
-      });
+      const { data, error } = get<LoadSwabProductHistoryResponse>(
+        "/swab/product-history",
+        { params }
+      );
 
       watch(data, (swabProductHistoryData: LoadSwabProductHistoryResponse) => {
         const {
+          facilities = [],
           facilityItems = [],
           products = [],
-          swabProductHistories = []
+          swabProductHistories = [],
         } = swabProductHistoryData;
+
+        facilityRepo.save(facilities);
 
         facilityItemRepo.save(facilityItems);
 
         productRepo.save(products);
 
-        const updatedSwabProductHistories = swabProductHistoryRepo.save(swabProductHistories);
+        const updatedSwabProductHistories =
+          swabProductHistoryRepo.save(swabProductHistories);
 
         resolve(updatedSwabProductHistories);
       });
@@ -461,14 +557,20 @@ export const useSwab = () => {
         reject("Load swab product history failed");
       });
     });
-  }
+  };
 
-  const loadSwabProductHistoryById = (id: string): Promise<SwabProductHistory> => {
+  const loadSwabProductHistoryById = (
+    id: string
+  ): Promise<SwabProductHistory> => {
     return new Promise((resolve, reject) => {
-      const { data, error } = get<SwabProductHistory>(`/swab/product-history/${id}`);
+      const { data, error } = get<SwabProductHistory>(
+        `/swab/product-history/${id}`
+      );
 
       watch(data, (swabProductHistoryData: SwabProductHistory) => {
-        const updatedSwabProductHistory = swabProductHistoryRepo.save(swabProductHistoryData);
+        const updatedSwabProductHistory = swabProductHistoryRepo.save(
+          swabProductHistoryData
+        );
 
         resolve(updatedSwabProductHistory);
       });
@@ -477,20 +579,22 @@ export const useSwab = () => {
         reject(e);
       });
     });
-  }
+  };
 
-  const updateLabTestById = (swabTestId: number, hasBacteria: boolean): Promise<any> => {
+  const updateLabTestById = (
+    swabTestId: number,
+    hasBacteria: boolean
+  ): Promise<any> => {
     const bacteriaSpecies = [];
 
     if (hasBacteria) {
-      bacteriaSpecies.push(
-        { bacteriaName: "Listeria" }
-      );
+      bacteriaSpecies.push({ bacteriaName: "Listeria" });
     }
+
     return new Promise((resolve, reject) => {
       const { data, error } = put<any>(`/swab-test/${swabTestId}`, {
         swabTestRecordedAt: today().toISOString(),
-        bacteriaSpecies
+        bacteriaSpecies,
       });
 
       watch(data, (responseData) => {
@@ -505,11 +609,13 @@ export const useSwab = () => {
     });
   };
 
-  const createSwabProductHistory = (body: BodyCreateSwabProductHistory): Promise<any> => {
+  const createSwabProductHistory = (
+    body: BodyCreateSwabProductHistory
+  ): Promise<any> => {
     return new Promise((resolve, reject) => {
       const { data, error } = post<any>(`/swab/product-history`, {
         ...body,
-        swabProductSwabedAt: timePickerToTimeString(body.swabProductSwabedAt)
+        swabProductSwabedAt: timePickerToTimeString(body.swabProductSwabedAt),
       });
 
       watch(data, (responseData) => {
@@ -524,11 +630,14 @@ export const useSwab = () => {
     });
   };
 
-  const updateSwabProductHistory = (id: string, body: BodyUpdateSwabProductHistory): Promise<any> => {
+  const updateSwabProductHistory = (
+    id: string,
+    body: BodyUpdateSwabProductHistory
+  ): Promise<any> => {
     return new Promise((resolve, reject) => {
       const { data, error } = put<any>(`/swab/product-history/${id}`, {
         ...body,
-        swabProductSwabedAt: timePickerToTimeString(body.swabProductSwabedAt)
+        swabProductSwabedAt: timePickerToTimeString(body.swabProductSwabedAt),
       });
 
       watch(data, (responseData) => {
@@ -600,7 +709,7 @@ export const useSwab = () => {
         loadAllSwabEnvironment,
         loadAllMainSwabArea,
         loadAllSwabPlanForUpdate,
-        loadAllSwabTest,
+        // loadAllLabSwabAreaHistory,
         loadSwabPlanForUpdateById,
         loadSwabProductHistory,
         loadSwabProductHistoryById,
@@ -608,8 +717,8 @@ export const useSwab = () => {
         updateLabTestById,
         createSwabProductHistory,
         updateSwabProductHistory,
-        deleteSwabProductHistory
+        deleteSwabProductHistory,
       };
-    }
+    },
   };
 };

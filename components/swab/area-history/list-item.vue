@@ -4,18 +4,15 @@ import CarbonCheckmarkFilled from "~icons/carbon/checkmark-filled";
 import SwabAreaHistory from "~~/models/SwabAreaHistory";
 
 export interface Props {
-    itemNo?: number;
-    prefixTitle?: string;
-    // routeName: string;
-    history: SwabAreaHistory;
+  itemNo?: number;
+  prefixTitle?: string;
+  // routeName: string;
+  history: SwabAreaHistory;
 }
 
-const props = withDefaults(
-  defineProps<Props>(),
-  {
-    prefixTitle: ""
-  }
-);
+const props = withDefaults(defineProps<Props>(), {
+  prefixTitle: "",
+});
 
 const route = useRoute();
 const { getSwabAreaById } = useSwab();
@@ -26,14 +23,12 @@ const historySwabAreaName: ComputedRef<string> = computed(() => {
   return swabArea.swabAreaName;
 });
 
-const checkMarkClassName: ComputedRef<Record<string, boolean>> = computed(() => ({
-  "text-secondary": !props.history.isCompleted,
-  "text-success": props.history.isCompleted
-}));
-
-const badgeVariant: ComputedRef<string> = computed(() => props.history.isCompleted ? "success" : "light");
-
-const badgeText: ComputedRef<string> = computed(() => props.history.isCompleted ? "บันทึกสำเร็จ" : "บันทึกไม่สำเร็จ");
+const checkMarkClassName: ComputedRef<Record<string, boolean>> = computed(
+  () => ({
+    "text-secondary": !props.history.isCompleted,
+    "text-success": props.history.isCompleted,
+  })
+);
 
 const itemTitle: ComputedRef<string> = computed(() => {
   const { prefixTitle, itemNo } = props;
@@ -52,18 +47,17 @@ const pageUpdateSwabAreaHistory: ComputedRef<object> = computed(() => {
     name: "swab-area-history-name",
     // name: props.routeName,
     params: {
-      name: historySwabAreaName.value
+      name: historySwabAreaName.value,
     },
     query: {
       areaTitle: itemTitle.value,
       id: props.history.id,
-      redirect: route.fullPath
-    }
+      redirect: route.fullPath,
+    },
   };
 
   return routeParam;
 });
-
 </script>
 
 <template>
@@ -73,7 +67,10 @@ const pageUpdateSwabAreaHistory: ComputedRef<object> = computed(() => {
     class="list-group-item__swab-area-history text-decoration-none"
     custom
   >
-    <b-list-group-item class="d-flex justify-content-between align-items-center py-4" @click="navigate">
+    <b-list-group-item
+      class="d-flex justify-content-between align-items-center py-4"
+      @click="navigate"
+    >
       <span>
         <carbon-checkmark-filled
           :style="{ fontSize: '1em', marginRight: '1rem' }"
@@ -85,9 +82,9 @@ const pageUpdateSwabAreaHistory: ComputedRef<object> = computed(() => {
         {{ historySwabAreaName }}
       </span>
 
-      <b-badge :variant="badgeVariant" pill>
-        {{ badgeText }}
-      </b-badge>
+      <badge-complete-status
+        :is-completed="history.isCompleted"
+      ></badge-complete-status>
     </b-list-group-item>
   </nuxt-link>
 </template>

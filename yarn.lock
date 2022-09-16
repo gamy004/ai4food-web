@@ -343,6 +343,20 @@
   resolved "https://registry.npmjs.org/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
 
+"@iconify-json/akar-icons@^1.1.8":
+  version "1.1.8"
+  resolved "https://registry.yarnpkg.com/@iconify-json/akar-icons/-/akar-icons-1.1.8.tgz#23f515001eb09d87003d6abc5d3bb100c47fd5fe"
+  integrity sha512-ip0q7oG8bKAmvTUiSzVGlsKCiVFbyQJS1Zl5jfBnXMXu8iBLf5KwLEOYWbg2Xj85KyOteZ1iG3cvEQipZv4iiA==
+  dependencies:
+    "@iconify/types" "*"
+
+"@iconify-json/bi@^1.1.7":
+  version "1.1.7"
+  resolved "https://registry.yarnpkg.com/@iconify-json/bi/-/bi-1.1.7.tgz#45ff47d449e0c8066fe8c2b59740bdbe3faba585"
+  integrity sha512-yHoRAbLsUKUa489xkBFgoHZUMFYuDLMsTbSn0ndE2iIkm/zyju/IXNJ/VyPTbVd6ulm6wMk7NDAOUQ4okw/Mlg==
+  dependencies:
+    "@iconify/types" "*"
+
 "@iconify-json/carbon@^1.1.6":
   version "1.1.6"
   resolved "https://registry.npmjs.org/@iconify-json/carbon/-/carbon-1.1.6.tgz"
@@ -3719,7 +3733,7 @@ lodash.uniq@^4.5.0:
 
 lodash@^4.17.21:
   version "4.17.21"
-  resolved "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
 
 log-symbols@^4.1.0:

@@ -15,7 +15,7 @@ export interface Props {
 
 const toast = useToast();
 
-const { api: swabPeriodApi, getSwabPeriodByIds } = useSwab();
+const { api: swabPeriodApi, getSwabPeriodByNames } = useSwab();
 
 const props = withDefaults(defineProps<Props>(), {
   clearable: false,
@@ -29,9 +29,25 @@ const isFetched = ref(false);
 const loading = ref(false);
 const swabPeriodIds = ref([]);
 
-const swabPeriodOptions = computed(() =>
-  getSwabPeriodByIds(swabPeriodIds.value)
-);
+const swabPeriodNames = [
+  "ก่อน Super Big Cleaning",
+  "หลัง Super Big Cleaning",
+  "หลังประกอบเครื่อง",
+  "ก่อนล้างระหว่างงาน",
+  "หลังล้างระหว่างงาน",
+  "เดินไลน์หลังพัก 4 ชม.",
+  "ก่อนล้างท้ายกะ",
+  "หลังล้างท้ายกะ",
+];
+
+const swabPeriodOptions = computed(() => {
+  const swabPeriods = getSwabPeriodByNames(swabPeriodNames);
+
+  return swabPeriods.map(({ id, swabPeriodName }) => ({
+    id,
+    swabPeriodName,
+  }));
+});
 
 const modelValue = computed({
   get: () => props.modelValue,
@@ -59,20 +75,25 @@ const fetch = async () => {
   }
 };
 
-watch(
-  () => props,
-  async () => {
-    isFetched.value = false;
+onBeforeMount(async () => {
+  isFetched.value = false;
 
-    await fetch();
-  },
-  { immediate: true, deep: true }
-);
+  await fetch();
+});
 </script>
 
 <template>
-  <v-select v-model="modelValue" :options="swabPeriodOptions" label="swabPeriodName" :loading="loading"
-    :clearable="clearable" :disabled="disabled" :reduce="({ id }) => ({ id })" deselect-from-dropdown @open="fetch">
+  <v-select
+    v-model="modelValue"
+    :options="swabPeriodOptions"
+    label="swabPeriodName"
+    :loading="loading"
+    :clearable="clearable"
+    :disabled="disabled"
+    :reduce="({ id }) => ({ id })"
+    deselect-from-dropdown
+    @open="fetch"
+  >
     <template #selected-option="{ swabPeriodName }">
       {{ swabPeriodName }}
     </template>

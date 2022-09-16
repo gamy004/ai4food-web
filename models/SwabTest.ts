@@ -1,28 +1,44 @@
-import { Attr, Model, Uid, Str, HasManyBy } from "pinia-orm";
+import { Attr, Model, Uid, Str, HasManyBy, BelongsToMany } from "pinia-orm";
 import SwabAreaHistory from "./SwabAreaHistory";
 import SwabProductHistory from "./SwabProductHistory";
 import Bacteria from "./Bacteria";
+import BacteriaSpecie from "./BacteriaSpecie";
+import SwabTestBacteria from "./SwabTestBacteria";
 export default class SwabTest extends Model {
   static entity = "swab_test";
 
-  @Uid()
+  @Attr(null)
   id!: string | null;
 
   @Str("")
   swabTestCode!: string;
 
-  @Attr([])
-  bacteria!: Bacteria[];
+  @Attr(null)
+  swabTestRecordedAt?: string;
 
-  @Attr([])
-  swabAreaHistoryIds!: string[];
+  @Attr(null)
+  swabTestNote?: string;
 
-  @HasManyBy(() => SwabAreaHistory, "swabAreaHistoryIds", "swabTestId")
-  swabAreaHistories!: SwabAreaHistory[];
+  @BelongsToMany(
+    () => Bacteria,
+    () => SwabTestBacteria,
+    "swabTestId",
+    "bacteriaId"
+  )
+  bacteria: Bacteria[];
 
-  @Attr([])
-  swabProductHistoryIds!: string[];
+  // @Attr([])
+  // bacteriaSpecies!: BacteriaSpecie[];
 
-  @HasManyBy(() => SwabProductHistory, "swabProductHistoryIds", "swabTestId")
-  swabProductHistories!: SwabProductHistory[];
+  // @Attr([])
+  // swabAreaHistoryIds!: string[];
+
+  // @HasManyBy(() => SwabAreaHistory, "swabAreaHistoryIds", "swabTestId")
+  // swabAreaHistories!: SwabAreaHistory[];
+
+  // @Attr([])
+  // swabProductHistoryIds!: string[];
+
+  // @HasManyBy(() => SwabProductHistory, "swabProductHistoryIds", "swabTestId")
+  // swabProductHistories!: SwabProductHistory[];
 }
