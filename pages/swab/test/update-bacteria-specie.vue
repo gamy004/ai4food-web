@@ -34,7 +34,7 @@ const fetch = async () => {
   loading.value = true;
 
   try {
-    await labApi().loadAllBacteria();
+    await labApi().loadAllBacteriaWithSpecie();
   } catch (e) {
     console.log(e);
 

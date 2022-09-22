@@ -60,9 +60,10 @@ const tableFields = computed(() => {
     { key: "status", label: "สถานะ", tdClass: "text-center" },
     {
       key: "action",
-      label: props.editSpecie ? "ผลตรวจเชื้อ" : "ผลตรวจ Species",
+      label: props.editSpecie ? "ผลตรวจสายพันธุ์เชื้อ" : "ผลตรวจเชื้อ",
       thClass: "text-center",
       tdClass: "text-center",
+      thStyle: props.editSpecie ? { minWidth: "300px" } : {},
     },
   ];
 
@@ -113,6 +114,7 @@ const displayData = computed(() => {
       swabTest,
       stateBacteria,
       bacteria,
+      bacteriaSpecie: [],
     };
   });
 });
@@ -126,11 +128,19 @@ const fetch = async function fetch(form) {
   swabAreaHistoryIds.value = [];
 
   try {
-    const data: SwabAreaHistory[] = await labApi().loadAllLabSwabAreaHistory({
+    let data: SwabAreaHistory[] = await labApi().loadAllLabSwabAreaHistory({
       ...form.value,
     });
 
     if (data && data.length) {
+      if (props.editSpecie) {
+        data = data.filter((record) => {
+          const stateBacteria = getBacteriaStateBySwabTestId(record.swabTestId);
+
+          return stateBacteria;
+        });
+      }
+
       swabAreaHistoryIds.value = data.map(({ id }) => id);
     } else {
       hasData.value = false;
@@ -158,6 +168,7 @@ watch(() => form, fetch, { immediate: true, deep: true });
     <div v-if="hasData">
       <b-table
         id="swabTestAreaTable"
+        class="pb-5"
         hover
         small
         responsive
@@ -177,15 +188,18 @@ watch(() => form, fetch, { immediate: true, deep: true });
         </template>
 
         <template #cell(action)="{ item }">
+          <swab-test-form-select-bacteria-specie
+            v-if="editSpecie"
+            :swab-test-id="item.swabTestId"
+            :auto-fetch="false"
+          >
+          </swab-test-form-select-bacteria-specie>
+
           <swab-test-form-radio-bacteria
+            v-else
             :swab-test-id="item.swabTestId"
             v-model="submittingSwabTestId"
           ></swab-test-form-radio-bacteria>
-
-          <swab-test-form-select-bacteria-specie
-            :swab-test-id="item.swabTestId"
-          >
-          </swab-test-form-select-bacteria-specie>
         </template>
       </b-table>
 

@@ -132,6 +132,18 @@ export const useLab = () => {
     return query.get();
   };
 
+  const getBacteriaSpecieByBacteriaIds = (bacteriaIds: string[]) => {
+    const query = bacteriaSpecieRepo.where("bacteriaId", bacteriaIds);
+
+    return query.get();
+  };
+
+  const getBacteriaSpecieByBacteriaId = (bacteriaId: string) => {
+    const query = bacteriaSpecieRepo.where("bacteriaId", bacteriaId);
+
+    return query.get();
+  };
+
   const getBacteriaSpecieById = (id: string) => {
     const query = bacteriaSpecieRepo.where("id", id);
 
@@ -199,6 +211,32 @@ export const useLab = () => {
   const loadAllBacteria = async (): Promise<Bacteria[]> => {
     return new Promise((resolve, reject) => {
       const { data, error } = get<Bacteria[]>("/bacteria");
+
+      watch(data, (bacteriaData) => {
+        const bacterias = bacteriaRepo.save(bacteriaData);
+
+        resolve(bacterias);
+      });
+
+      watch(error, (e) => {
+        console.log(e);
+
+        reject("Load bacteria failed");
+      });
+    });
+  };
+
+  const loadAllBacteriaWithSpecie = async (): Promise<Bacteria[]> => {
+    return new Promise((resolve, reject) => {
+      const params: SearchParams = {
+        include: {
+          bacteriaSpecies: true,
+        },
+      };
+
+      const { data, error } = get<Bacteria[]>("/bacteria", {
+        params,
+      });
 
       watch(data, (bacteriaData) => {
         const bacterias = bacteriaRepo.save(bacteriaData);
@@ -330,8 +368,6 @@ export const useLab = () => {
         swabTest = mapPivotSwabTestBacteria(swabTest);
 
         swabTest = mapPivotSwabTestBacteriaSpecie(swabTest);
-
-        console.log(swabTest);
 
         return swabTest;
       });
@@ -514,12 +550,47 @@ export const useLab = () => {
     });
   };
 
+  const updateSwabTestBacteriaSpecies = (
+    swabTestId: string,
+    bacteriaSpecies: BacteriaSpecieData[]
+  ): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const bacteriaSpecieRecordedAt = today().toISOString();
+
+      const { data, error } = put<any>(
+        `/swab-test/${swabTestId}/bacteria-species`,
+        {
+          bacteriaSpecieRecordedAt,
+          bacteriaSpecies,
+        }
+      );
+
+      watch(data, (responseData) => {
+        swabTestRepo.save({ id: swabTestId, bacteriaSpecieRecordedAt });
+
+        clearBacteriaSpecieRelationBySwabTestId(swabTestId);
+
+        saveBacteriaSpecieRelationBySwabTestId(swabTestId, bacteriaSpecies);
+
+        resolve(responseData);
+      });
+
+      watch(error, (e) => {
+        console.log(e);
+
+        reject("Update swab test bacteria species failed");
+      });
+    });
+  };
+
   return {
     getBacteriaByIds,
     getBacteriaById,
     getBacteriaByNames,
     getBacteriaBySwabTestId,
     getBacteriaSpecieByIds,
+    getBacteriaSpecieByBacteriaIds,
+    getBacteriaSpecieByBacteriaId,
     getBacteriaSpecieById,
     getBacteriaSpecieByNames,
     getBacteriaSpecieBySwabTestId,
@@ -533,10 +604,12 @@ export const useLab = () => {
     api() {
       return {
         loadAllBacteria,
+        loadAllBacteriaWithSpecie,
         loadAllBacteriaSpecies,
         loadAllLabSwabAreaHistory,
         loadAllLabSwabProductHistory,
         updateSwabTestById,
+        updateSwabTestBacteriaSpecies,
       };
     },
   };

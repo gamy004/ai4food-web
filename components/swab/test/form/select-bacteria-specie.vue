@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { Ref } from "vue";
 import vSelect from "vue-select";
 import { useToast } from "vue-toastification";
 import BacteriaSpecie from "~~/models/BacteriaSpecie";
@@ -6,35 +7,51 @@ import SwabEnvironment from "~~/models/SwabEnvironment";
 
 export type SelectData = {
   id?: string;
+  bacteriaId?: string;
   bacteriaSpecieName?: string;
 };
 
 export interface Props {
+  swabTestId: string;
   modelValue?: SelectData[];
+  autoFetch?: boolean;
 }
 
 const toast = useToast();
 
 const {
   api: labApi,
-  getBacteriaSpecieByIds,
-  //   getBacteriaBySwabTestId,
-  //   getBacteriaSpecieBySwabTestId,
+  getBacteriaSpecieByBacteriaIds,
+  getBacteriaBySwabTestId,
+  getBacteriaSpecieBySwabTestId,
 } = useLab();
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: () => [],
+  autoFetch: true,
 });
 
 const emit = defineEmits(["update:modelValue"]);
 
 const isFetched = ref(false);
 const loading = ref(false);
-const bacteriaSpecieIds = ref([]);
+const submitting = ref(false);
+const selectedData: Ref<SelectData[]> = ref([]);
+// const bacteriaSpecieIds = ref([]);
 
-const bacteriaSpecies = computed(() =>
-  getBacteriaSpecieByIds(bacteriaSpecieIds.value)
+const swabTestBacteria = computed(() =>
+  getBacteriaBySwabTestId(props.swabTestId)
 );
+
+const bacteriaSpecies = computed(() => {
+  const bacteriaIds = swabTestBacteria.value.map(({ id }) => id);
+
+  const bacteriaSpecies = bacteriaIds.length
+    ? getBacteriaSpecieByBacteriaIds(bacteriaIds)
+    : [];
+
+  return bacteriaSpecies;
+});
 
 const modelValue = computed({
   get: () => props.modelValue,
@@ -47,18 +64,32 @@ const fetch = async () => {
     loading.value = true;
 
     try {
-      const bacteriaSpecieData: BacteriaSpecie[] =
-        await labApi().loadAllBacteriaSpecies();
-
-      if (bacteriaSpecieData.length) {
-        bacteriaSpecieIds.value = bacteriaSpecieData.map(({ id }) => id);
-      }
+      await labApi().loadAllBacteriaSpecies();
     } catch (error) {
       toast.error("ไม่สามารถโหลดข้อมูล bacteria specie ได้", { timeout: 1000 });
     } finally {
       loading.value = false;
       isFetched.value = true;
     }
+  }
+};
+
+const updateBacteriaSpecies = async (selectedData: SelectData[]) => {
+  submitting.value = true;
+
+  let bacteriaSpecies = selectedData.map(
+    ({ id: bacteriaSpecieId, bacteriaId }) => ({ bacteriaSpecieId, bacteriaId })
+  );
+
+  try {
+    await labApi().updateSwabTestBacteriaSpecies(
+      props.swabTestId,
+      bacteriaSpecies
+    );
+  } catch (e) {
+    toast.error("อัพเดตผลสายพันธุ์เชื้อไม่สำเร็จ", { timeout: 1000 });
+  } finally {
+    submitting.value = false;
   }
 };
 
@@ -74,29 +105,41 @@ const getOptionLabel = function (option) {
   return option;
 };
 
-onBeforeMount(fetch);
+onBeforeMount(async () => {
+  if (props.autoFetch) {
+    isFetched.value = false;
+
+    await fetch();
+  }
+
+  watch(
+    () => selectedData.value,
+    (selectedData: SelectData[]) => {
+      updateBacteriaSpecies(selectedData);
+    }
+  );
+});
 </script>
 
 <template>
   <v-select
-    v-model="modelValue"
+    v-model="selectedData"
     class="form-control p-0 border-0"
     multiple
-    taggable
     :options="bacteriaSpecies"
     label="bacteriaSpecieName"
     :get-option-label="getOptionLabel"
-    :loading="loading"
-    :create-option="(bacteriaSpecieName) => ({ bacteriaSpecieName })"
+    :loading="loading || submitting"
     :reduce="
-      ({ id, bacteriaSpecieName }) => (id ? { id } : { bacteriaSpecieName })
+      ({ id, bacteriaSpecieName, bacteriaId }) =>
+        id ? { id, bacteriaId } : { bacteriaSpecieName }
     "
     :close-on-select="false"
     deselect-from-dropdown
     @open="fetch"
   >
-    <template #selected-option="{ id, bacteriaSpecieName }">
-      {{ bacteriaSpecieName }} {{ !id ? "(New)" : "" }}
+    <template #selected-option="{ bacteriaSpecieName }">
+      {{ bacteriaSpecieName }}
     </template>
   </v-select>
 </template>
