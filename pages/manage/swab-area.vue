@@ -1,8 +1,10 @@
 <script lang="ts" setup>
 import { useToast } from "vue-toastification";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
-import DownloadIcon from "~icons/carbon/download";
+import UploadIcon from "~icons/carbon/upload";
 import SwabArea from "~~/models/SwabArea";
+import { format } from "date-fns-tz";
+
 
 definePageMeta({
   title: "Ai4FoodSafety - Swab Area",
@@ -14,8 +16,10 @@ definePageMeta({
 });
 const toast = useToast();
 const { api: swabApi } = useSwab();
+const { today } = useDate();
 const { api: facilityApi, getFacilityById } = useFacility();
 
+const currentDate = format(today(), "dd/MM/yyyy HH:mm:ss");
 const isFetched = ref(false);
 const loading = ref(false);
 const error = ref(false);
@@ -50,7 +54,7 @@ const fetch = async () => {
           results.value.push({
             "Facility": facility.facilityName,
             "swab Area": el.swabAreaName,
-            "จุด Swab หลัก": el.mainSwabAreaId,
+            "จุด Swab หลัก": "",
             "จุด Swab รอง": "",
             "รายละเอียด": ""
           });
@@ -87,35 +91,34 @@ onBeforeMount(async () => {
               </h3>
             </b-row>
           </b-col>
-          <b-col >
+          <b-col alignSelf="end">
             <b-button variant="outline-primary">
               เพิ่มรายการจุดตรวจ
             </b-button>
-          </b-col>
-          <b-col cols="1" alignSelf="end">
+            {{}}
             <b-button variant="outline-primary" type="submit">
-              <download-icon />
+              <upload-icon />
             </b-button>
           </b-col>
         </b-row>
-        <b-row>
-          <div v-if="loading" class="col text-center mt-5">
-            <line-md-loading-twotone-loop :style="{ fontSize: '2em' }" />
-          </div>
-          <div v-if="hasResults">
-            <b-table id="result-table" hover small caption-top responsive :items="filteredData" />
-
-            <b-pagination v-model="currentPage" align="center" :total-rows="results.length" :per-page="perPage"
-              aria-controls="result-table" />
-          </div>
-
-          <p v-else>
-            ไม่พบข้อมูลรายการจุดตรวจ swab
-          </p>
-        </b-row>
       </b-container>
     </b-form>
+    <div v-if="loading" class="col text-center mt-5">
+      <line-md-loading-twotone-loop :style="{ fontSize: '2em' }" />
+    </div>
+    <div v-if="hasResults">
+      <p>
+        รายการจุดตรวจ swab | ข้อมูลล่าสุด {{currentDate}} น.
+      </p>
+      <b-table id="result-table" hover small caption-top responsive :items="filteredData" />
 
+      <b-pagination v-model="currentPage" align="center" :total-rows="results.length" :per-page="perPage"
+        aria-controls="result-table" />
+    </div>
+
+    <p v-else>
+      ไม่พบข้อมูลรายการจุดตรวจ swab ในวันที่ {{currentDate}} น.
+    </p>
   </div>
 </template>
 <style module>
