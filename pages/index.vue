@@ -27,6 +27,10 @@ const pageUpdateSwabArea = {
 const pageUpdateSwabProduct = {
   name: "swab-test-update-product",
 };
+
+const pageManageSwabArea = {
+  name: "manage-swab-area",
+};
 </script>
 
 <template>
@@ -104,6 +108,18 @@ const pageUpdateSwabProduct = {
               @click="navigate"
             >
               บันทึกผลการตรวจสินค้า
+            </button-arrow-right>
+          </nuxt-link>
+
+          <nuxt-link v-slot="{ navigate }" :to="pageManageSwabArea" custom>
+            <button-arrow-right
+              v-if="authUser.isInSwabTeam"
+              variant="outline-primary"
+              size="lg"
+              class="w-100"
+              @click="navigate"
+            >
+              จัดการจุดตรวจ swab
             </button-arrow-right>
           </nuxt-link>
         </div>
