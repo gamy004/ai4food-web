@@ -36,7 +36,6 @@ const emit = defineEmits(["update:modelValue"]);
 const isFetched = ref(false);
 const loading = ref(false);
 const submitting = ref(false);
-const selectedData: Ref<SelectData[]> = ref([]);
 // const bacteriaSpecieIds = ref([]);
 
 const swabTestBacteria = computed(() =>
@@ -59,6 +58,14 @@ const modelValue = computed({
   set: (value) => emit("update:modelValue", value),
 });
 
+const stateBacteriaSpecie = computed({
+  get: () => getBacteriaSpecieBySwabTestId(props.swabTestId),
+
+  set: (selectedData: SelectData[]) => {
+    updateBacteriaSpecies(selectedData);
+  },
+});
+
 const fetch = async () => {
   if (!isFetched.value) {
     loading.value = true;
@@ -77,9 +84,9 @@ const fetch = async () => {
 const updateBacteriaSpecies = async (selectedData: SelectData[]) => {
   submitting.value = true;
 
-  let bacteriaSpecies = selectedData.map(
-    ({ id: bacteriaSpecieId, bacteriaId }) => ({ bacteriaSpecieId, bacteriaId })
-  );
+  let bacteriaSpecies = selectedData.map(({ id: bacteriaSpecieId }) => ({
+    bacteriaSpecieId,
+  }));
 
   try {
     await labApi().updateSwabTestBacteriaSpecies(
@@ -111,19 +118,12 @@ onBeforeMount(async () => {
 
     await fetch();
   }
-
-  watch(
-    () => selectedData.value,
-    (selectedData: SelectData[]) => {
-      updateBacteriaSpecies(selectedData);
-    }
-  );
 });
 </script>
 
 <template>
   <v-select
-    v-model="selectedData"
+    v-model="stateBacteriaSpecie"
     class="form-control p-0 border-0"
     multiple
     :options="bacteriaSpecies"

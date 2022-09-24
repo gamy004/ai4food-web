@@ -558,10 +558,12 @@ export const useLab = () => {
       const bacteriaSpecieRecordedAt = today().toISOString();
 
       const { data, error } = put<any>(
-        `/swab-test/${swabTestId}/bacteria-species`,
+        `/swab-test/${swabTestId}/bacteria-specie`,
         {
           bacteriaSpecieRecordedAt,
-          bacteriaSpecies,
+          bacteriaSpecies: bacteriaSpecies.map(
+            ({ bacteriaSpecieId }) => bacteriaSpecieId
+          ),
         }
       );
 
