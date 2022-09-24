@@ -20,12 +20,20 @@ const pageSwabProduct = {
   name: "swab-product",
 };
 
-const pageUpdateSwabArea = {
+const pageUpdateSwabTestArea = {
   name: "swab-test-update-area",
 };
 
-const pageUpdateSwabProduct = {
+const pageUpdateSwabTestProduct = {
   name: "swab-test-update-product",
+};
+
+const pageUpdateBacteriaSpecieArea = {
+  name: "swab-test-update-bacteria-specie-area",
+};
+
+const pageUpdateBacteriaSpecieProduct = {
+  name: "swab-test-update-bacteria-specie-product",
 };
 </script>
 
@@ -67,7 +75,7 @@ const pageUpdateSwabProduct = {
               class="w-100"
               @click="navigate"
             >
-              บันทึกจุดตรวจ Swab
+              บันทึกจุดตรวจ swab
             </button-arrow-right>
           </nuxt-link>
 
@@ -83,7 +91,7 @@ const pageUpdateSwabProduct = {
             </button-arrow-right>
           </nuxt-link>
 
-          <nuxt-link v-slot="{ navigate }" :to="pageUpdateSwabArea" custom>
+          <nuxt-link v-slot="{ navigate }" :to="pageUpdateSwabTestArea" custom>
             <button-arrow-right
               v-if="authUser.isInLabTeam"
               variant="outline-primary"
@@ -91,11 +99,15 @@ const pageUpdateSwabProduct = {
               class="w-100"
               @click="navigate"
             >
-              บันทึกผลจุดตรวจ Swab
+              บันทึกผล lab จุดตรวจ swab
             </button-arrow-right>
           </nuxt-link>
 
-          <nuxt-link v-slot="{ navigate }" :to="pageUpdateSwabProduct" custom>
+          <nuxt-link
+            v-slot="{ navigate }"
+            :to="pageUpdateSwabTestProduct"
+            custom
+          >
             <button-arrow-right
               v-if="authUser.isInLabTeam"
               variant="outline-primary"
@@ -103,7 +115,39 @@ const pageUpdateSwabProduct = {
               class="w-100"
               @click="navigate"
             >
-              บันทึกผลการตรวจสินค้า
+              บันทึกผล lab การตรวจสินค้า
+            </button-arrow-right>
+          </nuxt-link>
+
+          <nuxt-link
+            v-slot="{ navigate }"
+            :to="pageUpdateBacteriaSpecieArea"
+            custom
+          >
+            <button-arrow-right
+              v-if="authUser.isInLabTeam"
+              variant="outline-primary"
+              size="lg"
+              class="w-100"
+              @click="navigate"
+            >
+              บันทึกผล specie เชื้อจุดตรวจ swab
+            </button-arrow-right>
+          </nuxt-link>
+
+          <nuxt-link
+            v-slot="{ navigate }"
+            :to="pageUpdateBacteriaSpecieProduct"
+            custom
+          >
+            <button-arrow-right
+              v-if="authUser.isInLabTeam"
+              variant="outline-primary"
+              size="lg"
+              class="w-100"
+              @click="navigate"
+            >
+              บันทึกผล specie เชื้อสินค้า
             </button-arrow-right>
           </nuxt-link>
         </div>

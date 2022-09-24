@@ -11,26 +11,23 @@ export interface Props {
   modelValue: SwabTestFilterFormData;
   perPage?: number;
   currentPage?: number;
+  editSpecie?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   perPage: 100,
   currentPage: 1,
+  editSpecie: false,
 });
+
 const emit = defineEmits(["update:modelValue"]);
+
 const toast = useToast();
 const { formatThLocale, formatTimeThLocale } = useDate();
 const { getProductById } = useProduct();
 const { getFacilityById, getFacilityItemById } = useFacility();
 const { getSwabPeriodById, getSwabProductHistoryById } = useSwab();
-
 const { getSwabTestById, getBacteriaStateBySwabTestId, api: labApi } = useLab();
-
-const swabProductHistoryIds = ref([]);
-const submittingSwabTestId = ref(null);
-const hasData = ref(true);
-const loading = ref(false);
-const error = ref(false);
 
 const pagination = usePagination({
   perPage: props.perPage,
@@ -61,6 +58,11 @@ const tableFields = [
     tdClass: "text-center",
   },
 ];
+const swabProductHistoryIds = ref([]);
+const submittingSwabTestId = ref(null);
+const hasData = ref(true);
+const loading = ref(false);
+const error = ref(false);
 
 const displayData = computed(() => {
   return swabProductHistoryIds.value.map((swabProductHistoryId, idx) => {
@@ -100,7 +102,6 @@ const displayData = computed(() => {
   });
 });
 
-// const hasDisplayData = computed(() => displayData.value.length > 0);
 const paginatedData = computed(() => pagination.paginate(displayData.value));
 
 const fetch = async () => {
@@ -179,7 +180,9 @@ watch(() => form, fetch, { immediate: true, deep: true });
     </div>
 
     <b-card v-else bg-variant="light">
-      <b-card-text class="text-center"> ไม่พบข้อมูลผลการตรวจ swab </b-card-text>
+      <b-card-text class="text-center">
+        ไม่พบข้อมูลรายการตรวจสินค้า
+      </b-card-text>
     </b-card>
   </div>
 </template>
