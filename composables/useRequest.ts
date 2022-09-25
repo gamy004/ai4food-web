@@ -91,8 +91,14 @@ export const useRequest = () => {
 
     get<T>(url: string, options: FetchOptions = {}) {
       const { params = {}, ...otherFetchOptions } = options;
+      let requestUrl = url;
+      const serializedParams = serialize(params);
 
-      return useFetch<T, ResponseErrorT>(`${url}?${serialize(params)}`, {
+      if (serializedParams.length) {
+        requestUrl += `?${serialize(params)}`;
+      }
+
+      return useFetch<T, ResponseErrorT>(requestUrl, {
         method: "get",
         ...getRequestOptions(),
         ...otherFetchOptions,

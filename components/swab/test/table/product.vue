@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import { useToast } from "vue-toastification";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
-import checkLg from "~icons/bi/check-lg";
-import crossIcon from "~icons/akar-icons/cross";
 import { ShiftMapper } from "~~/composables/useDate";
 import SwabProductHistory from "~~/models/SwabProductHistory";
 import { FormData as SwabTestFilterFormData } from "~~/components/swab/test/filter.vue";
@@ -50,12 +48,18 @@ const tableFields = [
   { key: "productName", label: "สินค้า" },
   { key: "productDate", label: "วันที่ผลิต" },
   { key: "productLot", label: "SubLot" },
-  { key: "status", label: "สถานะ" },
   {
-    key: "action",
-    label: "ผลตรวจเชื้อ",
+    key: "status",
     thClass: "text-center",
     tdClass: "text-center",
+    label: "สถานะ",
+  },
+  {
+    key: "action",
+    label: props.editSpecie ? "ผลตรวจสายพันธุ์เชื้อ" : "ผลตรวจเชื้อ",
+    thClass: "text-center",
+    tdClass: "text-center",
+    thStyle: props.editSpecie ? { width: "40%" } : {},
   },
 ];
 const swabProductHistoryIds = ref([]);
@@ -111,12 +115,20 @@ const fetch = async () => {
   swabProductHistoryIds.value = [];
 
   try {
-    const data: SwabProductHistory[] =
+    let data: SwabProductHistory[] =
       await labApi().loadAllLabSwabProductHistory({
         ...form.value,
       });
 
     if (data && data.length) {
+      if (props.editSpecie) {
+        data = data.filter((record) => {
+          const stateBacteria = getBacteriaStateBySwabTestId(record.swabTestId);
+
+          return stateBacteria;
+        });
+      }
+
       swabProductHistoryIds.value = data.map(({ id }) => id);
     } else {
       hasData.value = false;
@@ -163,7 +175,16 @@ watch(() => form, fetch, { immediate: true, deep: true });
         </template>
 
         <template #cell(action)="{ item }">
+          <swab-test-form-select-bacteria-specie
+            v-if="editSpecie"
+            :swab-test-id="item.swabTestId"
+            :auto-fetch="false"
+            is-static
+            attach-to-body
+          />
+
           <swab-test-form-radio-bacteria
+            v-else
             :swab-test-id="item.swabTestId"
             v-model="submittingSwabTestId"
           ></swab-test-form-radio-bacteria>

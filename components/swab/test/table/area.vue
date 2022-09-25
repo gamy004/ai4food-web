@@ -57,13 +57,18 @@ const tableFields = computed(() => {
     { key: "facilityName", label: "เครื่อง" },
     { key: "facilityItemName", label: "ไลน์" },
     { key: "swabAreaName", label: "จุดตรวจ" },
-    { key: "status", label: "สถานะ", tdClass: "text-center" },
+    {
+      key: "status",
+      label: "สถานะ",
+      thClass: "text-center",
+      tdClass: "text-center",
+    },
     {
       key: "action",
       label: props.editSpecie ? "ผลตรวจสายพันธุ์เชื้อ" : "ผลตรวจเชื้อ",
       thClass: "text-center",
       tdClass: "text-center",
-      thStyle: props.editSpecie ? { minWidth: "300px" } : {},
+      thStyle: props.editSpecie ? { width: "40%" } : {},
     },
   ];
 
@@ -192,8 +197,9 @@ watch(() => form, fetch, { immediate: true, deep: true });
             v-if="editSpecie"
             :swab-test-id="item.swabTestId"
             :auto-fetch="false"
-          >
-          </swab-test-form-select-bacteria-specie>
+            is-static
+            attach-to-body
+          />
 
           <swab-test-form-radio-bacteria
             v-else

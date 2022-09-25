@@ -1,9 +1,6 @@
 <script lang="ts" setup>
-import { Ref } from "vue";
 import vSelect from "vue-select";
 import { useToast } from "vue-toastification";
-import BacteriaSpecie from "~~/models/BacteriaSpecie";
-import SwabEnvironment from "~~/models/SwabEnvironment";
 
 export type SelectData = {
   id?: string;
@@ -15,6 +12,8 @@ export interface Props {
   swabTestId: string;
   modelValue?: SelectData[];
   autoFetch?: boolean;
+  isStatic?: boolean;
+  attachToBody?: boolean;
 }
 
 const toast = useToast();
@@ -29,6 +28,8 @@ const {
 const props = withDefaults(defineProps<Props>(), {
   modelValue: () => [],
   autoFetch: true,
+  isStatic: false,
+  attachToBody: false,
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -62,12 +63,14 @@ const stateBacteriaSpecie = computed({
   get: () => getBacteriaSpecieBySwabTestId(props.swabTestId),
 
   set: (selectedData: SelectData[]) => {
-    updateBacteriaSpecies(selectedData);
+    if (!submitting.value) {
+      updateBacteriaSpecies(selectedData);
+    }
   },
 });
 
 const fetch = async () => {
-  if (!isFetched.value) {
+  if (!isFetched.value || !props.isStatic) {
     loading.value = true;
 
     try {
@@ -136,6 +139,8 @@ onBeforeMount(async () => {
     "
     :close-on-select="false"
     deselect-from-dropdown
+    attach
+    :append-to-body="attachToBody"
     @open="fetch"
   >
     <template #selected-option="{ bacteriaSpecieName }">
