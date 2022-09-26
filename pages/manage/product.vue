@@ -52,15 +52,20 @@ const fetch = async () => {
 
 const tableFields = computed(() => {
   return [
-    { key: "order", label: "ลำดับ" },
-    { key: "productCode", label: "รหัสสินค้า" },
-    { key: "alternateProductCode", label: "รหัสสินค้าลำรอง" },
-    { key: "productName", label: "ชื่อสินค้า" },
+    { key: "order", label: "ลำดับ", thStyle: { width: "10%" } },
+    { key: "productCode", label: "รหัสสินค้า", thStyle: { width: "20%" } },
+    {
+      key: "alternateProductCode",
+      label: "รหัสสินค้าลำรอง",
+      thStyle: { width: "20%" },
+    },
+    { key: "productName", label: "ชื่อสินค้า", thStyle: { width: "30%" } },
     {
       key: "action",
-      label: "",
-      thClass: "text-center",
-      tdClass: "text-center",
+      label: "แก้ไข/ลบ",
+      thClass: "text-end",
+      tdClass: "text-end",
+      thStyle: { width: "20%" },
     },
   ];
 });
@@ -85,8 +90,9 @@ const filteredData = computed(() =>
   })
 );
 
-const onCreateSuccess = async () => {
-  await fetch;
+const promptEdit = (id) => {
+  editedId.value = id;
+  showModal.value = true;
 };
 
 const promptRemove = (id) => {
@@ -111,7 +117,7 @@ onBeforeMount(fetch);
           <b-button
             class="me-1"
             variant="outline-primary"
-            @click="showModal = !showModal"
+            @click="showModal = true"
           >
             เพิ่มรายการสินค้า
           </b-button>
@@ -137,7 +143,7 @@ onBeforeMount(fetch);
             :items="filteredData"
           >
             <template #cell(action)="{ item }">
-              <b-button variant="link">
+              <b-button variant="link" @click="promptEdit(item.id)" class="p-0">
                 <CarbonEdit
                   style="
                      {
@@ -150,7 +156,7 @@ onBeforeMount(fetch);
               <b-button
                 variant="link"
                 @click="promptRemove(item.id)"
-                class="ms-3 text-danger"
+                class="ms-3 p-0 text-danger"
               >
                 <CarbonTrashCan
                   style="
@@ -178,8 +184,11 @@ onBeforeMount(fetch);
       </b-row>
     </b-container>
 
-    <product-modal-create v-model="editedId" @success="onCreateSuccess">
-    </product-modal-create>
+    <product-modal-manage
+      v-model:id-value="editedId"
+      v-model:show-value="showModal"
+    >
+    </product-modal-manage>
   </div>
 </template>
 <style module></style>

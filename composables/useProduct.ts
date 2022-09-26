@@ -1,9 +1,32 @@
 import { useRepo } from "pinia-orm";
 import Product from "~~/models/Product";
 
+export type updateProductInterface = (
+  id: string,
+  body: BodyUpdateProduct
+) => Promise<Product>;
+
+export type BodyUpdateProduct = {
+  productName: string;
+  productCode: string;
+  alternateProductCode: string;
+};
+
 export const useProduct = () => {
-  const { get } = useRequest();
+  const { get, put } = useRequest();
   const productRepo = useRepo(Product);
+
+  const getProductByIds = (ids: string[]): Product[] => {
+    const query = productRepo.where("id", ids);
+
+    return query.orderBy("productCode", "asc").get();
+  };
+
+  const getProductById = (id: string): Product => {
+    const query = productRepo.where("id", id);
+
+    return query.first();
+  };
 
   const loadAllProduct = async (): Promise<Product[]> => {
     return new Promise((resolve, reject) => {
@@ -23,16 +46,25 @@ export const useProduct = () => {
     });
   };
 
-  const getProductByIds = (ids: string[]): Product[] => {
-    const query = productRepo.where("id", ids);
+  const updateProduct: updateProductInterface = async (
+    id: string,
+    body: BodyUpdateProduct
+  ): Promise<Product> => {
+    return new Promise((resolve, reject) => {
+      const { data, error } = put<Product>(`/product/${id}`, body);
 
-    return query.orderBy("productCode", "asc").get();
-  };
+      watch(data, (productData) => {
+        const product = productRepo.save(productData);
 
-  const getProductById = (id: string): Product => {
-    const query = productRepo.where("id", id);
+        resolve(product);
+      });
 
-    return query.first();
+      watch(error, (e) => {
+        console.log(e);
+
+        reject("Update product failed");
+      });
+    });
   };
 
   return {
@@ -42,8 +74,9 @@ export const useProduct = () => {
 
     api() {
       return {
-        loadAllProduct
+        loadAllProduct,
+        updateProduct,
       };
-    }
+    },
   };
 };
