@@ -79,8 +79,12 @@ const onCreate = async () => {
         alternateProductCode: form.alternateProductCode,
       });
     } else {
+      await productApi().createProduct({
+        productName: form.productName,
+        productCode: form.productCode,
+        alternateProductCode: form.alternateProductCode,
+      });
     }
-    // await productApi().createProduct(idValue.value);
 
     toast.success(`${actionText.value}รายการสินค้าสำเร็จ`, { timeout: 1000 });
 

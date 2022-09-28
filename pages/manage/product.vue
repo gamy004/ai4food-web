@@ -20,8 +20,7 @@ const { getProductById, api: productApi } = useProduct();
 const isFetched = ref(false);
 const loading = ref(false);
 const productIds = ref([]);
-const editedId = ref(null);
-const removedId = ref(null);
+const productId = ref(null);
 const showModal = ref(false);
 const hasResults = ref(false);
 const perPage = ref(100);
@@ -91,13 +90,32 @@ const filteredData = computed(() =>
 );
 
 const promptEdit = (id) => {
-  editedId.value = id;
+  productId.value = id;
   showModal.value = true;
 };
 
 const promptRemove = (id) => {
-  removedId.value = id;
+  productId.value = id;
+
+  try {
+    productApi().deleteProduct(productId.value);
+
+    toast.success(`ลบรายการสินค้าสำเร็จ`, { timeout: 1000 });
+
+  } catch (error) {
+    toast.error(
+      `ไม่สามารถลบรายการสินค้าได้ กรุณาลองใหม่อีกครั้ง`
+    );
+  } finally {
+    onCreateSuccess();
+  }
 };
+const onCreateSuccess = async () => {
+  isFetched.value = false;
+  await fetch();
+  console.debug(productData.value)
+};
+
 
 onBeforeMount(fetch);
 </script>
@@ -114,11 +132,7 @@ onBeforeMount(fetch);
 
         <b-col cols="2" />
         <b-col class="d-flex justify-content-center">
-          <b-button
-            class="me-1"
-            variant="outline-primary"
-            @click="showModal = true"
-          >
+          <b-button class="me-1" variant="outline-primary" @click="showModal = true">
             เพิ่มรายการสินค้า
           </b-button>
           <b-button class="me-1" variant="outline-primary" type="submit">
@@ -133,49 +147,28 @@ onBeforeMount(fetch);
         </b-col>
 
         <b-col v-if="hasResults">
-          <b-table
-            id="result-table"
-            hover
-            small
-            caption-top
-            responsive
-            :fields="tableFields"
-            :items="filteredData"
-          >
+          <b-table id="result-table" hover small caption-top responsive :fields="tableFields" :items="filteredData">
             <template #cell(action)="{ item }">
               <b-button variant="link" @click="promptEdit(item.id)" class="p-0">
-                <CarbonEdit
-                  style="
+                <CarbonEdit style="
                      {
                       fontsize: '1em';
                     }
-                  "
-                />
+                  " />
               </b-button>
 
-              <b-button
-                variant="link"
-                @click="promptRemove(item.id)"
-                class="ms-3 p-0 text-danger"
-              >
-                <CarbonTrashCan
-                  style="
+              <b-button variant="link" @click="promptRemove(item.id)" class="ms-3 p-0 text-danger">
+                <CarbonTrashCan style="
                      {
                       fontsize: '1em';
                     }
-                  "
-                />
+                  " />
               </b-button>
             </template>
           </b-table>
 
-          <b-pagination
-            v-model="currentPage"
-            align="center"
-            :total-rows="productData.length"
-            :per-page="perPage"
-            aria-controls="result-table"
-          />
+          <b-pagination v-model="currentPage" align="center" :total-rows="productData.length" :per-page="perPage"
+            aria-controls="result-table" />
         </b-col>
 
         <b-card v-else bg-variant="light">
@@ -184,11 +177,10 @@ onBeforeMount(fetch);
       </b-row>
     </b-container>
 
-    <product-modal-manage
-      v-model:id-value="editedId"
-      v-model:show-value="showModal"
-    >
+    <product-modal-manage v-model:id-value="productId" v-model:show-value="showModal" @success="onCreateSuccess">
     </product-modal-manage>
   </div>
 </template>
-<style module></style>
+<style module>
+
+</style>

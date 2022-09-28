@@ -12,8 +12,22 @@ export type BodyUpdateProduct = {
   alternateProductCode: string;
 };
 
+export type createProductInterface = (
+  body: BodyUpdateProduct
+) => Promise<Product>;
+
+export type BodyCreateProduct = {
+  productName: string;
+  productCode: string;
+  alternateProductCode: string;
+};
+
+export type deleteProductInterface = (
+  id: string
+) => Promise<Product>;
+
 export const useProduct = () => {
-  const { get, put } = useRequest();
+  const { get, post, put, destroy } = useRequest();
   const productRepo = useRepo(Product);
 
   const getProductByIds = (ids: string[]): Product[] => {
@@ -46,6 +60,26 @@ export const useProduct = () => {
     });
   };
 
+  const createProduct: createProductInterface = async (
+    body: BodyUpdateProduct
+  ): Promise<Product> => {
+    return new Promise((resolve, reject) => {
+      const { data, error } = post<Product>(`/product/`, body);
+
+      watch(data, (productData) => {
+        const product = productRepo.save(productData);
+
+        resolve(product);
+      });
+
+      watch(error, (e) => {
+        console.log(e);
+
+        reject("Create product failed");
+      });
+    });
+  };
+
   const updateProduct: updateProductInterface = async (
     id: string,
     body: BodyUpdateProduct
@@ -67,6 +101,26 @@ export const useProduct = () => {
     });
   };
 
+  const deleteProduct: deleteProductInterface = async (
+    id: string
+  ): Promise<Product> => {
+    return new Promise((resolve, reject) => {
+      const { data, error } = destroy<Product>(`/product/${id}`);
+
+      watch(data, (productData) => {
+        const product = productRepo.save(productData);
+
+        resolve(product);
+      });
+
+      watch(error, (e) => {
+        console.log(e);
+
+        reject("Delete product failed");
+      });
+    });
+  };
+
   return {
     getProductByIds,
 
@@ -76,6 +130,8 @@ export const useProduct = () => {
       return {
         loadAllProduct,
         updateProduct,
+        createProduct,
+        deleteProduct
       };
     },
   };
