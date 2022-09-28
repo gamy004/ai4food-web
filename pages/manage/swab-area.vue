@@ -51,11 +51,11 @@ const fetch = async () => {
       if (swabAreaData.length) {
         swabAreaData.forEach((el,_) => {
           const facility = getFacilityById(el.facilityId);
+          console.log(el)
           results.value.push({
             "Facility": facility.facilityName,
             "swab Area": el.swabAreaName,
-            "จุด Swab หลัก": "",
-            "จุด Swab รอง": "",
+            "จำนวนจุด Swab รอง": el.subSwabAreas.length,
             "รายละเอียด": ""
           });
         })

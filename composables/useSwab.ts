@@ -66,6 +66,11 @@ export type UpsertSwabAreaHistoryImageData = {
   file?: UpsertFileData;
 };
 
+export interface ParamLoadAllMainSwabArea {
+  subSwabAreas?: boolean;
+  facility?: boolean;
+}
+
 export interface BodyUpdateSwabPlanByIdData {
   swabAreaSwabedAt: TimePickerData;
   product?: ConenctProductData;
@@ -145,9 +150,16 @@ export const useSwab = () => {
     });
   };
 
-  const loadAllMainSwabArea = async (): Promise<SwabArea[]> => {
+  const loadAllMainSwabArea = async (subSwabAreas: boolean = true, facility: boolean = true,): Promise<SwabArea[]> => {
     return new Promise((resolve, reject) => {
-      const { data, error } = get<SwabArea[]>("/swab/area/main");
+      const params: ParamLoadAllMainSwabArea= {};
+      if(subSwabAreas){
+        params.subSwabAreas = subSwabAreas;
+      }
+      if(facility){
+        params.facility = facility;
+      }
+      const { data, error } = get<SwabArea[]>(`/swab/area/main`, { params });
 
       watch(data, (swabAreaData) => {
         const swabAreas = swabAreaRepo.save(swabAreaData);
