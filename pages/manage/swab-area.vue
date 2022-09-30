@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import { useToast } from "vue-toastification";
+import CarbonEdit from "~icons/carbon/edit";
+import CarbonTrashCan from "~icons/carbon/trash-can";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import UploadIcon from "~icons/carbon/upload";
 import SwabArea from "~~/models/SwabArea";
@@ -27,19 +29,42 @@ const hasResults = ref(false);
 const results = ref([]);
 const perPage = ref(100);
 const currentPage = ref(1);
-
+const show = ref(false)
 
 async function onFormSubmitted() {
   hasResults.value = false;
   error.value = false;
   loading.value = true;
 }
+const tableFields = computed(() => {
+  return [
+    { key: "order", label: "ลำดับ", thStyle: { width: "10%" } },
+    { key: "facility", label: "เครื่องจักร", thStyle: { width: "10%" } },
+    { key: "swabArea", label: "จุด swab หลัก", thStyle: { width: "40%" } },
+    { key: "subSwabArea", label: "จุด swab รอง", thStyle: { width: "10%" } },
+    {
+      key: "action",
+      label: "แก้ไข/ลบ",
+      thClass: "text-end",
+      tdClass: "text-end",
+      thStyle: { width: "20%" },
+    },
+  ];
+});
 
 const filteredData = computed(
   () => results.value.filter((_, idx) => {
     return (idx >= (currentPage.value - 1) * perPage.value) && (idx < currentPage.value * perPage.value);
   })
 );
+const promptEdit = (id) => {
+    // do something
+    console.log("edit",id)
+};
+const promptRemove = (id) => {
+  // do something
+  console.log("remove", id)
+};
 const fetch = async () => {
   if (!isFetched.value) {
     loading.value = true;
@@ -48,15 +73,15 @@ const fetch = async () => {
       results.value = [];
       const swabAreaData: SwabArea[] = await swabApi().loadAllMainSwabArea();
       await facilityApi().loadAllFacility();
+
       if (swabAreaData.length) {
-        swabAreaData.forEach((el,_) => {
+        swabAreaData.forEach((el, idx) => {
           const facility = getFacilityById(el.facilityId);
-          console.log(el)
           results.value.push({
-            "Facility": facility.facilityName,
-            "swab Area": el.swabAreaName,
-            "จำนวนจุด Swab รอง": el.subSwabAreas.length,
-            "รายละเอียด": ""
+            "order": idx+1,
+            "facility": facility.facilityName,
+            "swabArea": el.swabAreaName,
+            "subSwabArea": el.subSwabAreas.length,
           });
         })
 
@@ -70,10 +95,16 @@ const fetch = async () => {
     }
   }
 };
+const createSwab = () => {
+  show.value = true
+}
+const onCreateSuccess = async () => {
+  isFetched.value = false;
+  await fetch();
+};
 
 onBeforeMount(async () => {
   isFetched.value = false;
-
   await fetch();
 });
 
@@ -92,7 +123,7 @@ onBeforeMount(async () => {
             </b-row>
           </b-col>
           <b-col alignSelf="end">
-            <b-button variant="outline-primary">
+            <b-button variant="outline-primary" @click="createSwab">
               เพิ่มรายการจุดตรวจ
             </b-button>
             {{}}
@@ -106,7 +137,7 @@ onBeforeMount(async () => {
     <div v-if="loading" class="col text-center mt-5">
       <line-md-loading-twotone-loop :style="{ fontSize: '2em' }" />
     </div>
-    <div v-if="hasResults">
+    <!-- <div v-if="hasResults">
       <p>
         รายการจุดตรวจ swab | ข้อมูลล่าสุด {{currentDate}} น.
       </p>
@@ -114,12 +145,37 @@ onBeforeMount(async () => {
 
       <b-pagination v-model="currentPage" align="center" :total-rows="results.length" :per-page="perPage"
         aria-controls="result-table" />
-    </div>
+    </div> -->
+    <b-col v-if="hasResults">
+      <b-table id="result-table" hover small caption-top responsive :fields="tableFields" :items="filteredData">
+        <template #cell(action)="{ item }">
+          <b-button variant="link" @click="promptEdit(item.id)" class="p-0">
+            <CarbonEdit style="
+                     {
+                      fontsize: '1em';
+                    }
+                  " />
+          </b-button>
+          <b-button variant="link" @click="promptRemove(item.id)" class="ms-3 p-0 text-danger">
+            <CarbonTrashCan style="
+                     {
+                      fontsize: '1em';
+                    }
+                  " />
+          </b-button>
+        </template>
+      </b-table>
+      <b-pagination v-model="currentPage" align="center" :total-rows="results.length" :per-page="perPage"
+        aria-controls="result-table" />
+    </b-col>
 
     <p v-else>
       ไม่พบข้อมูลรายการจุดตรวจ swab ในวันที่ {{currentDate}} น.
     </p>
+    <manage-swab-area-modal-create-swab v-model="show" @success="onCreateSuccess">
+    </manage-swab-area-modal-create-swab>
   </div>
+
 </template>
 <style module>
 

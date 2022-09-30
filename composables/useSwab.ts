@@ -66,9 +66,20 @@ export type UpsertSwabAreaHistoryImageData = {
   file?: UpsertFileData;
 };
 
+export type SubSwabAreasData = {
+  swabAreaName?: string;
+};
+
 export interface ParamLoadAllMainSwabArea {
   subSwabAreas?: boolean;
   facility?: boolean;
+}
+
+export interface BodyCreateSwabArea {
+  swabAreaName?: string;
+  subSwabAreas?: SubSwabAreasData[];
+  facility?: ConnectFacilityData;
+
 }
 
 export interface BodyUpdateSwabPlanByIdData {
@@ -171,6 +182,27 @@ export const useSwab = () => {
         console.log(e);
 
         reject("Load main swab area failed");
+      });
+    });
+  };
+
+  const createMainSwabArea= (
+    body: BodyCreateSwabArea
+  ): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      console.log(body)
+      const { data, error } = post<any>(`/swab/area`, {
+        ...body,
+      });
+
+      watch(data, (responseData) => {
+        resolve(responseData);
+      });
+
+      watch(error, (e) => {
+        console.log(e);
+
+        reject("Create swab area failed");
       });
     });
   };
@@ -720,6 +752,7 @@ export const useSwab = () => {
         loadAllSwabPeriod,
         loadAllSwabEnvironment,
         loadAllMainSwabArea,
+        createMainSwabArea,
         loadAllSwabPlanForUpdate,
         // loadAllLabSwabAreaHistory,
         loadSwabPlanForUpdateById,
