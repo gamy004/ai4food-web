@@ -229,9 +229,7 @@ export const useLab = () => {
   const loadAllBacteriaWithSpecie = async (): Promise<Bacteria[]> => {
     return new Promise((resolve, reject) => {
       const params: SearchParams = {
-        include: {
-          bacteriaSpecies: true,
-        },
+        bacteriaSpecies: true,
       };
 
       const { data, error } = get<Bacteria[]>("/bacteria", {
