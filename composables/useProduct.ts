@@ -22,9 +22,7 @@ export type BodyCreateProduct = {
   alternateProductCode: string;
 };
 
-export type deleteProductInterface = (
-  id: string
-) => Promise<Product>;
+export type deleteProductInterface = (id: string) => Promise<Product>;
 
 export const useProduct = () => {
   const { get, post, put, destroy } = useRequest();
@@ -64,7 +62,7 @@ export const useProduct = () => {
     body: BodyUpdateProduct
   ): Promise<Product> => {
     return new Promise((resolve, reject) => {
-      const { data, error } = post<Product>(`/product/`, body);
+      const { data, error } = post<Product>(`/product`, body);
 
       watch(data, (productData) => {
         const product = productRepo.save(productData);
@@ -75,7 +73,7 @@ export const useProduct = () => {
       watch(error, (e) => {
         console.log(e);
 
-        reject("Create product failed");
+        reject(e);
       });
     });
   };
@@ -131,7 +129,7 @@ export const useProduct = () => {
         loadAllProduct,
         updateProduct,
         createProduct,
-        deleteProduct
+        deleteProduct,
       };
     },
   };

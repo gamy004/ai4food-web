@@ -1,6 +1,9 @@
 <script lang="ts" setup>
+import { Ref } from "vue";
 import { useToast } from "vue-toastification";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
+import { ResponseErrorT } from "~~/composables/useRequest";
+import Product from "~~/models/Product";
 
 export interface Props {
   idValue: string | null;
@@ -8,7 +11,7 @@ export interface Props {
 }
 
 const toast = useToast();
-
+const { isErrorDataExists } = useRequest();
 const { getProductById, api: productApi } = useProduct();
 
 const props = withDefaults(defineProps<Props>(), {
@@ -20,6 +23,7 @@ const emit = defineEmits(["update:idValue", "update:showValue", "success"]);
 
 const modalRef = ref();
 const submitting = ref(false);
+const error: Ref<ResponseErrorT | null> = ref(null);
 // const show = ref(false);
 
 const form = reactive({
@@ -44,11 +48,11 @@ watch(
         form.productName = product.productName;
         form.productCode = product.productCode;
         form.alternateProductCode = product.alternateProductCode;
-      } else {
-        form.productName = "";
-        form.productCode = "";
-        form.alternateProductCode = "";
       }
+    } else {
+      form.productName = "";
+      form.productCode = "";
+      form.alternateProductCode = "";
     }
   },
   { immediate: true }
@@ -61,17 +65,28 @@ const showValue = computed({
 });
 
 const actionText = computed(() => (idValue.value ? "อัพเดต" : "เพิ่ม"));
+const productNameInvalidState = computed(() =>
+  error.value ? !isErrorDataExists(error.value, "Product", "productName") : null
+);
+const productCodeInvalidState = computed(() =>
+  error.value ? !isErrorDataExists(error.value, "Product", "productCode") : null
+);
+const alternateProductCodeInvalidState = computed(() =>
+  error.value
+    ? !isErrorDataExists(error.value, "Product", "alternateProductCode")
+    : null
+);
 
 const onCancel = () => {
   showValue.value = false;
   idValue.value = null;
 };
 
-const onCreate = async () => {
+const onSubmit = async () => {
+  error.value = null;
   submitting.value = true;
 
   try {
-    console.log(form);
     if (idValue.value) {
       await productApi().updateProduct(idValue.value, {
         productName: form.productName,
@@ -94,7 +109,9 @@ const onCreate = async () => {
 
       emit("success");
     }, 1000);
-  } catch (error) {
+  } catch (errorResponse) {
+    error.value = errorResponse;
+
     toast.error(
       `ไม่สามารถ${actionText.value}รายการสินค้าได้ กรุณาลองใหม่อีกครั้ง`
     );
@@ -119,9 +136,14 @@ const onCreate = async () => {
           <b-form-input
             id="productName"
             v-model="form.productName"
+            :state="productNameInvalidState"
             type="text"
             placeholder="กรอกชื่อสินค้า"
           ></b-form-input>
+
+          <b-form-invalid-feedback :state="productNameInvalidState">
+            ชื่อสินค้าซ้ำ
+          </b-form-invalid-feedback>
         </div>
         <div class="input-group align-items-baseline">
           <b for="productCode" class="form-label d-block min-w-125px"
@@ -130,9 +152,14 @@ const onCreate = async () => {
           <b-form-input
             id="productCode"
             v-model="form.productCode"
+            :state="productCodeInvalidState"
             type="text"
             placeholder="กรอกรหัสสินค้า"
           ></b-form-input>
+
+          <b-form-invalid-feedback :state="productCodeInvalidState">
+            รหัสสินค้าซ้ำ
+          </b-form-invalid-feedback>
         </div>
         <div class="input-group align-items-baseline">
           <b for="alternateProductCode" class="form-label d-block min-w-125px"
@@ -141,10 +168,15 @@ const onCreate = async () => {
           <b-form-input
             id="alternateProductCode"
             v-model="form.alternateProductCode"
+            :state="alternateProductCodeInvalidState"
             type="text"
             placeholder="กรอกรหัสสินค้าสำรอง"
           >
           </b-form-input>
+
+          <b-form-invalid-feedback :state="alternateProductCodeInvalidState">
+            รหัสสินค้าสำรองซ้ำ
+          </b-form-invalid-feedback>
         </div>
       </div>
     </template>
@@ -157,7 +189,7 @@ const onCreate = async () => {
       <b-button
         variant="primary"
         :disabled="submitting"
-        @click.prevent="onCreate"
+        @click.prevent="onSubmit"
       >
         <LineMdLoadingTwotoneLoop
           v-if="submitting"
