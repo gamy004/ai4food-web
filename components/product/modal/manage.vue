@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { required } from "@vuelidate/validators";
 import { Ref } from "vue";
 import { useToast } from "vue-toastification";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
@@ -30,6 +31,63 @@ const form = reactive({
   productName: null,
   productCode: null,
   alternateProductCode: null,
+});
+
+const validationRules = {
+  productName: { required, $lazy: true },
+  productCode: { required, $lazy: true },
+  alternateProductCode: { required, $lazy: true },
+};
+
+const { validate, isInvalid, isFormInvalid } = useValidation(
+  validationRules,
+  form
+);
+
+const productNameRequiredState = computed(() =>
+  isFormInvalid("productName", ["required"])
+);
+const productCodeRequiredState = computed(() =>
+  isFormInvalid("productCode", ["required"])
+);
+const alternateProductCodeRequiredState = computed(() =>
+  isFormInvalid("alternateProductCode", ["required"])
+);
+
+const productNameExistsState = computed(() =>
+  error.value ? !isErrorDataExists(error.value, "Product", "productName") : null
+);
+const productCodeExistsState = computed(() =>
+  error.value ? !isErrorDataExists(error.value, "Product", "productCode") : null
+);
+const alternateProductCodeExistsState = computed(() =>
+  error.value
+    ? !isErrorDataExists(error.value, "Product", "alternateProductCode")
+    : null
+);
+
+const formInvalidState = computed(() => {
+  let isProductNameInvalid = null;
+  let isProductCodeInvalid = null;
+  let isAlternateProductCodeInvalid = null;
+
+  if (isInvalid.value) {
+    isProductNameInvalid = productNameRequiredState.value;
+    isProductCodeInvalid = productCodeRequiredState.value;
+    isAlternateProductCodeInvalid = alternateProductCodeRequiredState.value;
+  }
+
+  if (error.value) {
+    isProductNameInvalid = productNameExistsState.value;
+    isProductCodeInvalid = productCodeExistsState.value;
+    isAlternateProductCodeInvalid = alternateProductCodeExistsState.value;
+  }
+
+  return {
+    productName: isProductNameInvalid,
+    productCode: isProductCodeInvalid,
+    alternateProductCode: isAlternateProductCodeInvalid,
+  };
 });
 
 const idValue = computed({
@@ -65,17 +123,6 @@ const showValue = computed({
 });
 
 const actionText = computed(() => (idValue.value ? "อัพเดต" : "เพิ่ม"));
-const productNameInvalidState = computed(() =>
-  error.value ? !isErrorDataExists(error.value, "Product", "productName") : null
-);
-const productCodeInvalidState = computed(() =>
-  error.value ? !isErrorDataExists(error.value, "Product", "productCode") : null
-);
-const alternateProductCodeInvalidState = computed(() =>
-  error.value
-    ? !isErrorDataExists(error.value, "Product", "alternateProductCode")
-    : null
-);
 
 const onCancel = () => {
   showValue.value = false;
@@ -83,7 +130,14 @@ const onCancel = () => {
 };
 
 const onSubmit = async () => {
+  validate();
+
+  if (isInvalid.value) {
+    return toast.error("ไม่สามารถส่งข้อมูลได้ กรุณาเช็คข้อผิดพลาด");
+  }
+
   error.value = null;
+
   submitting.value = true;
 
   try {
@@ -136,13 +190,20 @@ const onSubmit = async () => {
           <b-form-input
             id="productName"
             v-model="form.productName"
-            :state="productNameInvalidState"
+            :state="formInvalidState.productName"
             type="text"
             placeholder="กรอกชื่อสินค้า"
           ></b-form-input>
 
-          <b-form-invalid-feedback :state="productNameInvalidState">
+          <b-form-invalid-feedback v-if="error" :state="productNameExistsState">
             ชื่อสินค้าซ้ำ
+          </b-form-invalid-feedback>
+
+          <b-form-invalid-feedback
+            v-if="isInvalid"
+            :state="productNameRequiredState"
+          >
+            กรุณากรอกชื่อสินค้า
           </b-form-invalid-feedback>
         </div>
         <div class="input-group align-items-baseline">
@@ -152,13 +213,20 @@ const onSubmit = async () => {
           <b-form-input
             id="productCode"
             v-model="form.productCode"
-            :state="productCodeInvalidState"
+            :state="formInvalidState.productCode"
             type="text"
             placeholder="กรอกรหัสสินค้า"
           ></b-form-input>
 
-          <b-form-invalid-feedback :state="productCodeInvalidState">
+          <b-form-invalid-feedback v-if="error" :state="productCodeExistsState">
             รหัสสินค้าซ้ำ
+          </b-form-invalid-feedback>
+
+          <b-form-invalid-feedback
+            v-if="isInvalid"
+            :state="productCodeRequiredState"
+          >
+            กรุณากรอกรหัสสินค้า
           </b-form-invalid-feedback>
         </div>
         <div class="input-group align-items-baseline">
@@ -168,14 +236,24 @@ const onSubmit = async () => {
           <b-form-input
             id="alternateProductCode"
             v-model="form.alternateProductCode"
-            :state="alternateProductCodeInvalidState"
+            :state="formInvalidState.alternateProductCode"
             type="text"
             placeholder="กรอกรหัสสินค้าสำรอง"
           >
           </b-form-input>
 
-          <b-form-invalid-feedback :state="alternateProductCodeInvalidState">
+          <b-form-invalid-feedback
+            v-if="error"
+            :state="alternateProductCodeExistsState"
+          >
             รหัสสินค้าสำรองซ้ำ
+          </b-form-invalid-feedback>
+
+          <b-form-invalid-feedback
+            v-if="isInvalid"
+            :state="alternateProductCodeRequiredState"
+          >
+            กรุณากรอกรหัสสินค้าสำรอง
           </b-form-invalid-feedback>
         </div>
       </div>
