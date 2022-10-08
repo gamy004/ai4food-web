@@ -110,10 +110,12 @@ const promptDelete = async (id) => {
   deletedProductId.value = id;
 };
 
-const onCreateSuccess = async () => {
-  isFetched.value = false;
-  await fetch();
-  console.debug(productData.value);
+const onSuccess = async (product) => {
+  if (product && product.id && !productIndice.value[product.id]) {
+    productIds.value.push(product.id);
+
+    updateProductIndice();
+  }
 };
 
 const onDeleteSuccess = async (deletedProduct) => {
@@ -218,7 +220,7 @@ onBeforeMount(fetch);
     <product-modal-manage
       v-model:id-value="productId"
       v-model:show-value="showModal"
-      @success="onCreateSuccess"
+      @success="onSuccess"
     >
     </product-modal-manage>
 

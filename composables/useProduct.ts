@@ -16,6 +16,14 @@ export type BodyManageProduct = {
   alternateProductCode: string;
 };
 
+export type ResponseDeletePermission = {
+  canDelete: boolean;
+  message: string;
+  countSwabAreaHistories: number;
+  countSwabProductHistories: number;
+  countProductSchedules: number;
+};
+
 export type deleteProductInterface = (id: string) => Promise<Product>;
 
 export const useProduct = () => {
@@ -49,6 +57,20 @@ export const useProduct = () => {
 
         reject("Load product failed");
       });
+    });
+  };
+
+  const loadDeletePermissionProduct = async (
+    id: string
+  ): Promise<ResponseDeletePermission> => {
+    return new Promise((resolve, reject) => {
+      const { data, error } = get<ResponseDeletePermission>(
+        `/product/${id}/delete-permission`
+      );
+
+      watch(data, resolve);
+
+      watch(error, reject);
     });
   };
 
@@ -111,6 +133,7 @@ export const useProduct = () => {
     api() {
       return {
         loadAllProduct,
+        loadDeletePermissionProduct,
         updateProduct,
         createProduct,
         deleteProduct,

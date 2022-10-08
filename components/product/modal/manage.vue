@@ -213,7 +213,39 @@ watch(
 
       <template #default>
         <div class="row row-gap-2">
-          <div class="input-group align-items-baseline">
+          <b-col cols="12">
+            <b-form-group
+              id="fieldset-product-name"
+              label-cols-lg="4"
+              label="ชื่อสินค้า"
+              label-for="productName"
+              :state="formInvalidState.productName"
+            >
+              <b-form-input
+                id="productName"
+                v-model="form.productName"
+                :state="formInvalidState.productName"
+                type="text"
+                placeholder="กรอกชื่อสินค้า"
+              ></b-form-input>
+
+              <b-form-invalid-feedback
+                v-if="error"
+                :state="productNameExistsState"
+              >
+                ชื่อสินค้าซ้ำ
+              </b-form-invalid-feedback>
+
+              <b-form-invalid-feedback
+                v-if="isInvalid"
+                :state="productNameRequiredState"
+              >
+                กรุณากรอกชื่อสินค้า
+              </b-form-invalid-feedback>
+            </b-form-group>
+          </b-col>
+
+          <!-- <div class="input-group align-items-baseline">
             <b for="productName" class="form-label d-block min-w-125px"
               >ชื่อสินค้า</b
             >
@@ -238,8 +270,42 @@ watch(
             >
               กรุณากรอกชื่อสินค้า
             </b-form-invalid-feedback>
-          </div>
-          <div class="input-group align-items-baseline">
+          </div> -->
+
+          <b-col cols="12">
+            <b-form-group
+              id="fieldset-product-code"
+              label-cols-lg="4"
+              description="ความยาวสูงสุด 8 ตัวอักษร"
+              label="รหัสสินค้า"
+              label-for="productCode"
+              :state="formInvalidState.productCode"
+            >
+              <b-form-input
+                id="productCode"
+                v-model="form.productCode"
+                :state="formInvalidState.productCode"
+                type="text"
+                placeholder="กรอกรหัสสินค้า"
+              ></b-form-input>
+
+              <b-form-invalid-feedback
+                v-if="error"
+                :state="productCodeExistsState"
+              >
+                รหัสสินค้าซ้ำ
+              </b-form-invalid-feedback>
+
+              <b-form-invalid-feedback
+                v-if="isInvalid"
+                :state="productCodeRequiredState"
+              >
+                กรุณากรอกรหัสสินค้า
+              </b-form-invalid-feedback>
+            </b-form-group>
+          </b-col>
+
+          <!-- <div class="input-group align-items-baseline">
             <b for="productCode" class="form-label d-block min-w-125px"
               >รหัสสินค้า</b
             >
@@ -249,6 +315,7 @@ watch(
               :state="formInvalidState.productCode"
               type="text"
               placeholder="กรอกรหัสสินค้า"
+              description="ความยาวสูงสุด 8 ตัวอักษร"
             ></b-form-input>
 
             <b-form-invalid-feedback
@@ -264,8 +331,43 @@ watch(
             >
               กรุณากรอกรหัสสินค้า
             </b-form-invalid-feedback>
-          </div>
-          <div class="input-group align-items-baseline">
+          </div> -->
+
+          <b-col cols="12">
+            <b-form-group
+              id="fieldset-alternate-product-code"
+              label-cols-lg="4"
+              description="ความยาวสูงสุด 8 ตัวอักษร"
+              label="รหัสสินค้าสำรอง"
+              label-for="alternateProductCode"
+              :state="formInvalidState.alternateProductCode"
+            >
+              <b-form-input
+                id="alternateProductCode"
+                v-model="form.alternateProductCode"
+                :state="formInvalidState.alternateProductCode"
+                type="text"
+                placeholder="กรอกรหัสสินค้าสำรอง"
+              >
+              </b-form-input>
+
+              <b-form-invalid-feedback
+                v-if="error"
+                :state="alternateProductCodeExistsState"
+              >
+                รหัสสินค้าสำรองซ้ำ
+              </b-form-invalid-feedback>
+
+              <b-form-invalid-feedback
+                v-if="isInvalid"
+                :state="alternateProductCodeRequiredState"
+              >
+                กรุณากรอกรหัสสินค้าสำรอง
+              </b-form-invalid-feedback>
+            </b-form-group>
+          </b-col>
+
+          <!-- <div class="input-group align-items-baseline">
             <b for="alternateProductCode" class="form-label d-block min-w-125px"
               >รหัสสินค้าสำรอง</b
             >
@@ -275,6 +377,7 @@ watch(
               :state="formInvalidState.alternateProductCode"
               type="text"
               placeholder="กรอกรหัสสินค้าสำรอง"
+              description="ความยาวสูงสุด 8 ตัวอักษร"
             >
             </b-form-input>
 
@@ -291,7 +394,7 @@ watch(
             >
               กรุณากรอกรหัสสินค้าสำรอง
             </b-form-invalid-feedback>
-          </div>
+          </div> -->
         </div>
       </template>
 
