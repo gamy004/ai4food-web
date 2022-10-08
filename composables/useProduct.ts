@@ -1,22 +1,16 @@
 import { useRepo } from "pinia-orm";
 import Product from "~~/models/Product";
 
+export type createProductInterface = (
+  body: BodyManageProduct
+) => Promise<Product>;
+
 export type updateProductInterface = (
   id: string,
-  body: BodyUpdateProduct
+  body: BodyManageProduct
 ) => Promise<Product>;
 
-export type BodyUpdateProduct = {
-  productName: string;
-  productCode: string;
-  alternateProductCode: string;
-};
-
-export type createProductInterface = (
-  body: BodyUpdateProduct
-) => Promise<Product>;
-
-export type BodyCreateProduct = {
+export type BodyManageProduct = {
   productName: string;
   productCode: string;
   alternateProductCode: string;
@@ -59,7 +53,7 @@ export const useProduct = () => {
   };
 
   const createProduct: createProductInterface = async (
-    body: BodyUpdateProduct
+    body: BodyManageProduct
   ): Promise<Product> => {
     return new Promise((resolve, reject) => {
       const { data, error } = post<Product>(`/product`, body);
@@ -70,17 +64,13 @@ export const useProduct = () => {
         resolve(product);
       });
 
-      watch(error, (e) => {
-        console.log(e);
-
-        reject(e);
-      });
+      watch(error, reject);
     });
   };
 
   const updateProduct: updateProductInterface = async (
     id: string,
-    body: BodyUpdateProduct
+    body: BodyManageProduct
   ): Promise<Product> => {
     return new Promise((resolve, reject) => {
       const { data, error } = put<Product>(`/product/${id}`, body);
@@ -91,11 +81,7 @@ export const useProduct = () => {
         resolve(product);
       });
 
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Update product failed");
-      });
+      watch(error, reject);
     });
   };
 
@@ -106,16 +92,14 @@ export const useProduct = () => {
       const { data, error } = destroy<Product>(`/product/${id}`);
 
       watch(data, (productData) => {
-        const product = productRepo.save(productData);
+        const productId: string = productData.id;
+
+        const product = productRepo.destroy(productId);
 
         resolve(product);
       });
 
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Delete product failed");
-      });
+      watch(error, reject);
     });
   };
 

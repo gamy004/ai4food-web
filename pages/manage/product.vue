@@ -3,7 +3,7 @@ import { useToast } from "vue-toastification";
 import CarbonEdit from "~icons/carbon/edit";
 import CarbonTrashCan from "~icons/carbon/trash-can";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
-import UploadIcon from "~icons/carbon/upload";
+// import UploadIcon from "~icons/carbon/upload";
 import Product from "~~/models/Product";
 
 definePageMeta({
@@ -20,11 +20,21 @@ const { getProductById, api: productApi } = useProduct();
 const isFetched = ref(false);
 const loading = ref(false);
 const productIds = ref([]);
+const productIndice = ref({});
 const productId = ref(null);
+const deletedProductId = ref(null);
 const showModal = ref(false);
 const hasResults = ref(false);
 const perPage = ref(100);
 const currentPage = ref(1);
+
+const updateProductIndice = () => {
+  productIndice.value = {};
+
+  productIds.value.forEach((productId, index) => {
+    productIndice.value[productId] = index;
+  });
+};
 
 const fetch = async () => {
   if (!isFetched.value) {
@@ -39,6 +49,8 @@ const fetch = async () => {
         hasResults.value = true;
 
         productIds.value = productData.map(({ id }) => id);
+
+        updateProductIndice();
       }
     } catch (error) {
       toast.error("ไม่สามารถโหลดข้อมูลสินค้าได้", { timeout: 1000 });
@@ -94,28 +106,29 @@ const promptEdit = (id) => {
   showModal.value = true;
 };
 
-const promptRemove = (id) => {
-  productId.value = id;
-
-  try {
-    productApi().deleteProduct(productId.value);
-
-    toast.success(`ลบรายการสินค้าสำเร็จ`, { timeout: 1000 });
-
-  } catch (error) {
-    toast.error(
-      `ไม่สามารถลบรายการสินค้าได้ กรุณาลองใหม่อีกครั้ง`
-    );
-  } finally {
-    onCreateSuccess();
-  }
+const promptDelete = async (id) => {
+  deletedProductId.value = id;
 };
+
 const onCreateSuccess = async () => {
   isFetched.value = false;
   await fetch();
-  console.debug(productData.value)
+  console.debug(productData.value);
 };
 
+const onDeleteSuccess = async (deletedProduct) => {
+  console.log(deletedProduct);
+
+  if (deletedProduct) {
+    const deletedProductIndex = productIndice.value[deletedProduct.id];
+
+    if (deletedProductIndex) {
+      productIds.value.splice(deletedProductIndex, 1);
+
+      updateProductIndice();
+    }
+  }
+};
 
 onBeforeMount(fetch);
 </script>
@@ -132,12 +145,16 @@ onBeforeMount(fetch);
 
         <b-col cols="2" />
         <b-col class="d-flex justify-content-center">
-          <b-button class="me-1" variant="outline-primary" @click="showModal = true">
+          <b-button
+            class="me-1"
+            variant="outline-primary"
+            @click="showModal = true"
+          >
             เพิ่มรายการสินค้า
           </b-button>
-          <b-button class="me-1" variant="outline-primary" type="submit">
+          <!-- <b-button class="me-1" variant="outline-primary" type="submit">
             <upload-icon />
-          </b-button>
+          </b-button> -->
         </b-col>
       </b-row>
 
@@ -147,28 +164,49 @@ onBeforeMount(fetch);
         </b-col>
 
         <b-col v-if="hasResults">
-          <b-table id="result-table" hover small caption-top responsive :fields="tableFields" :items="filteredData">
-            <template #cell(action)="{ item }">
+          <b-table
+            id="result-table"
+            hover
+            small
+            caption-top
+            responsive
+            :fields="tableFields"
+            :items="filteredData"
+          >
+            <template #cell(action)="{ item, index }">
               <b-button variant="link" @click="promptEdit(item.id)" class="p-0">
-                <CarbonEdit style="
+                <CarbonEdit
+                  style="
                      {
                       fontsize: '1em';
                     }
-                  " />
+                  "
+                />
               </b-button>
 
-              <b-button variant="link" @click="promptRemove(item.id)" class="ms-3 p-0 text-danger">
-                <CarbonTrashCan style="
+              <b-button
+                variant="link"
+                @click="promptDelete(item.id)"
+                class="ms-3 p-0 text-danger"
+              >
+                <CarbonTrashCan
+                  style="
                      {
                       fontsize: '1em';
                     }
-                  " />
+                  "
+                />
               </b-button>
             </template>
           </b-table>
 
-          <b-pagination v-model="currentPage" align="center" :total-rows="productData.length" :per-page="perPage"
-            aria-controls="result-table" />
+          <b-pagination
+            v-model="currentPage"
+            align="center"
+            :total-rows="productData.length"
+            :per-page="perPage"
+            aria-controls="result-table"
+          />
         </b-col>
 
         <b-card v-else bg-variant="light">
@@ -177,10 +215,15 @@ onBeforeMount(fetch);
       </b-row>
     </b-container>
 
-    <product-modal-manage v-model:id-value="productId" v-model:show-value="showModal" @success="onCreateSuccess">
+    <product-modal-manage
+      v-model:id-value="productId"
+      v-model:show-value="showModal"
+      @success="onCreateSuccess"
+    >
     </product-modal-manage>
+
+    <product-modal-delete v-model="deletedProductId" @success="onDeleteSuccess">
+    </product-modal-delete>
   </div>
 </template>
-<style module>
-
-</style>
+<style module></style>

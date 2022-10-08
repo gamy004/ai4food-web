@@ -1,3 +1,5 @@
+import { v4 } from "uuid";
+
 let authToken = null;
 
 export interface SearchParams {
@@ -58,6 +60,7 @@ export const useRequest = () => {
     }
 
     return {
+      key: v4(),
       initialCache: false,
       baseURL,
       headers: {
