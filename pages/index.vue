@@ -35,6 +35,10 @@ const pageUpdateBacteriaSpecieArea = {
 const pageUpdateBacteriaSpecieProduct = {
   name: "swab-test-update-bacteria-specie-product",
 };
+
+const pageManageProduct = {
+  name: "manage-product",
+};
 </script>
 
 <template>
@@ -66,6 +70,18 @@ const pageUpdateBacteriaSpecieProduct = {
 
         <div class="d-grid gap-2 mt-4">
           <h4 class="font-weight-bold">ระบบบันทึกข้อมูล</h4>
+
+          <nuxt-link v-slot="{ navigate }" :to="pageManageProduct" custom>
+            <button-arrow-right
+              v-if="authUser.isInProductionTeam || authUser.isInAdminTeam"
+              variant="outline-primary"
+              size="lg"
+              class="w-100"
+              @click="navigate"
+            >
+              จัดการสินค้าอาหาร
+            </button-arrow-right>
+          </nuxt-link>
 
           <nuxt-link v-slot="{ navigate }" :to="pageSwabArea" custom>
             <button-arrow-right

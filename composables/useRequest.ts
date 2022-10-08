@@ -1,3 +1,5 @@
+import { v4 } from "uuid";
+
 let authToken = null;
 
 export interface SearchParams {
@@ -58,6 +60,7 @@ export const useRequest = () => {
     }
 
     return {
+      key: v4(),
       initialCache: false,
       baseURL,
       headers: {
@@ -154,6 +157,22 @@ export const useRequest = () => {
       const message = response._data.message;
 
       return statusCode === 400 && message.includes("id doesn't exists");
+    },
+
+    isErrorDataExists(error: ResponseErrorT, entity: string, field: string) {
+      let isError = false;
+
+      if (error && error.response) {
+        const { response } = error;
+        const statusCode = response._data.statusCode;
+        const message = response._data.message;
+
+        isError =
+          statusCode === 400 &&
+          message.includes(`${entity} with the same '${field}' already exist`);
+      }
+
+      return isError;
     },
   };
 };

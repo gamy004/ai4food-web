@@ -23,9 +23,14 @@ export const useValidation = (validationRules, form) => {
     }
   };
 
+  const resetValidation = (): void => {
+    invalid.value = false;
+  };
+
   return {
     isInvalid,
     isFormInvalid,
     validate,
+    resetValidation,
   };
 };
