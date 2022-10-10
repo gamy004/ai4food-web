@@ -99,6 +99,14 @@ export default class SwabAreaHistory extends Model {
   @BelongsTo(() => FacilityItem, "facilityItemId")
   facilityItem!: FacilityItem;
 
+  get swabTestCode() {
+    const swapTestRepo = useRepo(SwabTest);
+
+    const relatedSwabTest = swapTestRepo.find(this.swabTestId);
+
+    return relatedSwabTest ? relatedSwabTest.swabTestCode : null;
+  }
+
   get isCompleted() {
     let isCompleted = false;
 

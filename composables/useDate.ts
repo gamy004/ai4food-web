@@ -127,6 +127,7 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
   return {
     today,
     onlyDate,
+    onlyTime,
     timePickerToTimeString,
     timeStringToTimePicker,
     dateToShift,

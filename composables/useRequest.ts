@@ -1,3 +1,5 @@
+import { v4 } from "uuid";
+
 let authToken = null;
 
 export interface SearchParams {
@@ -33,7 +35,7 @@ export const useRequest = () => {
   const DEFAULT_HEADERS: HeadersInit = {
     "X-Requested-With": "XMLHttpRequest",
     "Content-Type": "application/json; charset=utf-8",
-    Accept: "application/json"
+    Accept: "application/json",
   };
 
   // if (authToken !== undefined) {
@@ -53,18 +55,36 @@ export const useRequest = () => {
     if (authToken) {
       additionalHeaders = {
         ...additionalHeaders,
-        Authorization: `Bearer ${authToken}`
+        Authorization: `Bearer ${authToken}`,
       };
     }
 
     return {
+      key: v4(),
       initialCache: false,
       baseURL,
       headers: {
         ...DEFAULT_HEADERS,
-        ...additionalHeaders
-      }
+        ...additionalHeaders,
+      },
     };
+  }
+
+  function serialize(obj, prefix = null) {
+    var str = [],
+      p;
+    for (p in obj) {
+      if (obj.hasOwnProperty(p)) {
+        var k = prefix ? prefix + "[" + p + "]" : p,
+          v = obj[p];
+        str.push(
+          v !== null && typeof v === "object"
+            ? serialize(v, k)
+            : encodeURIComponent(k) + "=" + encodeURIComponent(v)
+        );
+      }
+    }
+    return str.join("&");
   }
 
   return {
@@ -73,19 +93,31 @@ export const useRequest = () => {
     },
 
     get<T>(url: string, options: FetchOptions = {}) {
-      return useFetch<T, ResponseErrorT>(url, {
+      const { params = {}, ...otherFetchOptions } = options;
+      let requestUrl = url;
+      const serializedParams = serialize(params);
+
+      if (serializedParams.length) {
+        requestUrl += `?${serialize(params)}`;
+      }
+
+      return useFetch<T, ResponseErrorT>(requestUrl, {
         method: "get",
         ...getRequestOptions(),
-        ...options
+        ...otherFetchOptions,
       });
     },
 
-    post<T>(url: string, body: Record<string, any>, options: FetchOptions = {}) {
+    post<T>(
+      url: string,
+      body: Record<string, any>,
+      options: FetchOptions = {}
+    ) {
       return useFetch<T, ResponseErrorT>(url, {
         body,
         method: "post",
         ...getRequestOptions(),
-        ...options
+        ...options,
       });
     },
 
@@ -94,16 +126,20 @@ export const useRequest = () => {
         body,
         method: "put",
         ...getRequestOptions(),
-        ...options
+        ...options,
       });
     },
 
-    patch<T>(url: string, body: Record<string, any>, options: FetchOptions = {}) {
+    patch<T>(
+      url: string,
+      body: Record<string, any>,
+      options: FetchOptions = {}
+    ) {
       return useFetch<T, ResponseErrorT>(url, {
         body,
         method: "patch",
         ...getRequestOptions(),
-        ...options
+        ...options,
       });
     },
 
@@ -111,7 +147,7 @@ export const useRequest = () => {
       return useFetch<T, ResponseErrorT>(url, {
         method: "delete",
         ...getRequestOptions(),
-        ...options
+        ...options,
       });
     },
 
@@ -121,6 +157,22 @@ export const useRequest = () => {
       const message = response._data.message;
 
       return statusCode === 400 && message.includes("id doesn't exists");
-    }
+    },
+
+    isErrorDataExists(error: ResponseErrorT, entity: string, field: string) {
+      let isError = false;
+
+      if (error && error.response) {
+        const { response } = error;
+        const statusCode = response._data.statusCode;
+        const message = response._data.message;
+
+        isError =
+          statusCode === 400 &&
+          message.includes(`${entity} with the same '${field}' already exist`);
+      }
+
+      return isError;
+    },
   };
 };

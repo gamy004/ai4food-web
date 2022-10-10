@@ -20,16 +20,27 @@ const pageSwabProduct = {
   name: "swab-product",
 };
 
-const pageUpdateSwabArea = {
+const pageUpdateSwabTestArea = {
   name: "swab-test-update-area",
 };
 
-const pageUpdateSwabProduct = {
+const pageUpdateSwabTestProduct = {
   name: "swab-test-update-product",
 };
 
 const pageManageSwabArea = {
   name: "manage-swab-area",
+};
+const pageUpdateBacteriaSpecieArea = {
+  name: "swab-test-update-bacteria-specie-area",
+};
+
+const pageUpdateBacteriaSpecieProduct = {
+  name: "swab-test-update-bacteria-specie-product",
+};
+
+const pageManageProduct = {
+  name: "manage-product",
 };
 </script>
 
@@ -63,6 +74,18 @@ const pageManageSwabArea = {
         <div class="d-grid gap-2 mt-4">
           <h4 class="font-weight-bold">ระบบบันทึกข้อมูล</h4>
 
+          <nuxt-link v-slot="{ navigate }" :to="pageManageProduct" custom>
+            <button-arrow-right
+              v-if="authUser.isInProductionTeam || authUser.isInAdminTeam"
+              variant="outline-primary"
+              size="lg"
+              class="w-100"
+              @click="navigate"
+            >
+              จัดการสินค้าอาหาร
+            </button-arrow-right>
+          </nuxt-link>
+
           <nuxt-link v-slot="{ navigate }" :to="pageSwabArea" custom>
             <button-arrow-right
               v-if="authUser.isInSwabTeam"
@@ -71,7 +94,7 @@ const pageManageSwabArea = {
               class="w-100"
               @click="navigate"
             >
-              บันทึกจุดตรวจ Swab
+              บันทึกจุดตรวจ swab
             </button-arrow-right>
           </nuxt-link>
 
@@ -87,7 +110,7 @@ const pageManageSwabArea = {
             </button-arrow-right>
           </nuxt-link>
 
-          <nuxt-link v-slot="{ navigate }" :to="pageUpdateSwabArea" custom>
+          <nuxt-link v-slot="{ navigate }" :to="pageUpdateSwabTestArea" custom>
             <button-arrow-right
               v-if="authUser.isInLabTeam"
               variant="outline-primary"
@@ -95,11 +118,15 @@ const pageManageSwabArea = {
               class="w-100"
               @click="navigate"
             >
-              บันทึกผลจุดตรวจ Swab
+              บันทึกผล lab จุดตรวจ swab
             </button-arrow-right>
           </nuxt-link>
 
-          <nuxt-link v-slot="{ navigate }" :to="pageUpdateSwabProduct" custom>
+          <nuxt-link
+            v-slot="{ navigate }"
+            :to="pageUpdateSwabTestProduct"
+            custom
+          >
             <button-arrow-right
               v-if="authUser.isInLabTeam"
               variant="outline-primary"
@@ -107,7 +134,39 @@ const pageManageSwabArea = {
               class="w-100"
               @click="navigate"
             >
-              บันทึกผลการตรวจสินค้า
+              บันทึกผล lab การตรวจสินค้า
+            </button-arrow-right>
+          </nuxt-link>
+
+          <nuxt-link
+            v-slot="{ navigate }"
+            :to="pageUpdateBacteriaSpecieArea"
+            custom
+          >
+            <button-arrow-right
+              v-if="authUser.isInLabTeam"
+              variant="outline-primary"
+              size="lg"
+              class="w-100"
+              @click="navigate"
+            >
+              บันทึกผล specie เชื้อจุดตรวจ swab
+            </button-arrow-right>
+          </nuxt-link>
+
+          <nuxt-link
+            v-slot="{ navigate }"
+            :to="pageUpdateBacteriaSpecieProduct"
+            custom
+          >
+            <button-arrow-right
+              v-if="authUser.isInLabTeam"
+              variant="outline-primary"
+              size="lg"
+              class="w-100"
+              @click="navigate"
+            >
+              บันทึกผล specie เชื้อสินค้า
             </button-arrow-right>
           </nuxt-link>
 
