@@ -14,7 +14,7 @@ const props = withDefaults(defineProps<Props>(), {
   title: "Title",
   hideHeader: false,
   hideFooter: false,
-  closable: false
+  closable: false,
 });
 
 const { registerModal, showModal, hideModal } = useModal();
@@ -24,21 +24,32 @@ const modalRef = ref();
 onMounted(() => {
   registerModal(modalRef);
 
-  watch(() => props.modelValue, (value) => {
-    if (value) {
-      showModal();
-    } else {
-      hideModal();
-    }
-  }, { immediate: true });
+  watch(
+    () => props.modelValue,
+    (value) => {
+      if (value) {
+        showModal();
+      } else {
+        hideModal();
+      }
+    },
+    { immediate: true }
+  );
 });
 
 defineExpose({ showModal, hideModal });
 </script>
 
 <template>
-  <div ref="modalRef" class="modal fade" aria-hidden="true" aria-labelledby="modalLabel" tabindex="-1"
-    data-bs-backdrop="static" data-bs-keyboard="false">
+  <div
+    ref="modalRef"
+    class="modal fade"
+    aria-hidden="true"
+    aria-labelledby="modalLabel"
+    tabindex="-1"
+    data-bs-backdrop="static"
+    data-bs-keyboard="false"
+  >
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div v-if="!hideHeader" class="modal-header">
@@ -46,7 +57,13 @@ defineExpose({ showModal, hideModal });
             <slot name="title">{{ title }}</slot>
           </h5>
 
-          <button v-if="closable" type="button" class="btn-close" aria-label="Close" @click.prevent="hideModal" />
+          <button
+            v-if="closable"
+            type="button"
+            class="btn-close"
+            aria-label="Close"
+            @click.prevent="hideModal"
+          />
         </div>
 
         <div class="modal-body">

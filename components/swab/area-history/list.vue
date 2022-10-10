@@ -107,7 +107,7 @@ watch(() => props, fetch, { immediate: true, deep: true });
             v-for="mainAreaHistory in mainAreaHistories"
             :key="mainAreaHistory.id"
             :history="mainAreaHistory"
-            prefix-title="จุดหลัก"
+            :prefix-title="`จุดหลัก (${mainAreaHistory.swabTestCode})`"
           />
 
           <hr v-if="subAreaHistories.length" />

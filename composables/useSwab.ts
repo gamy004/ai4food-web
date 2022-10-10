@@ -79,7 +79,6 @@ export interface BodyCreateSwabArea {
   swabAreaName?: string;
   subSwabAreas?: SubSwabAreasData[];
   facility?: ConnectFacilityData;
-
 }
 
 export interface BodyUpdateSwabPlanByIdData {
@@ -161,15 +160,21 @@ export const useSwab = () => {
     });
   };
 
-  const loadAllMainSwabArea = async (subSwabAreas: boolean = true, facility: boolean = true,): Promise<SwabArea[]> => {
+  const loadAllMainSwabArea = async (
+    subSwabAreas: boolean = true,
+    facility: boolean = true
+  ): Promise<SwabArea[]> => {
     return new Promise((resolve, reject) => {
-      const params: ParamLoadAllMainSwabArea= {};
-      if(subSwabAreas){
+      const params: ParamLoadAllMainSwabArea = {};
+
+      if (subSwabAreas) {
         params.subSwabAreas = subSwabAreas;
       }
-      if(facility){
+
+      if (facility) {
         params.facility = facility;
       }
+
       const { data, error } = get<SwabArea[]>(`/swab/area/main`, { params });
 
       watch(data, (swabAreaData) => {
@@ -186,11 +191,9 @@ export const useSwab = () => {
     });
   };
 
-  const createMainSwabArea= (
-    body: BodyCreateSwabArea
-  ): Promise<any> => {
+  const createMainSwabArea = (body: BodyCreateSwabArea): Promise<any> => {
     return new Promise((resolve, reject) => {
-      console.log(body)
+      console.log(body);
       const { data, error } = post<any>(`/swab/area`, {
         ...body,
       });
