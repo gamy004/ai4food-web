@@ -7,14 +7,11 @@ import UploadIcon from "~icons/carbon/upload";
 import SwabArea from "~~/models/SwabArea";
 import { format } from "date-fns-tz";
 
-
 definePageMeta({
   title: "Ai4FoodSafety - Swab Area",
-  middleware: [
-    "auth"
-  ],
+  middleware: ["auth"],
   canGoBack: true,
-  fallBackRedirect: "/"
+  fallBackRedirect: "/",
 });
 const toast = useToast();
 const { api: swabApi } = useSwab();
@@ -42,8 +39,14 @@ const tableFields = computed(() => {
   return [
     { key: "order", label: "ลำดับ", thStyle: { width: "10%" } },
     { key: "facility", label: "เครื่องจักร", thStyle: { width: "10%" } },
-    { key: "swabArea", label: "จุด swab หลัก", thStyle: { width: "40%" } },
-    { key: "subSwabArea", label: "จุด swab รอง", thStyle: { width: "10%" } },
+    { key: "swabArea", label: "ชื่อจุดตรวจ swab", thStyle: { width: "40%" } },
+    {
+      key: "subSwabArea",
+      label: "จำนวนจุดย่อย",
+      thClass: "text-end",
+      tdClass: "text-end",
+      thStyle: { width: "10%" },
+    },
     {
       key: "action",
       label: "แก้ไข/ลบ",
@@ -54,9 +57,12 @@ const tableFields = computed(() => {
   ];
 });
 
-const filteredData = computed(
-  () => results.value.filter((_, idx) => {
-    return (idx >= (currentPage.value - 1) * perPage.value) && (idx < currentPage.value * perPage.value);
+const filteredData = computed(() =>
+  results.value.filter((_, idx) => {
+    return (
+      idx >= (currentPage.value - 1) * perPage.value &&
+      idx < currentPage.value * perPage.value
+    );
   })
 );
 const promptEdit = (id) => {
@@ -65,11 +71,13 @@ const promptEdit = (id) => {
     swabAreaId.value = id;
     console.log("edit",id)
 };
+
 const promptRemove = (id) => {
   // do something
   deletedSwabAreaId.value = id
   console.log("remove", id)
 };
+
 const fetch = async () => {
   if (!isFetched.value) {
     loading.value = true;
@@ -82,6 +90,7 @@ const fetch = async () => {
       if (swabAreaData.length) {
         swabAreaData.forEach((el, idx) => { 
           const facility = getFacilityById(el.facilityId);
+
           results.value.push({
             "order": idx+1,
             "facility": facility.facilityName,
@@ -89,8 +98,7 @@ const fetch = async () => {
             "subSwabArea": el.subSwabAreas.length,
             "id": el.id  
           });
-        })
-
+        });
       }
       hasResults.value = results.value.length > 0;
     } catch (error) {
@@ -113,9 +121,8 @@ onBeforeMount(async () => {
   isFetched.value = false;
   await fetch();
 });
-
 </script>
-    
+
 <template>
   <div class="page__swab-report">
     <b-form class="w-100" @submit="onFormSubmitted">
@@ -123,19 +130,16 @@ onBeforeMount(async () => {
         <b-row>
           <b-col cols="9">
             <b-row>
-              <h3 class="font-weight-bold">
-                รายการจุดตรวจ swab/ ATK
-              </h3>
+              <h3 class="font-weight-bold">รายการจุดตรวจ swab/ ATK</h3>
             </b-row>
           </b-col>
           <b-col alignSelf="end">
             <b-button variant="outline-primary" @click="createSwab">
               เพิ่มรายการจุดตรวจ
             </b-button>
-            {{}}
-            <b-button variant="outline-primary" type="submit">
+            <!-- <b-button variant="outline-primary" type="submit">
               <upload-icon />
-            </b-button>
+            </b-button> -->
           </b-col>
         </b-row>
       </b-container>
@@ -153,26 +157,47 @@ onBeforeMount(async () => {
         aria-controls="result-table" />
     </div> -->
     <b-col v-if="hasResults">
-      <b-table id="result-table" hover small caption-top responsive :fields="tableFields" :items="filteredData">
+      <b-table
+        id="result-table"
+        hover
+        small
+        caption-top
+        responsive
+        :fields="tableFields"
+        :items="filteredData"
+      >
         <template #cell(action)="{ item }">
           <b-button variant="link" @click="promptEdit(item.id)" class="p-0">
-            <CarbonEdit style="
-                     {
-                      fontsize: '1em';
-                    }
-                  " />
+            <CarbonEdit
+              style="
+                 {
+                  fontsize: '1em';
+                }
+              "
+            />
           </b-button>
-          <b-button variant="link" @click="promptRemove(item.id)" class="ms-3 p-0 text-danger">
-            <CarbonTrashCan style="
-                     {
-                      fontsize: '1em';
-                    }
-                  " />
+          <b-button
+            variant="link"
+            @click="promptRemove(item.id)"
+            class="ms-3 p-0 text-danger"
+          >
+            <CarbonTrashCan
+              style="
+                 {
+                  fontsize: '1em';
+                }
+              "
+            />
           </b-button>
         </template>
       </b-table>
-      <b-pagination v-model="currentPage" align="center" :total-rows="results.length" :per-page="perPage"
-        aria-controls="result-table" />
+      <b-pagination
+        v-model="currentPage"
+        align="center"
+        :total-rows="results.length"
+        :per-page="perPage"
+        aria-controls="result-table"
+      />
     </b-col>
 
     <p v-else>
@@ -190,9 +215,5 @@ onBeforeMount(async () => {
     <manage-swab-area-modal-delete v-model="deletedSwabAreaId" @success="onSuccess">
     </manage-swab-area-modal-delete>
   </div>
-
 </template>
-<style module>
-
-</style>
-    
+<style module></style>

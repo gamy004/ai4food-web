@@ -1,11 +1,12 @@
 .input {
   &-group {
     > :not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback) {
-      border-bottom-left-radius: 0.25rem;
-      border-top-left-radius: 0.25rem;
+      // border-bottom-left-radius: 0.25rem;
+      // border-top-left-radius: 0.25rem;
     }
 
-    .input-group-text {
+    .input-group-text,
+    .input-group-append > button {
       border-bottom-left-radius: 0;
       border-top-left-radius: 0;
     }
