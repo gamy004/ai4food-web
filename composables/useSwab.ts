@@ -75,7 +75,7 @@ export interface ParamLoadAllMainSwabArea {
   facility?: boolean;
 }
 
-export interface BodyCreateSwabArea {
+export interface BodyManageSwabArea {
   swabAreaName?: string;
   subSwabAreas?: SubSwabAreasData[];
   facility?: ConnectFacilityData;
@@ -107,7 +107,7 @@ export interface BodyCreateSwabProductHistory {
 }
 
 export interface BodyUpdateSwabProductHistory
-  extends BodyCreateSwabProductHistory {}
+  extends BodyCreateSwabProductHistory { }
 
 export const useSwab = () => {
   const { get, post, put, destroy } = useRequest();
@@ -163,18 +163,18 @@ export const useSwab = () => {
 
   const loadAllMainSwabArea = async (subSwabAreas: boolean = true, facility: boolean = true,): Promise<SwabArea[]> => {
     return new Promise((resolve, reject) => {
-      const params: ParamLoadAllMainSwabArea= {};
-      if(subSwabAreas){
+      const params: ParamLoadAllMainSwabArea = {};
+      if (subSwabAreas) {
         params.subSwabAreas = subSwabAreas;
       }
-      if(facility){
+      if (facility) {
         params.facility = facility;
       }
       const { data, error } = get<SwabArea[]>(`/swab/area/main`, { params });
 
       watch(data, (swabAreaData) => {
         const swabAreas = swabAreaRepo.save(swabAreaData);
-
+        console.log(swabAreas)
         resolve(swabAreas);
       });
 
@@ -186,8 +186,8 @@ export const useSwab = () => {
     });
   };
 
-  const createMainSwabArea= (
-    body: BodyCreateSwabArea
+  const createMainSwabArea = (
+    body: BodyManageSwabArea
   ): Promise<any> => {
     return new Promise((resolve, reject) => {
       console.log(body)
@@ -205,6 +205,43 @@ export const useSwab = () => {
         reject("Create swab area failed");
       });
     });
+  };
+
+  const upadateMainSwabArea = (
+    id: string,
+    body: BodyManageSwabArea
+  ): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const { data, error } = put<any>(`/swab/area/${id}`, body);
+      watch(data, (responseData) => {
+        resolve(responseData);
+      });
+
+      watch(error, (e) => {
+        console.log(e);
+
+        reject("Update swab area failed");
+      });
+    })
+  };
+
+  const deleteMainSwabArea = (
+    id: string
+  ): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const { data, error } = destroy<any>(`/swab/area/${id}`);
+      watch(data, (responseData) => {
+        const swabAreaId: string = responseData.id;
+        const swabAreas = swabAreaRepo.destroy(swabAreaId);
+        resolve(swabAreas);
+      });
+
+      watch(error, (e) => {
+        console.log(e);
+
+        reject("Update swab area failed");
+      });
+    })
   };
 
   // const loadAllLabSwabAreaHistory = async (
@@ -753,6 +790,8 @@ export const useSwab = () => {
         loadAllSwabEnvironment,
         loadAllMainSwabArea,
         createMainSwabArea,
+        upadateMainSwabArea,
+        deleteMainSwabArea,
         loadAllSwabPlanForUpdate,
         // loadAllLabSwabAreaHistory,
         loadSwabPlanForUpdateById,

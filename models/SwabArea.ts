@@ -1,3 +1,4 @@
+import { SubSwabAreasData } from './../composables/useSwab';
 import { Attr, BelongsTo, HasManyBy, Model, Str, Uid, useRepo } from "pinia-orm";
 import Facility from "./Facility";
 import FacilityItem from "./FacilityItem";
@@ -54,5 +55,15 @@ export default class SwabArea extends Model {
 
     get shouldRecordImage (): boolean {
       return this.isMainArea;
+    }
+    
+    get subSwabAreasData (): SwabArea[]{
+      const swapAreaRepo = useRepo(SwabArea);
+
+      const subSwabArea = swapAreaRepo.query()
+        .where("mainSwabAreaId", this.id)
+        .get();
+        
+      return subSwabArea
     }
 }

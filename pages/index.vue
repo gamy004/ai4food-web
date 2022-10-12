@@ -172,7 +172,7 @@ const pageManageProduct = {
 
           <nuxt-link v-slot="{ navigate }" :to="pageManageSwabArea" custom>
             <button-arrow-right
-              v-if="authUser.isInSwabTeam"
+              v-if="authUser.isInSwabTeam || authUser.isInAdminTeam"
               variant="outline-primary"
               size="lg"
               class="w-100"

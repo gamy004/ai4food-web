@@ -30,6 +30,8 @@ const results = ref([]);
 const perPage = ref(100);
 const currentPage = ref(1);
 const show = ref(false)
+const swabAreaId = ref(null)
+const deletedSwabAreaId  = ref(null)
 
 async function onFormSubmitted() {
   hasResults.value = false;
@@ -59,10 +61,13 @@ const filteredData = computed(
 );
 const promptEdit = (id) => {
     // do something
+    show.value = true;
+    swabAreaId.value = id;
     console.log("edit",id)
 };
 const promptRemove = (id) => {
   // do something
+  deletedSwabAreaId.value = id
   console.log("remove", id)
 };
 const fetch = async () => {
@@ -73,15 +78,16 @@ const fetch = async () => {
       results.value = [];
       const swabAreaData: SwabArea[] = await swabApi().loadAllMainSwabArea();
       await facilityApi().loadAllFacility();
-
+      console.log(swabAreaData[0])
       if (swabAreaData.length) {
-        swabAreaData.forEach((el, idx) => {
+        swabAreaData.forEach((el, idx) => { 
           const facility = getFacilityById(el.facilityId);
           results.value.push({
             "order": idx+1,
             "facility": facility.facilityName,
             "swabArea": el.swabAreaName,
             "subSwabArea": el.subSwabAreas.length,
+            "id": el.id  
           });
         })
 
@@ -98,7 +104,7 @@ const fetch = async () => {
 const createSwab = () => {
   show.value = true
 }
-const onCreateSuccess = async () => {
+const onSuccess = async () => {
   isFetched.value = false;
   await fetch();
 };
@@ -172,8 +178,17 @@ onBeforeMount(async () => {
     <p v-else>
       ไม่พบข้อมูลรายการจุดตรวจ swab ในวันที่ {{currentDate}} น.
     </p>
-    <manage-swab-area-modal-create-swab v-model="show" @success="onCreateSuccess">
-    </manage-swab-area-modal-create-swab>
+    <!-- <manage-swab-area-modal-create v-model="show" @success="onSuccess"> -->
+    <!-- </manage-swab-area-modal-create> -->
+    <manage-swab-area-modal-create
+      v-model:id-value="swabAreaId"
+      v-model:show-value="show"
+      @success="onSuccess"
+    >
+    </manage-swab-area-modal-create>
+
+    <manage-swab-area-modal-delete v-model="deletedSwabAreaId" @success="onSuccess">
+    </manage-swab-area-modal-delete>
   </div>
 
 </template>
