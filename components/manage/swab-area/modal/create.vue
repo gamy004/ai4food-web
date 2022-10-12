@@ -3,7 +3,7 @@ import { required } from "@vuelidate/validators";
 import { Ref } from "vue";
 import { useToast } from "vue-toastification";
 import CircleMinus from "~icons/akar-icons/circle-minus";
-import CirclePlusFill from "~icons/akar-icons/circle-plus-fill";
+import CirclePlus from "~icons/akar-icons/circle-plus";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import { ResponseErrorT } from "~~/composables/useRequest";
 import { BodyManageSwabArea } from "~~/composables/useSwab";
@@ -35,7 +35,7 @@ const error: Ref<ResponseErrorT | null> = ref(null);
 
 const form = reactive({
     swabAreaName: null,
-    subSwabAreas: [{ "id":null, "swabAreaName": null }],
+    subSwabAreas: [{ "id": null, "swabAreaName": null }],
     facility: { "id": null },
 });
 
@@ -67,7 +67,7 @@ const clearState = () => {
     resetValidation();
     error.value = null;
     form.swabAreaName = null;
-    form.subSwabAreas = [{ "id": null,"swabAreaName": null }];
+    form.subSwabAreas = [{ "id": null, "swabAreaName": null }];
     form.facility = { "id": null };
 };
 const onCancel = () => {
@@ -88,20 +88,20 @@ const onSubmit = async () => {
             facility: form.facility,
         };
         let swabAreaData;
-        if(idValue.value){
-            swabAreaData =  await swabApi().upadateMainSwabArea(idValue.value, body);
+        if (idValue.value) {
+            swabAreaData = await swabApi().upadateMainSwabArea(idValue.value, body);
         }
-        else{
-            swabAreaData =  await swabApi().createMainSwabArea(body);
+        else {
+            swabAreaData = await swabApi().createMainSwabArea(body);
         }
-       
+
 
         setTimeout(() => {
             showValue.value = null;
             emit("success");
-            if(idValue.value){
+            if (idValue.value) {
                 idValue.value = null
-            }else{
+            } else {
                 clearState();
             }
 
@@ -119,7 +119,7 @@ const onSubmit = async () => {
 
 const addSub = () => {
     subSwabAreasNumber.value = subSwabAreasNumber.value + 1;
-    form.subSwabAreas = [...form.subSwabAreas, { "id": null, "swabAreaName": null}]
+    form.subSwabAreas = [...form.subSwabAreas, { "id": null, "swabAreaName": null }]
 }
 
 const removeSub = () => {
@@ -139,8 +139,8 @@ watch(
                 console.log(swabAreaData)
                 console.log(swabAreaData.subSwabAreasData)
                 form.swabAreaName = swabAreaData.swabAreaName;
-                form.subSwabAreas = swabAreaData.subSwabAreasData.map(el=>{
-                     return { "id":el.id, "swabAreaName": el.swabAreaName }
+                form.subSwabAreas = swabAreaData.subSwabAreasData.map(el => {
+                    return { "id": el.id, "swabAreaName": el.swabAreaName }
                 })
                 form.facility = { "id": swabAreaData.facilityId }
             }
@@ -164,9 +164,9 @@ watch(
                     <div class="input-group align-items-center">
                         <label for="swabName"
                             class="form-label min-w-125px d-block col-12 col-md-auto">ชื่อเครื่องจักร</label>
-                            <div class="form-control p-0 border-0">
-                                <facility-select id="facilityItem" v-model="form.facility"></facility-select>
-                            </div>
+                        <div class="form-control p-0 border-0">
+                            <facility-select id="facilityItem" v-model="form.facility"></facility-select>
+                        </div>
                     </div>
                 </b-row>
                 <b-row class="mt-2">
@@ -182,15 +182,27 @@ watch(
                 <b-row class="mt-2">
                     <div class="input-group align-items-center">
                         <b-col>
-                            <label for="swabName"
-                                class="form-label min-w-125px d-block col-12 col-md-auto">จุดตรวจย่อย</label>
+                            <b-col class="min-w-125px col-12 col-md-12">
+                                <label for="swabName"
+                                class="form-label min-w-125px col-8 col-md-auto">จุดตรวจย่อย</label>
+                                <b-button v-if="!submitting" variant="light" @click="removeSub">
+                                    <CircleMinus />
+                                </b-button>
+                                <b-button v-if="!submitting" variant="light" @click="addSub">
+                                    <CirclePlus  />
+                                </b-button>
+                            </b-col>
+                            
                             <template v-for="(item, index) in form.subSwabAreas">
+                                <b-col class="mt-2">
                                 <div class="form-control p-0 border-0">
-                                    <b-form-input v-model="item.swabAreaName" id="subSwabName{{index}}"
-                                        type="text" placeholder="กรอกชื่อจุดตรวจรอง" />
+                                    <b-form-input v-model="item.swabAreaName" id="subSwabName{{index}}" type="text"
+                                        placeholder="กรอกชื่อจุดตรวจรอง" />
                                 </div>
+                                </b-col>
                             </template>
                         </b-col>
+
 
                     </div>
                 </b-row>
@@ -208,12 +220,6 @@ watch(
         </template>
 
         <template #footer>
-            <b-button v-if="!submitting" variant="light" @click="removeSub">
-                <CircleMinus />
-            </b-button>
-            <b-button v-if="!submitting" variant="light" @click="addSub">
-                <CirclePlusFill />
-            </b-button>
             <b-button v-if="!submitting" variant="light" @click.prevent="onCancel">
                 ยกเลิก
             </b-button>
