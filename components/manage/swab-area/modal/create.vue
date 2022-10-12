@@ -51,8 +51,6 @@ const { validate, isInvalid, isFormInvalid, resetValidation } = useValidation(
 
 const modalRef = ref();
 const submitting = ref(false);
-const show = ref(false);
-const subSwabAreasNumber = ref(1);
 
 const idValue = computed({
     get: () => props.idValue,
@@ -118,13 +116,11 @@ const onSubmit = async () => {
 }
 
 const addSub = () => {
-    subSwabAreasNumber.value = subSwabAreasNumber.value + 1;
     form.subSwabAreas = [...form.subSwabAreas, { "id": null, "swabAreaName": null }]
 }
 
 const removeSub = () => {
-    if (subSwabAreasNumber.value > 1) {
-        subSwabAreasNumber.value = subSwabAreasNumber.value - 1;
+    if (form.subSwabAreas.length> 1) {
         form.subSwabAreas.splice(-1)
     }
 }
