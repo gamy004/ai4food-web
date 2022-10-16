@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { requiredIf } from "@vuelidate/validators";
 import vSelect from "vue-select";
 import { useToast } from "vue-toastification";
 import Facility from "~~/models/Facility";
@@ -10,6 +11,8 @@ export type FacilitySelectData = {
 export interface Props {
   clearable?: boolean;
   disabled?: boolean;
+  required?: boolean;
+  showLabel?: boolean;
   modelValue?: FacilitySelectData | null;
   defaultValue?: any | null;
 }
@@ -21,6 +24,8 @@ const { api: facilityApi, getFacilityByIds, getFacilityByName } = useFacility();
 const props = withDefaults(defineProps<Props>(), {
   clearable: false,
   disabled: false,
+  required: false,
+  showLabel: false,
   modelValue: null,
   defaultValue: null,
 });
@@ -38,6 +43,37 @@ const modelValue = computed({
 
   set: (value) => emit("update:modelValue", value),
 });
+
+const validationRules = {
+  modelValue: {
+    requiredIfPropsRequired: requiredIf(() => props.required),
+    $lazy: true,
+  },
+};
+
+const { isInvalid, isFormInvalid } = useValidation(validationRules, {
+  modelValue,
+});
+
+const facilityRequiredState = computed(() =>
+  isFormInvalid("modelValue", ["requiredIfPropsRequired"])
+);
+
+const formInvalidState = computed(() => {
+  let isFacilityInvalid = null;
+
+  if (isInvalid.value) {
+    isFacilityInvalid = facilityRequiredState.value;
+  }
+
+  return {
+    facility: isFacilityInvalid,
+  };
+});
+
+const formGroupLabel = computed(() => (props.showLabel ? "เครื่องจักร" : ""));
+
+const formGroupLabelClass = computed(() => (!props.showLabel ? "p-0" : ""));
 
 const fetch = async () => {
   if (!isFetched.value) {
@@ -75,27 +111,40 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <v-select
-    v-model="modelValue"
-    :options="facilityOptions"
-    label="facilityName"
-    :loading="loading"
-    :clearable="clearable"
-    :disabled="disabled"
-    :reduce="({ id }) => ({ id })"
-    deselect-from-dropdown
-    @open="fetch"
+  <b-form-group
+    id="fieldset-facility"
+    label-cols-lg="4"
+    label-for="facilityName"
+    :label="formGroupLabel"
+    :label-class="formGroupLabelClass"
+    :state="formInvalidState.facility"
   >
-    <template #selected-option="{ facilityName }">
-      {{ facilityName }}
-    </template>
+    <v-select
+      v-model="modelValue"
+      :options="facilityOptions"
+      label="facilityName"
+      :loading="loading"
+      :clearable="clearable"
+      :disabled="disabled"
+      :reduce="({ id }) => ({ id })"
+      deselect-from-dropdown
+      @open="fetch"
+    >
+      <template #selected-option="{ facilityName }">
+        {{ facilityName }}
+      </template>
 
-    <template #option="{ facilityName }">
-      {{ facilityName }}
-    </template>
+      <template #option="{ facilityName }">
+        {{ facilityName }}
+      </template>
 
-    <!-- <template #search="{ attributes, events }">
-            <input class="vs__search" :required="!modelValue" v-bind="attributes" v-on="events" />
-        </template> -->
-  </v-select>
+      <!-- <template #search="{ attributes, events }">
+                    <input class="vs__search" :required="!modelValue" v-bind="attributes" v-on="events" />
+                </template> -->
+    </v-select>
+
+    <b-form-invalid-feedback v-if="isInvalid" :state="facilityRequiredState">
+      กรุณาเลือกเครื่องจักร
+    </b-form-invalid-feedback>
+  </b-form-group>
 </template>

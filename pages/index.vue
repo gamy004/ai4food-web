@@ -182,18 +182,6 @@ const pageManageProduct = {
               บันทึกผล specie เชื้อสินค้า
             </button-arrow-right>
           </nuxt-link>
-
-          <nuxt-link v-slot="{ navigate }" :to="pageManageSwabArea" custom>
-            <button-arrow-right
-              v-if="authUser.isInSwabTeam || authUser.isInAdminTeam"
-              variant="outline-primary"
-              size="lg"
-              class="w-100"
-              @click="navigate"
-            >
-              จัดการจุดตรวจ swab
-            </button-arrow-right>
-          </nuxt-link>
         </div>
       </div>
     </div>

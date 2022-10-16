@@ -106,7 +106,7 @@ export interface BodyCreateSwabProductHistory {
 }
 
 export interface BodyUpdateSwabProductHistory
-  extends BodyCreateSwabProductHistory { }
+  extends BodyCreateSwabProductHistory {}
 
 export const useSwab = () => {
   const { get, post, put, destroy } = useRequest();
@@ -161,23 +161,14 @@ export const useSwab = () => {
   };
 
   const loadAllMainSwabArea = async (
-    subSwabAreas: boolean = true,
-    facility: boolean = true
+    params: ParamLoadAllMainSwabArea = {}
   ): Promise<SwabArea[]> => {
     return new Promise((resolve, reject) => {
-      const params: ParamLoadAllMainSwabArea = {};
-      if (subSwabAreas) {
-        params.subSwabAreas = subSwabAreas;
-      }
-      if (facility) {
-        params.facility = facility;
-      }
-
       const { data, error } = get<SwabArea[]>(`/swab/area/main`, { params });
 
       watch(data, (swabAreaData) => {
         const swabAreas = swabAreaRepo.save(swabAreaData);
-        console.log(swabAreas)
+
         resolve(swabAreas);
       });
 
@@ -189,9 +180,7 @@ export const useSwab = () => {
     });
   };
 
-  const createMainSwabArea = (
-    body: BodyManageSwabArea
-  ): Promise<any> => {
+  const createMainSwabArea = (body: BodyManageSwabArea): Promise<any> => {
     return new Promise((resolve, reject) => {
       console.log(body);
       const { data, error } = post<any>(`/swab/area`, {
@@ -225,12 +214,10 @@ export const useSwab = () => {
 
         reject("Update swab area failed");
       });
-    })
+    });
   };
 
-  const deleteMainSwabArea = (
-    id: string
-  ): Promise<any> => {
+  const deleteMainSwabArea = (id: string): Promise<any> => {
     return new Promise((resolve, reject) => {
       const { data, error } = destroy<any>(`/swab/area/${id}`);
       watch(data, (responseData) => {
@@ -244,7 +231,7 @@ export const useSwab = () => {
 
         reject("Update swab area failed");
       });
-    })
+    });
   };
 
   // const loadAllLabSwabAreaHistory = async (

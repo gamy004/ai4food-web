@@ -3,7 +3,7 @@ import { useToast } from "vue-toastification";
 import CarbonEdit from "~icons/carbon/edit";
 import CarbonTrashCan from "~icons/carbon/trash-can";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
-import UploadIcon from "~icons/carbon/upload";
+// import UploadIcon from "~icons/carbon/upload";
 import SwabArea from "~~/models/SwabArea";
 import { format } from "date-fns-tz";
 
@@ -84,10 +84,13 @@ const fetch = async () => {
     hasResults.value = false;
     try {
       results.value = [];
-      const swabAreaData: SwabArea[] = await swabApi().loadAllMainSwabArea();
-      await facilityApi().loadAllFacility();
-      console.log(swabAreaData[0]);
-      if (swabAreaData && swabAreaData.length) {
+      facilityApi().loadAllFacility();
+
+      const swabAreaData: SwabArea[] = await swabApi().loadAllMainSwabArea({
+        subSwabAreas: true,
+      });
+
+      if (swabAreaData.length) {
         swabAreaData.forEach((el, idx) => {
           const facility = getFacilityById(el.facilityId);
           results.value.push({
@@ -102,7 +105,6 @@ const fetch = async () => {
 
       hasResults.value = results.value.length > 0;
     } catch (error) {
-      console.log(error);
       toast.error("ไม่สามารถโหลดข้อมูลจุดตรวจตรวจได้", { timeout: 1000 });
     } finally {
       loading.value = false;
@@ -126,10 +128,7 @@ onBeforeMount(async () => {
 
 <template>
   <div class="page__swab-report">
-    <b-form
-      class="w-100"
-      @submit="onFormSubmitted"
-    >
+    <b-form class="w-100" @submit="onFormSubmitted">
       <b-container>
         <b-row>
           <b-col cols="9">
@@ -138,10 +137,7 @@ onBeforeMount(async () => {
             </b-row>
           </b-col>
           <b-col alignSelf="end">
-            <b-button
-              variant="outline-primary"
-              @click="createSwab"
-            >
+            <b-button variant="outline-primary" @click="createSwab">
               เพิ่มรายการจุดตรวจ
             </b-button>
             <!-- <b-button variant="outline-primary" type="submit">
@@ -151,10 +147,7 @@ onBeforeMount(async () => {
         </b-row>
       </b-container>
     </b-form>
-    <div
-      v-if="loading"
-      class="col text-center mt-5"
-    >
+    <div v-if="loading" class="col text-center mt-5">
       <line-md-loading-twotone-loop :style="{ fontSize: '2em' }" />
     </div>
     <!-- <div v-if="hasResults">
@@ -177,27 +170,27 @@ onBeforeMount(async () => {
         :items="filteredData"
       >
         <template #cell(action)="{ item }">
-          <b-button
-            variant="link"
-            @click="promptEdit(item.id)"
-            class="p-0"
-          >
-            <CarbonEdit style="
+          <b-button variant="link" @click="promptEdit(item.id)" class="p-0">
+            <CarbonEdit
+              style="
                  {
                   fontsize: '1em';
                 }
-              " />
+              "
+            />
           </b-button>
           <b-button
             variant="link"
             @click="promptRemove(item.id)"
             class="ms-3 p-0 text-danger"
           >
-            <CarbonTrashCan style="
+            <CarbonTrashCan
+              style="
                  {
                   fontsize: '1em';
                 }
-              " />
+              "
+            />
           </b-button>
         </template>
       </b-table>
@@ -210,17 +203,14 @@ onBeforeMount(async () => {
       />
     </b-col>
 
-    <p v-else>
-      ไม่พบข้อมูลรายการจุดตรวจ swab ในวันที่ {{currentDate}} น.
-    </p>
-    <!-- <manage-swab-area-modal-create v-model="show" @success="onSuccess"> -->
-    <!-- </manage-swab-area-modal-create> -->
-    <manage-swab-area-modal-create
+    <p v-else>ไม่พบข้อมูลรายการจุดตรวจ swab ในวันที่ {{ currentDate }} น.</p>
+
+    <swab-area-modal-manage
       v-model:id-value="swabAreaId"
       v-model:show-value="show"
       @success="onSuccess"
     >
-    </manage-swab-area-modal-create>
+    </swab-area-modal-manage>
 
     <manage-swab-area-modal-delete
       v-model="deletedSwabAreaId"

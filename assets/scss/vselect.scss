@@ -51,11 +51,25 @@
       display: none;
     }
   }
+
+  &__dropdown-option {
+    &--selected {
+      background-color: var(--vs-dropdown-option--selected-bg);
+      color: var(--vs-dropdown-option--selected-color);
+    }
+  }
 }
 
-.vs__dropdown-option {
-  &--selected {
-    background-color: var(--vs-dropdown-option--selected-bg);
-    color: var(--vs-dropdown-option--selected-color);
+.is-invalid {
+  .v-select {
+    .vs {
+      &__dropdown-toggle {
+        border: var(--vs-border-width) var(--vs-border-style) var(--bs-danger);
+      }
+
+      &__open-indicator {
+        fill: var(--bs-danger);
+      }
+    }
   }
 }
