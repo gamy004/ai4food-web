@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import { useToast } from "vue-toastification";
+import { format } from "date-fns-tz";
 import CarbonEdit from "~icons/carbon/edit";
 import CarbonTrashCan from "~icons/carbon/trash-can";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 // import UploadIcon from "~icons/carbon/upload";
 import SwabArea from "~~/models/SwabArea";
-import { format } from "date-fns-tz";
 
 definePageMeta({
   title: "Ai4FoodSafety - Swab Area",
@@ -136,7 +136,7 @@ onBeforeMount(async () => {
               <h3 class="font-weight-bold">รายการจุดตรวจ swab/ ATK</h3>
             </b-row>
           </b-col>
-          <b-col alignSelf="end">
+          <b-col align-self="end">
             <b-button variant="outline-primary" @click="createSwab">
               เพิ่มรายการจุดตรวจ
             </b-button>
@@ -170,7 +170,7 @@ onBeforeMount(async () => {
         :items="filteredData"
       >
         <template #cell(action)="{ item }">
-          <b-button variant="link" @click="promptEdit(item.id)" class="p-0">
+          <b-button variant="link" class="p-0" @click="promptEdit(item.id)">
             <CarbonEdit
               style="
                  {
@@ -181,8 +181,8 @@ onBeforeMount(async () => {
           </b-button>
           <b-button
             variant="link"
-            @click="promptRemove(item.id)"
             class="ms-3 p-0 text-danger"
+            @click="promptRemove(item.id)"
           >
             <CarbonTrashCan
               style="
@@ -209,14 +209,12 @@ onBeforeMount(async () => {
       v-model:id-value="swabAreaId"
       v-model:show-value="show"
       @success="onSuccess"
-    >
-    </swab-area-modal-manage>
+    />
 
     <manage-swab-area-modal-delete
       v-model="deletedSwabAreaId"
       @success="onSuccess"
-    >
-    </manage-swab-area-modal-delete>
+    />
   </div>
 </template>
 <style module></style>

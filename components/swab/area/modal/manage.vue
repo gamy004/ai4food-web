@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { helpers, required } from "@vuelidate/validators";
+import { required } from "@vuelidate/validators";
 import { Ref } from "vue";
 import { useToast } from "vue-toastification";
 import CirclePlusFill from "~icons/akar-icons/circle-plus-fill";
@@ -14,7 +14,11 @@ export interface Props {
 
 const toast = useToast();
 const { isErrorDataExists } = useRequest();
-const { api: swabApi } = useSwab();
+const {
+  getSwabAreaById,
+  getSwabAreaByMainSwabAreaId,
+  api: swabApi,
+} = useSwab();
 
 const props = withDefaults(defineProps<Props>(), {
   idValue: null,
@@ -38,8 +42,10 @@ const validationRules = {
   mainSwabAreaName: { required, $lazy: true },
 };
 
-const { v$, validate, isInvalid, isFormInvalid, resetValidation } =
-  useValidation(validationRules, form);
+const { validate, isInvalid, isFormInvalid, resetValidation } = useValidation(
+  validationRules,
+  form
+);
 
 const modalRef = ref();
 const submitting = ref(false);
@@ -75,6 +81,8 @@ const onCancel = () => {
 };
 
 const onSubmit = async () => {
+  error.value = null;
+
   validate();
 
   if (isInvalid.value) {
@@ -86,7 +94,15 @@ const onSubmit = async () => {
   try {
     const body: BodyManageSwabArea = {
       swabAreaName: form.mainSwabAreaName,
-      subSwabAreas: form.subSwabAreas,
+      subSwabAreas: form.subSwabAreas.map(({ id, subSwabAreaName }) => {
+        const payload: any = { swabAreaName: subSwabAreaName };
+
+        if (id) {
+          payload.id = id;
+        }
+
+        return payload;
+      }),
       facility: form.facility,
     };
 
@@ -111,8 +127,12 @@ const onSubmit = async () => {
 
       emit("success", swabArea);
     }, 1000);
-  } catch (error) {
+  } catch (errorResponse) {
+    error.value = errorResponse;
+
     toast.error("ไม่สามารถบันทึกพื้นที่ swab ได้ กรุณาลองใหม่อีกครั้ง");
+
+    emit("error", errorResponse);
   } finally {
     setTimeout(() => {
       submitting.value = false;
@@ -174,20 +194,38 @@ const idValue = computed({
 });
 
 watch(
-  () => showValue.value,
-  (value) => {
-    if (value) {
-      show.value = true;
+  () => idValue.value,
+  (id) => {
+    if (id) {
+      const swabArea = getSwabAreaById(id);
+
+      if (swabArea) {
+        form.mainSwabAreaName = swabArea.swabAreaName;
+        form.facility = { id: swabArea.facilityId };
+
+        if (swabArea.subSwabAreaIds.length) {
+          const subSwabAreas = getSwabAreaByMainSwabAreaId(swabArea.id);
+
+          if (subSwabAreas.length) {
+            form.subSwabAreas = subSwabAreas.map(({ id, swabAreaName }) => ({
+              id,
+              subSwabAreaName: swabAreaName,
+            }));
+          }
+        }
+      }
     } else {
-      show.value = false;
+      clearState();
     }
   },
   { immediate: true }
 );
+
+defineExpose({ clearState });
 </script>
 
 <template>
-  <modal ref="modalRef" id="swabAreaCreateModal" v-model="show">
+  <modal ref="modalRef" id="swabAreaCreateModal" v-model="showValue">
     <template #title> เพิ่มรายการจุดตรวจ </template>
 
     <template #default>

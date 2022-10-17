@@ -169,8 +169,6 @@ const onSubmit = async () => {
       emit("success", product);
     }, 1000);
   } catch (errorResponse) {
-    console.log(errorResponse);
-
     error.value = errorResponse;
 
     toast.error(

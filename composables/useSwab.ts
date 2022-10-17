@@ -335,6 +335,12 @@ export const useSwab = () => {
     return query.orderBy("facilityId", "asc").get();
   };
 
+  const getSwabAreaByMainSwabAreaId = (id: string) => {
+    const query = swabAreaRepo.where("mainSwabAreaId", id);
+
+    return query.orderBy("createdAt", "asc").get();
+  }
+
   const getSwabAreaById = (id: string): SwabArea => {
     const query = swabAreaRepo.where("id", id);
 
@@ -747,6 +753,8 @@ export const useSwab = () => {
     getSwabAreaById,
 
     getSwabAreaByIds,
+
+    getSwabAreaByMainSwabAreaId,
 
     getSwabAreaHistoriesByIds,
 

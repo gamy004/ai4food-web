@@ -18,6 +18,9 @@ export default class SwabArea extends Model {
     @Attr(null)
       facilityId!: string;
 
+    @Attr([])
+      subSwabAreaIds!: string[];
+
     @HasManyBy(() => SwabArea, "subSwabAreaIds", "mainSwabAreaId")
       subSwabAreas!: SwabArea[];
 
