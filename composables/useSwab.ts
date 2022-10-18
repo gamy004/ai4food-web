@@ -192,9 +192,7 @@ export const useSwab = () => {
       });
 
       watch(error, (e) => {
-        console.log(e);
-
-        reject("Create swab area failed");
+        reject(e);
       });
     });
   };
@@ -210,9 +208,7 @@ export const useSwab = () => {
       });
 
       watch(error, (e) => {
-        console.log(e);
-
-        reject("Update swab area failed");
+        reject(e);
       });
     });
   };

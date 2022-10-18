@@ -174,5 +174,24 @@ export const useRequest = () => {
 
       return isError;
     },
+
+    isErrorDataDuplicate(error: ResponseErrorT, entity: string, fields: string[]) {
+      let isError = false;
+      console.log(error);
+      
+      if (error && error.response) {
+        const { response } = error;
+        const statusCode = response._data.statusCode;
+        const message = response._data.message;
+
+        console.log(message.includes(`${entity} has duplicated value by fields '${fields.join(",")}'`), fields.join(","));
+        
+        isError =
+          statusCode === 400 &&
+          message.includes(`${entity} has duplicated value by fields '${fields.join(",")}'`);
+      }
+
+      return isError;
+    },
   };
 };

@@ -13,7 +13,7 @@ export interface Props {
 }
 
 const toast = useToast();
-const { isErrorDataExists } = useRequest();
+const { isErrorDataExists, isErrorDataDuplicate } = useRequest();
 const {
   getSwabAreaById,
   getSwabAreaByMainSwabAreaId,
@@ -38,8 +38,14 @@ const form = reactive({
   facility: null,
 });
 
+const { duplicateFields } = useValidationRule();
+
 const validationRules = {
   mainSwabAreaName: { required, $lazy: true },
+  subSwabAreas: {
+    isDuplicated: duplicateFields(["subSwabAreaName"]),
+    $lazy: true,
+  },
 };
 
 const { validate, isInvalid, isFormInvalid, resetValidation } = useValidation(
@@ -50,7 +56,6 @@ const { validate, isInvalid, isFormInvalid, resetValidation } = useValidation(
 const modalRef = ref();
 const submitting = ref(false);
 const error: Ref<ResponseErrorT | null> = ref(null);
-const show = ref(false);
 
 const addSubSwabArea = () => {
   form.subSwabAreas.push({ subSwabAreaName: "" });
@@ -150,34 +155,23 @@ const mainSwabAreaNameExistsState = computed(() =>
     : null
 );
 
+const subSwabAreaNameIsDuplicatedState = computed(() =>
+  isFormInvalid("subSwabAreas", ["isDuplicated"])
+);
+
 const formInvalidState = computed(() => {
   let isMainSwabAreaNameInvalid = null;
-  // let isFacilityInvalid = null;
-  // let isAlternateFacilityInvalid = null;
 
   if (isInvalid.value) {
     isMainSwabAreaNameInvalid = mainSwabAreaNameRequiredState.value;
-    // isFacilityInvalid = facilityRequiredState.value;
-    // isAlternateFacilityInvalid = alternateFacilityRequiredState.value;
   }
 
   if (error.value) {
     isMainSwabAreaNameInvalid = mainSwabAreaNameExistsState.value;
-    // isFacilityInvalid = facilityExistsState.value;
-    // isAlternateFacilityInvalid = alternateFacilityExistsState.value;
   }
 
   return {
     mainSwabAreaName: isMainSwabAreaNameInvalid,
-    // subSwabAreas: form.subSwabAreas.map((_, index) => {
-    //   return isInvalid.value
-    //     ? isFormArrayInvalid("subSwabAreas", "subSwabAreaName", index, [
-    //         "required",
-    //       ])
-    //     : null;
-    // }),
-    // facility: isFacilityInvalid,
-    // alternateProductCode: isAlternateProductCodeInvalid,
   };
 });
 
@@ -312,6 +306,17 @@ defineExpose({ clearState });
               </div>
 
               <div class="d-grid gap-1 mt-3">
+                <div
+                  v-if="
+                    subSwabAreaNameIsDuplicatedState !== null &&
+                    !subSwabAreaNameIsDuplicatedState
+                  "
+                  class="alert alert-danger"
+                  role="alert"
+                >
+                  พบชื่อจุดตรวจย่อยwซ้ำ กรุณาแก้ไขชื่อจุดตรวจให้ไม่ซ้ำกัน
+                </div>
+
                 <template v-for="(_, subIndex) in form.subSwabAreas">
                   <swab-area-input-sub-swab-area
                     :disabled="submitting"
