@@ -26,9 +26,9 @@ const hasResults = ref(false);
 const results = ref([]);
 const perPage = ref(100);
 const currentPage = ref(1);
-const show = ref(false)
-const swabAreaId = ref(null)
-const deletedSwabAreaId  = ref(null)
+const show = ref(false);
+const swabAreaId = ref(null);
+const deletedSwabAreaId = ref(null);
 
 async function onFormSubmitted() {
   hasResults.value = false;
@@ -66,16 +66,16 @@ const filteredData = computed(() =>
   })
 );
 const promptEdit = (id) => {
-    // do something
-    show.value = true;
-    swabAreaId.value = id;
-    console.log("edit",id)
+  // do something
+  show.value = true;
+  swabAreaId.value = id;
+  console.log("edit", id);
 };
 
 const promptRemove = (id) => {
   // do something
-  deletedSwabAreaId.value = id
-  console.log("remove", id)
+  deletedSwabAreaId.value = id;
+  console.log("remove", id);
 };
 
 const fetch = async () => {
@@ -86,22 +86,23 @@ const fetch = async () => {
       results.value = [];
       const swabAreaData: SwabArea[] = await swabApi().loadAllMainSwabArea();
       await facilityApi().loadAllFacility();
-      console.log(swabAreaData[0])
-      if (swabAreaData.length) {
-        swabAreaData.forEach((el, idx) => { 
+      console.log(swabAreaData[0]);
+      if (swabAreaData && swabAreaData.length) {
+        swabAreaData.forEach((el, idx) => {
           const facility = getFacilityById(el.facilityId);
-
           results.value.push({
-            "order": idx+1,
-            "facility": facility.facilityName,
-            "swabArea": el.swabAreaName,
-            "subSwabArea": el.subSwabAreas.length,
-            "id": el.id  
+            order: idx + 1,
+            facility: facility.facilityName,
+            swabArea: el.swabAreaName,
+            subSwabArea: el.subSwabAreas ? el.subSwabAreas.length : 0,
+            id: el.id,
           });
         });
       }
+
       hasResults.value = results.value.length > 0;
     } catch (error) {
+      console.log(error);
       toast.error("ไม่สามารถโหลดข้อมูลจุดตรวจตรวจได้", { timeout: 1000 });
     } finally {
       loading.value = false;
@@ -110,8 +111,8 @@ const fetch = async () => {
   }
 };
 const createSwab = () => {
-  show.value = true
-}
+  show.value = true;
+};
 const onSuccess = async () => {
   isFetched.value = false;
   await fetch();
@@ -125,7 +126,10 @@ onBeforeMount(async () => {
 
 <template>
   <div class="page__swab-report">
-    <b-form class="w-100" @submit="onFormSubmitted">
+    <b-form
+      class="w-100"
+      @submit="onFormSubmitted"
+    >
       <b-container>
         <b-row>
           <b-col cols="9">
@@ -134,7 +138,10 @@ onBeforeMount(async () => {
             </b-row>
           </b-col>
           <b-col alignSelf="end">
-            <b-button variant="outline-primary" @click="createSwab">
+            <b-button
+              variant="outline-primary"
+              @click="createSwab"
+            >
               เพิ่มรายการจุดตรวจ
             </b-button>
             <!-- <b-button variant="outline-primary" type="submit">
@@ -144,7 +151,10 @@ onBeforeMount(async () => {
         </b-row>
       </b-container>
     </b-form>
-    <div v-if="loading" class="col text-center mt-5">
+    <div
+      v-if="loading"
+      class="col text-center mt-5"
+    >
       <line-md-loading-twotone-loop :style="{ fontSize: '2em' }" />
     </div>
     <!-- <div v-if="hasResults">
@@ -167,27 +177,27 @@ onBeforeMount(async () => {
         :items="filteredData"
       >
         <template #cell(action)="{ item }">
-          <b-button variant="link" @click="promptEdit(item.id)" class="p-0">
-            <CarbonEdit
-              style="
+          <b-button
+            variant="link"
+            @click="promptEdit(item.id)"
+            class="p-0"
+          >
+            <CarbonEdit style="
                  {
                   fontsize: '1em';
                 }
-              "
-            />
+              " />
           </b-button>
           <b-button
             variant="link"
             @click="promptRemove(item.id)"
             class="ms-3 p-0 text-danger"
           >
-            <CarbonTrashCan
-              style="
+            <CarbonTrashCan style="
                  {
                   fontsize: '1em';
                 }
-              "
-            />
+              " />
           </b-button>
         </template>
       </b-table>
@@ -212,7 +222,10 @@ onBeforeMount(async () => {
     >
     </manage-swab-area-modal-create>
 
-    <manage-swab-area-modal-delete v-model="deletedSwabAreaId" @success="onSuccess">
+    <manage-swab-area-modal-delete
+      v-model="deletedSwabAreaId"
+      @success="onSuccess"
+    >
     </manage-swab-area-modal-delete>
   </div>
 </template>
