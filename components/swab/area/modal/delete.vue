@@ -8,7 +8,8 @@ export interface Props {
 
 const toast = useToast();
 
-const { getProductById, api: productApi } = useProduct();
+const { api: swabApi, getSwabAreaById } = useSwab();
+const { getFacilityById } = useFacility();
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: null,
@@ -17,8 +18,9 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(["update:modelValue", "success", "error"]);
 
 const modalRef = ref();
-const deletedProduct = ref(null);
 const deletePermission = ref(null);
+const deletedSwabArea = ref(null);
+const deletedFacility = ref(null);
 const loading = ref(false);
 const submitting = ref(false);
 const error = ref(false);
@@ -36,14 +38,14 @@ const reFetch = () => {
   fetchDeletePermission(modelValue.value);
 };
 
-const fetchDeletePermission = async (productId) => {
+const fetchDeletePermission = async (swabAreaId) => {
   deletePermission.value = null;
 
   loading.value = true;
 
   try {
-    deletePermission.value = await productApi().loadDeletePermissionProduct(
-      productId
+    deletePermission.value = await swabApi().loadDeletePermissionSwabArea(
+      swabAreaId
     );
   } catch (error) {
     error.value = true;
@@ -58,14 +60,16 @@ const onSubmit = async () => {
   submitting.value = true;
 
   try {
-    const deletedProduct = await productApi().deleteProduct(modelValue.value);
+    const deletedSwabArea = await swabApi().deleteMainSwabArea(
+      modelValue.value
+    );
 
     setTimeout(() => {
       toast.success("ลบสินค้าสำเร็จ", { timeout: 1000 });
 
       modelValue.value = null;
 
-      emit("success", deletedProduct);
+      emit("success", deletedSwabArea);
     }, 1000);
   } catch (error) {
     toast.error("ไม่สามารถลบสินค้าได้ กรุณาลองใหม่อีกครั้ง");
@@ -82,14 +86,15 @@ watch(
   () => modelValue.value,
   (value) => {
     if (value) {
-      deletedProduct.value = getProductById(modelValue.value);
+      deletedSwabArea.value = getSwabAreaById(value);
+      deletedFacility.value = getFacilityById(deletedSwabArea.value.facilityId);
 
-      fetchDeletePermission(modelValue.value);
+      fetchDeletePermission(value);
 
       show.value = true;
     } else {
       show.value = false;
-      deletedProduct.value = null;
+      deletedSwabArea.value = null;
     }
   },
   { immediate: true }
@@ -117,56 +122,50 @@ watch(
           </div>
 
           <div v-else>
-            <div v-if="deletePermission && deletePermission.canDelete">
+            <div>
               <p>คุณยืนยันที่จะลบข้อมูลสินค้านี้ใช่ไหม</p>
 
-              <div class="alert alert-danger" role="alert">
-                <div v-if="deletedProduct">
-                  <div><b>สินค้า:</b> {{ deletedProduct.productName }}</div>
-                  <div><b>รหัสสินค้า:</b> {{ deletedProduct.productCode }}</div>
+              <div
+                v-if="deletePermission && deletePermission.canDelete"
+                class="alert alert-danger"
+                role="alert"
+              >
+                <div v-if="deletedSwabArea">
                   <div>
-                    <b>รหัสสินค้าสำรอง:</b>
-                    {{ deletedProduct.alternateProductCode }}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div v-else>
-              <p v-if="deletedProduct">
-                ไม่สามารถลบข้อมูลสินค้า
-                <b>{{ deletedProduct.productName }}</b> ได้
-              </p>
-
-              <div class="alert alert-danger" role="alert">
-                <div
-                  v-if="
-                    deletePermission &&
-                    (deletePermission.countSwabAreaHistories > 0 ||
-                      deletePermission.countSwabProductHistories > 0 ||
-                      deletePermission.countProductSchedules > 0)
-                  "
-                >
-                  <div><b>สาเหตุ:</b> ข้อมูลสินค้ามีการผูกข้อมูล</div>
-                  <div>
-                    <b>ข้อมูลการตรวจจุดตรวจ:</b>
-                    {{ deletePermission.countSwabAreaHistories }} รายการ
+                    <b>จุด swab หลัก:</b> {{ deletedSwabArea.swabAreaName }}
                   </div>
                   <div>
-                    <b>ข้อมูลการตรวจสินค้า:</b>
-                    {{ deletePermission.countSwabProductHistories }} รายการ
-                  </div>
-                  <div>
-                    <b>ข้อมูลแผนการผลิตสินค้า:</b>
-                    {{ deletePermission.countProductSchedules }} รายการ
+                    <b>เครื่องจักร:</b> {{ deletedFacility.facilityName }}
                   </div>
                 </div>
               </div>
 
-              <p>
-                หากสินค้าถูกลบ ข้อมูลที่ผูกกับสินค้านี้ทั้งหมดจะถูกลบ
-                คุณแน่ใจว่าต้องการลบสินค้านี้ใช่ไหม
-              </p>
+              <div v-else>
+                <p v-if="deletedSwabArea">
+                  ไม่สามารถลบข้อมูลจุดตรวจ
+                  <b>{{ deletedSwabArea.swabAreaName }}</b> ได้
+                </p>
+
+                <div class="alert alert-danger" role="alert">
+                  <div
+                    v-if="
+                      deletePermission &&
+                      deletePermission.countSwabAreaHistories > 0
+                    "
+                  >
+                    <div><b>สาเหตุ:</b> ข้อมูลจุดตรวจมีการผูกข้อมูล</div>
+                    <div>
+                      <b>ข้อมูลการตรวจจุดตรวจ:</b>
+                      {{ deletePermission.countSwabAreaHistories }} รายการ
+                    </div>
+                  </div>
+                </div>
+
+                <p>
+                  หากจุดตรวจถูกลบ ข้อมูลที่ผูกกับจุดตรวจนี้ทั้งหมดจะถูกลบ
+                  คุณแน่ใจว่าต้องการลบจุดตรวจนี้ใช่ไหม
+                </p>
+              </div>
             </div>
           </div>
         </div>

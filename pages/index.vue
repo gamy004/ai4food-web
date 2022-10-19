@@ -36,6 +36,10 @@ const pageUpdateBacteriaSpecieProduct = {
   name: "swab-test-update-bacteria-specie-product",
 };
 
+const pageManageSwabArea = {
+  name: "manage-swab-area",
+};
+
 const pageManageProduct = {
   name: "manage-product",
 };
@@ -80,6 +84,18 @@ const pageManageProduct = {
               @click="navigate"
             >
               จัดการสินค้าอาหาร
+            </button-arrow-right>
+          </nuxt-link>
+
+          <nuxt-link v-slot="{ navigate }" :to="pageManageSwabArea" custom>
+            <button-arrow-right
+              v-if="authUser.isInSwabTeam || authUser.isInAdminTeam"
+              variant="outline-primary"
+              size="lg"
+              class="w-100"
+              @click="navigate"
+            >
+              จัดการจุดตรวจ swab
             </button-arrow-right>
           </nuxt-link>
 
