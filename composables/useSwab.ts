@@ -105,6 +105,12 @@ export interface BodyCreateSwabProductHistory {
   shift: Shift;
 }
 
+export type ResponseSwabAreaDeletePermission = {
+  canDelete: boolean;
+  message: string;
+  countSwabAreaHistories: number;
+};
+
 export interface BodyUpdateSwabProductHistory
   extends BodyCreateSwabProductHistory {}
 
@@ -179,6 +185,18 @@ export const useSwab = () => {
       });
     });
   };
+
+  const loadDeletePermissionSwabArea = (id: string) : Promise<ResponseSwabAreaDeletePermission> => {
+    return new Promise((resolve, reject) => {
+      const { data, error } = get<ResponseSwabAreaDeletePermission>(
+        `/swab/area/${id}/delete-permission`
+      );
+
+      watch(data, resolve);
+
+      watch(error, reject);
+    });
+  }
 
   const createMainSwabArea = (body: BodyManageSwabArea): Promise<any> => {
     return new Promise((resolve, reject) => {
@@ -783,6 +801,7 @@ export const useSwab = () => {
         loadAllSwabPeriod,
         loadAllSwabEnvironment,
         loadAllMainSwabArea,
+        loadDeletePermissionSwabArea,
         createMainSwabArea,
         upadateMainSwabArea,
         deleteMainSwabArea,

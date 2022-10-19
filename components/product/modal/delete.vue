@@ -142,7 +142,7 @@ watch(
                 <div
                   v-if="
                     deletePermission &&
-                    (deletePermission.countSwabAreaHistory > 0 ||
+                    (deletePermission.countSwabAreaHistories > 0 ||
                       deletePermission.countSwabProductHistories > 0 ||
                       deletePermission.countProductSchedules > 0)
                   "
@@ -164,8 +164,8 @@ watch(
               </div>
 
               <p>
-                ข้อมูลสินค้าจะสามารถลบได้
-                เมื่อไม่มีการผูกข้อมูลกับสินค้านี้แล้วเท่านั้น
+                หากสินค้าถูกลบ ข้อมูลที่ผูกกับสินค้านี้ทั้งหมดจะถูกลบ
+                คุณแน่ใจว่าต้องการลบสินค้านี้ใช่ไหม
               </p>
             </div>
           </div>
@@ -184,11 +184,7 @@ watch(
         <b-button
           type="submit"
           variant="danger"
-          :disabled="
-            loading ||
-            submitting ||
-            (deletePermission && !deletePermission.canDelete)
-          "
+          :disabled="loading || submitting"
         >
           <LineMdLoadingTwotoneLoop
             v-if="submitting"

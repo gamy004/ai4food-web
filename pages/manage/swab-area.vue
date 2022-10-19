@@ -65,17 +65,17 @@ const filteredData = computed(() =>
     );
   })
 );
+
 const promptEdit = (id) => {
   // do something
   show.value = true;
+
   swabAreaId.value = id;
-  console.log("edit", id);
 };
 
 const promptRemove = (id) => {
   // do something
   deletedSwabAreaId.value = id;
-  console.log("remove", id);
 };
 
 const fetch = async () => {
@@ -169,6 +169,10 @@ onBeforeMount(async () => {
         :fields="tableFields"
         :items="filteredData"
       >
+        <!-- <template #cell(subSwabArea)="{ item }">
+          {{ item.subSwabArea || "ไม่มี" }}
+        </template> -->
+
         <template #cell(action)="{ item }">
           <b-button variant="link" class="p-0" @click="promptEdit(item.id)">
             <CarbonEdit
@@ -211,10 +215,7 @@ onBeforeMount(async () => {
       @success="onSuccess"
     />
 
-    <manage-swab-area-modal-delete
-      v-model="deletedSwabAreaId"
-      @success="onSuccess"
-    />
+    <swab-area-modal-delete v-model="deletedSwabAreaId" @success="onSuccess" />
   </div>
 </template>
 <style module></style>

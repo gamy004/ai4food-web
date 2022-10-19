@@ -18,6 +18,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(["update:modelValue", "success", "error"]);
 
 const modalRef = ref();
+const deletePermission = ref(null);
 const deletedSwabArea = ref(null);
 const deletedFacility = ref(null);
 const loading = ref(false);
@@ -33,14 +34,35 @@ const modelValue = computed({
 
 const reFetch = () => {
   error.value = false;
+
+  fetchDeletePermission(modelValue.value);
 };
 
+const fetchDeletePermission = async (swabAreaId) => {
+  deletePermission.value = null;
+
+  loading.value = true;
+
+  try {
+    deletePermission.value = await swabApi().loadDeletePermissionSwabArea(
+      swabAreaId
+    );
+  } catch (error) {
+    error.value = true;
+
+    toast.error("ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง");
+  } finally {
+    loading.value = false;
+  }
+};
 
 const onSubmit = async () => {
   submitting.value = true;
 
   try {
-    const deletedSwabArea = await swabApi().deleteMainSwabArea(modelValue.value);
+    const deletedSwabArea = await swabApi().deleteMainSwabArea(
+      modelValue.value
+    );
 
     setTimeout(() => {
       toast.success("ลบสินค้าสำเร็จ", { timeout: 1000 });
@@ -64,8 +86,11 @@ watch(
   () => modelValue.value,
   (value) => {
     if (value) {
-        deletedSwabArea.value = getSwabAreaById(value);
-        deletedFacility.value = getFacilityById(deletedSwabArea.value.facilityId)
+      deletedSwabArea.value = getSwabAreaById(value);
+      deletedFacility.value = getFacilityById(deletedSwabArea.value.facilityId);
+
+      fetchDeletePermission(value);
+
       show.value = true;
     } else {
       show.value = false;
@@ -100,11 +125,46 @@ watch(
             <div>
               <p>คุณยืนยันที่จะลบข้อมูลสินค้านี้ใช่ไหม</p>
 
-              <div class="alert alert-danger" role="alert">
+              <div
+                v-if="deletePermission && deletePermission.canDelete"
+                class="alert alert-danger"
+                role="alert"
+              >
                 <div v-if="deletedSwabArea">
-                  <div><b>จุด swab หลัก:</b> {{ deletedSwabArea.swabAreaName }}</div>
-                  <div><b>เครื่องจักร:</b> {{ deletedFacility.facilityName }}</div>
+                  <div>
+                    <b>จุด swab หลัก:</b> {{ deletedSwabArea.swabAreaName }}
+                  </div>
+                  <div>
+                    <b>เครื่องจักร:</b> {{ deletedFacility.facilityName }}
+                  </div>
                 </div>
+              </div>
+
+              <div v-else>
+                <p v-if="deletedSwabArea">
+                  ไม่สามารถลบข้อมูลจุดตรวจ
+                  <b>{{ deletedSwabArea.swabAreaName }}</b> ได้
+                </p>
+
+                <div class="alert alert-danger" role="alert">
+                  <div
+                    v-if="
+                      deletePermission &&
+                      deletePermission.countSwabAreaHistories > 0
+                    "
+                  >
+                    <div><b>สาเหตุ:</b> ข้อมูลจุดตรวจมีการผูกข้อมูล</div>
+                    <div>
+                      <b>ข้อมูลการตรวจจุดตรวจ:</b>
+                      {{ deletePermission.countSwabAreaHistories }} รายการ
+                    </div>
+                  </div>
+                </div>
+
+                <p>
+                  หากจุดตรวจถูกลบ ข้อมูลที่ผูกกับจุดตรวจนี้ทั้งหมดจะถูกลบ
+                  คุณแน่ใจว่าต้องการลบจุดตรวจนี้ใช่ไหม
+                </p>
               </div>
             </div>
           </div>
@@ -123,10 +183,7 @@ watch(
         <b-button
           type="submit"
           variant="danger"
-          :disabled="
-            loading ||
-            submitting
-          "
+          :disabled="loading || submitting"
         >
           <LineMdLoadingTwotoneLoop
             v-if="submitting"
