@@ -16,6 +16,23 @@ export type BodyManageProduct = {
   alternateProductCode: string;
 };
 
+export type BodyProductSchedule = {
+  importTransaction: {
+    id: string
+  },
+  records: [
+    {
+      productScheduleAmount: number,
+      productScheduleDate: string,
+      productScheduleStartedAt: string,
+      productScheduleEndedAt: string,
+      product: {
+        id: string
+      }
+    }
+  ]
+}
+
 export type ResponseDeletePermission = {
   canDelete: boolean;
   message: string;
@@ -41,6 +58,20 @@ export const useProduct = () => {
 
     return query.first();
   };
+
+  
+  const getProductByCodes = (codes: string[]): Product[] => {
+    const query = productRepo.where("productCode", codes);
+
+    return query.orderBy("productCode", "asc").get();
+  };
+
+  const getProductByCode = (code: string): Product => {
+    const query = productRepo.where("productCode", code);
+
+    return query.first();
+  };
+
 
   const loadAllProduct = async (): Promise<Product[]> => {
     return new Promise((resolve, reject) => {
@@ -125,11 +156,24 @@ export const useProduct = () => {
     });
   };
 
+  const createProductSchedule = async (body: BodyProductSchedule): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const { data, error } = post<any>(`/product-schedule/import`, body);
+
+      watch(data, resolve);
+
+      watch(error, reject);
+    });
+  };
+
   return {
     getProductByIds,
 
     getProductById,
 
+    getProductByCodes,
+
+    getProductByCode,
     api() {
       return {
         loadAllProduct,
@@ -137,6 +181,7 @@ export const useProduct = () => {
         updateProduct,
         createProduct,
         deleteProduct,
+        createProductSchedule
       };
     },
   };

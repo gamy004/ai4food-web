@@ -7,6 +7,8 @@ import { useXlsx } from "~~/composables/useXlsx";
 import UploadIcon from "~icons/carbon/upload";
 import CarbonEdit from "~icons/carbon/edit";
 import CarbonTrashCan from "~icons/carbon/trash-can";
+import Product from "~~/models/Product";
+
 
 
 definePageMeta({
@@ -17,6 +19,9 @@ definePageMeta({
 });
 const toast = useToast();
 const { readFile, workbook } = useXlsx();
+const { api: importApi } = useImport();
+const { getProductByCode, api: productApi } = useProduct();
+
 const isFetched = ref(false);
 const loading = ref(false);
 const showModal = ref(false);
@@ -24,9 +29,17 @@ const currentPage = ref(1);
 const hasResults = ref(false);
 const perPage = ref(100);
 const productData = ref(null)
+const { getAuth } = useAuth();
+const user = getAuth();
+const keys_to_keep = ['productScheduleAmount', 'productScheduleDate', 'productScheduleStartedAt', 'productScheduleEndedAt', 'product'];
+
+const redux = array => array.map(o => keys_to_keep.reduce((acc, curr) => {
+  acc[curr] = o[curr];
+  return acc;
+}, {}));
 const tableFields = computed(() => {
   return [
-    { key: "productScheduleDate", label: "วัน/เวลา ผลิต", thStyle: { width: "20%" } },
+    { key: "date", label: "วัน/เวลา ผลิต", thStyle: { width: "20%" } },
     { key: "productCode", label: "รหัสสินค้า", thStyle: { width: "20%" } },
     {
       key: "alternateProductCode",
@@ -53,6 +66,7 @@ const fetch = async () => {
     loading.value = true;
     hasResults.value = false;
     try {
+      await productApi().loadAllProduct();
       const { Sheets = {} } = workbook.value;
       const sheetNames = workbook.value.SheetNames;
       const last_row = 18; // last row of schedule xlsx file
@@ -116,28 +130,63 @@ const fetch = async () => {
         const arr = jsonResults[sheetName];
         arr.forEach((obj) => {
           Object.keys(obj).forEach((key) => {
-            if (String(key) !== "hr.") {
+            const product = getProductByCode(key)
+            if (String(key) !== "hr." && product) {
               if (isNaN(obj[key])) { obj[key] = null; }
-              const time = obj["hr."].split("-");
-              const startTime = time[0].split(" ")[0];
-              const endTime = time[1].split(" ")[0];
-              const resultJson = {
-                productCode: key,
-                alternateProductCode: productMap[key].alt,
-                productName: productMap[key].name,
-                productScheduleAmount: obj[key] ? Number(obj[key]).toFixed(2) : "-",
-                productScheduleDate: sheetName,
-                productScheduleStartedAt: startTime,
-                productScheduleEndedAt: endTime
-              };
-              results.push(resultJson);
+              if (obj[key]) {
+                const time = obj["hr."].split("-");
+                const startTime = time[0].split(" ")[0];
+                const endTime = time[1].split(" ")[0];
+                // dd/MM/yyyy
+                const date = sheetName.split('/')[2]+"-"+sheetName.split('/')[1]+"-"+sheetName.split('/')[0]
+                const resultJson = {
+                  productCode: key,
+                  alternateProductCode: productMap[key].alt,
+                  productName: productMap[key].name,
+                  productScheduleAmount: parseInt(obj[key]),
+                  date: sheetName,
+                  productScheduleDate: date,
+                  startTime: startTime,
+                  endTime: endTime,
+                  productScheduleStartedAt: startTime.split('.')[0] === '24' ? "00:00:00":startTime.split('.')[0]+":"+startTime.split('.')[1]+":00",
+                  productScheduleEndedAt: endTime.split('.')[0] === '24' ? "23:59:59":endTime.split('.')[0]+":"+endTime.split('.')[1]+":00",
+                  product: {
+                    id: product.id
+                  }
+                };
+                results.push(resultJson);
+              }
             }
           });
         });
       });
       hasResults.value = true;
       productData.value = results;
-      console.log(results)
+      // POST /import-transaction
+      const importTransactionId = await importApi().imortTransaction({
+        "importType": "product_schedule",
+        "importSource": "web",
+        "importedFileUrl": "-",
+        "importedFileName": "-",
+        "importedUser": {
+          "id": user.getUserId()
+        }
+      })
+
+      const records = {
+        "importTransaction": {
+          "id": importTransactionId.id
+        },
+        "records": redux(results)
+      }
+      console.log(records)
+
+      await productApi().createProductSchedule(records)
+
+
+      setTimeout(() => {
+            toast.success("บันทึกพื้นที่ข้อมูลสินค้าสำเร็จ", { timeout: 1000 });
+        }, 1000);
     }
     catch (error) {
       toast.error("ไม่สามารถโหลดข้อมูลสินค้าได้", { timeout: 1000 });
@@ -201,10 +250,12 @@ onBeforeMount(fetch);
 
           <b-col v-if="hasResults">
             <b-table id="result-table" hover small caption-top responsive :fields="tableFields" :items="filteredData">
-              <template #cell(productScheduleDate)=" {item, index} ">
+              <template #cell(date)="{ item, index }">
                 <div>
-                  <p>{{item.productScheduleDate}}</p>
-                  <p style="{fontsize: '0.1em';}">({{item.productScheduleStartedAt}} - {{item.productScheduleEndedAt}})</p>
+                  <p>{{ item.date }}</p>
+                  <p style="{fontsize: '0.1em'}">({{ item.startTime }} - {{ item.endTime
+                  }})
+                  </p>
                 </div>
               </template>
               <template #cell(action)="{ item, index }">
