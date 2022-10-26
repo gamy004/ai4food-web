@@ -163,25 +163,25 @@ const fetch = async () => {
       hasResults.value = true;
       productData.value = results;
       // POST /import-transaction
-      const importTransactionId = await importApi().imortTransaction({
-        "importType": "product_schedule",
-        "importSource": "web",
-        "importedFileUrl": "-",
-        "importedFileName": "-",
-        "importedUser": {
-          "id": user.getUserId()
-        }
-      })
+      // const importTransactionId = await importApi().imortTransaction({
+      //   "importType": "product_schedule",
+      //   "importSource": "web",
+      //   "importedFileUrl": "-",
+      //   "importedFileName": "-",
+      //   "importedUser": {
+      //     "id": user.getUserId()
+      //   }
+      // })
 
-      const records = {
-        "importTransaction": {
-          "id": importTransactionId.id
-        },
-        "records": redux(results)
-      }
-      console.log(records)
+      // const records = {
+      //   "importTransaction": {
+      //     "id": importTransactionId.id
+      //   },
+      //   "records": redux(results)
+      // }
+      // console.log(records)
 
-      await productApi().createProductSchedule(records)
+      // await productApi().createProductSchedule(records)
 
 
       setTimeout(() => {
@@ -253,7 +253,7 @@ onBeforeMount(fetch);
               <template #cell(date)="{ item, index }">
                 <div>
                   <p>{{ item.date }}</p>
-                  <p style="{fontsize: '0.1em'}">({{ item.startTime }} - {{ item.endTime
+                  <p id="time">({{ item.startTime }} - {{ item.endTime
                   }})
                   </p>
                 </div>
@@ -289,3 +289,8 @@ onBeforeMount(fetch);
     </div>
   </div>
 </template>
+<style scoped lang="scss">
+#time{
+  font-size: 0.8em;
+}
+</style>
