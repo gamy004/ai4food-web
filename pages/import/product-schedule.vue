@@ -163,25 +163,25 @@ const fetch = async () => {
       hasResults.value = true;
       productData.value = results;
       // POST /import-transaction
-      // const importTransactionId = await importApi().imortTransaction({
-      //   "importType": "product_schedule",
-      //   "importSource": "web",
-      //   "importedFileUrl": "-",
-      //   "importedFileName": "-",
-      //   "importedUser": {
-      //     "id": user.getUserId()
-      //   }
-      // })
+      const importTransactionId = await importApi().imortTransaction({
+        "importType": "product_schedule",
+        "importSource": "web",
+        "importedFileUrl": "-",
+        "importedFileName": "-",
+        "importedUser": {
+          "id": user.getUserId()
+        }
+      })
 
-      // const records = {
-      //   "importTransaction": {
-      //     "id": importTransactionId.id
-      //   },
-      //   "records": redux(results)
-      // }
-      // console.log(records)
+      const records = {
+        "importTransaction": {
+          "id": importTransactionId.id
+        },
+        "records": redux(results)
+      }
+      console.log(records)
 
-      // await productApi().createProductSchedule(records)
+      await productApi().createProductSchedule(records)
 
 
       setTimeout(() => {
