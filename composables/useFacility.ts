@@ -47,7 +47,9 @@ export const useFacility = () => {
     });
   };
 
-  const loadAllFacilityItem = async (facilityId: string = null): Promise<FacilityItem[]> => {
+  const loadAllFacilityItem = async (
+    facilityId: string = null
+  ): Promise<FacilityItem[]> => {
     return new Promise((resolve, reject) => {
       const params: ParamLoadAllFacilityItem = {};
 
@@ -74,17 +76,30 @@ export const useFacility = () => {
   const getFacilityByIds = (ids: string[]): Facility[] => {
     const query = facilityRepo.where("id", ids);
 
-    return query.orderBy("facilityType", "asc").orderBy("facilityName", "asc").get();
+    return query
+      .orderBy("facilityType", "asc")
+      .orderBy("facilityName", "asc")
+      .get();
   };
 
-  const getFacilityById = (id: string): Facility => {
+  const getFacilityById = (id: string): Facility | null => {
     const query = facilityRepo.where("id", id);
 
     return query.first();
   };
 
-  const getFacilityItemByIds = (ids: string[]) => {
+  const getFacilityByName = (name: string): Facility | null => {
+    const query = facilityRepo.where("facilityName", name);
+
+    return query.first();
+  };
+
+  const getFacilityItemByIds = (ids: string[], filters: any = {}) => {
     const query = facilityItemRepo.where("id", ids);
+
+    if (filters.facilityId) {
+      query.where("facilityId", filters.facilityId);
+    }
 
     return query.orderBy("facilityItemName", "asc").get();
   };
@@ -100,6 +115,8 @@ export const useFacility = () => {
 
     getFacilityById,
 
+    getFacilityByName,
+
     getFacilityItemByIds,
 
     getFacilityItemById,
@@ -108,8 +125,8 @@ export const useFacility = () => {
       return {
         loadAllFacility,
         loadAllSwabFacility,
-        loadAllFacilityItem
+        loadAllFacilityItem,
       };
-    }
+    },
   };
 };

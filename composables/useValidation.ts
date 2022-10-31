@@ -1,31 +1,40 @@
 import useVuelidate from "@vuelidate/core";
 
 export const useValidation = (validationRules, form) => {
-    const invalid = ref(false);
+  // const invalid = ref(false);
 
-    const v$ = useVuelidate(validationRules, form);
+  const v$ = useVuelidate(validationRules, form);
 
-    const isInvalid = computed(() => invalid.value === true);
+  const isInvalid = computed(() => v$.value.$invalid === true);
 
-    const isFormInvalid = (field, rules = []) => {
-        return invalid.value ? !rules.some(rule => v$.value[field][rule].$invalid) : null;
-    };
+  const isFormInvalid = (field, rules = []) => {
+    return isInvalid.value
+      ? !rules.some((rule) => v$.value[field][rule].$invalid)
+      : null;
+  };
 
-    const validate = (): void => {
-        invalid.value = false;
+  const validate = (): void => {
+    // invalid.value = false;
 
-        v$.value.$touch();
+    v$.value.$touch();
 
-        if (v$.value.$invalid) {
-            console.log(v$);
+    console.log(v$);
+    
+    // if (v$.value.$invalid) {
+    //   invalid.value = true;
+    // }
+  };
 
-            invalid.value = true;
-        }
-    }
+  const resetValidation = (): void => {
+    // invalid.value = false;
+    v$.value.$reset();
+  };
 
-    return {
-        isInvalid,
-        isFormInvalid,
-        validate
-    }
-}
+  return {
+    v$,
+    validate,
+    isInvalid,
+    isFormInvalid,
+    resetValidation
+  };
+};

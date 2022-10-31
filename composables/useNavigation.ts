@@ -1,4 +1,6 @@
-export const useRedirect = () => {
+import { RouteLocationRaw, NavigationFailure } from "vue-router";
+
+export const useNavigation = () => {
   const route = useRoute();
   const router = useRouter();
 
@@ -15,7 +17,19 @@ export const useRedirect = () => {
     }
   };
 
+  const isPage = (pageName: string): boolean => {
+    return route.name === pageName;
+  };
+
+  const goTo = (
+    options: RouteLocationRaw
+  ): Promise<void | NavigationFailure> => {
+    return router.push(options);
+  };
+
   return {
-    redirect
+    redirect,
+    goTo,
+    isPage,
   };
 };

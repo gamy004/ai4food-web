@@ -4,27 +4,26 @@ import { useToast } from "vue-toastification";
 import SwabEnvironment from "~~/models/SwabEnvironment";
 
 export type SelectData = {
-    id?: string;
-    swabEnvironmentName?: string;
-}
+  id?: string;
+
+  swabEnvironmentName?: string;
+};
 
 export interface Props {
-    modelValue?: SelectData[]
+  taggable?: boolean;
+  multiple?: boolean;
+  modelValue?: SelectData[];
 }
 
 const toast = useToast();
 
-const {
-  api: swabApi,
-  getSwabEnvironmentByIds
-} = useSwab();
+const { api: swabApi, getSwabEnvironmentByIds } = useSwab();
 
-const props = withDefaults(
-  defineProps<Props>(),
-  {
-    modelValue: () => []
-  }
-);
+const props = withDefaults(defineProps<Props>(), {
+  taggable: false,
+  multiple: true,
+  modelValue: () => [],
+});
 
 const emit = defineEmits(["update:modelValue"]);
 
@@ -32,12 +31,14 @@ const isFetched = ref(false);
 const loading = ref(false);
 const swabEnvironmentIds = ref([]);
 
-const swabEnvironments = computed(() => getSwabEnvironmentByIds(swabEnvironmentIds.value));
+const swabEnvironments = computed(() =>
+  getSwabEnvironmentByIds(swabEnvironmentIds.value)
+);
 
 const modelValue = computed({
   get: () => props.modelValue,
 
-  set: value => emit("update:modelValue", value)
+  set: (value) => emit("update:modelValue", value),
 });
 
 const fetch = async () => {
@@ -45,7 +46,8 @@ const fetch = async () => {
     loading.value = true;
 
     try {
-      const swabEnvironmentData: SwabEnvironment[] = await swabApi().loadAllSwabEnvironment();
+      const swabEnvironmentData: SwabEnvironment[] =
+        await swabApi().loadAllSwabEnvironment();
 
       if (swabEnvironmentData.length) {
         swabEnvironmentIds.value = swabEnvironmentData.map(({ id }) => id);
@@ -78,23 +80,24 @@ onBeforeMount(fetch);
   <v-select
     v-model="modelValue"
     class="form-control p-0 border-0"
-    multiple
-    taggable
+    :multiple="multiple"
+    :taggable="taggable"
     :options="swabEnvironments"
     label="swabEnvironmentName"
     :get-option-label="getOptionLabel"
     :loading="loading"
-    :create-option="swabEnvironmentName => ({ swabEnvironmentName })"
-    :reduce="({ id, swabEnvironmentName }) => id ? { id } : { swabEnvironmentName }"
+    :create-option="(swabEnvironmentName) => ({ swabEnvironmentName })"
+    :reduce="
+      ({ id, swabEnvironmentName }) => (id ? { id } : { swabEnvironmentName })
+    "
     :close-on-select="false"
     deselect-from-dropdown
     @open="fetch"
   >
     <template #selected-option="{ id, swabEnvironmentName }">
-      {{ swabEnvironmentName }} {{ !id ? '(New)' : '' }}
+      {{ swabEnvironmentName }} {{ !id ? "(New)" : "" }}
     </template>
   </v-select>
 </template>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

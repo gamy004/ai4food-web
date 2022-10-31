@@ -1,51 +1,46 @@
 import { v4 } from "uuid";
-import { useRepo } from "pinia-orm";
-import { ResponseErrorT } from "./useRequest";
-import FileEntity from "~~/models/File";
 
 export interface PresignedPostData {
-    file: File;
-    uploadObject: Blob;
-    prefix: string;
+  file: File;
+  uploadObject: Blob;
+  prefix: string;
 }
 
 export interface PresignedOutput {
-    url: string;
-    fields: PresignedFields;
+  url: string;
+  fields: PresignedFields;
 }
 
 export interface PresignedFields {
-    ContentType: string;
-    ACL: string;
-    "X-Amz-Algorithm": string;
-    "X-Amz-Credential": string;
-    "X-Amz-Date": string;
-    key: string;
-    Policy: string;
-    "X-Amz-Signature": string;
+  ContentType: string;
+  ACL: string;
+  "X-Amz-Algorithm": string;
+  "X-Amz-Credential": string;
+  "X-Amz-Date": string;
+  key: string;
+  Policy: string;
+  "X-Amz-Signature": string;
 }
 
 export type UpsertFileData = {
-    id?: string;
-    fileKey?: string;
-    fileName?: string;
-    fileSource?: string;
-    fileContentType?: string;
-    fileSize?: number;
-}
+  id?: string;
+  fileKey?: string;
+  fileName?: string;
+  fileSource?: string;
+  fileContentType?: string;
+  fileSize?: number;
+};
 
 export const useUpload = () => {
   const { post } = useRequest();
 
-  const uploadFile = async (presignedPostData: PresignedPostData): Promise<UpsertFileData> => {
+  const uploadFile = async (
+    presignedPostData: PresignedPostData
+  ): Promise<UpsertFileData> => {
     return new Promise((resolve, reject) => {
       console.log(presignedPostData);
 
-      const {
-        prefix,
-        file,
-        uploadObject
-      } = presignedPostData;
+      const { prefix, file, uploadObject } = presignedPostData;
 
       const fileName = file.name;
       const originalFileExt = fileName.split(".").pop();
@@ -57,7 +52,7 @@ export const useUpload = () => {
 
       const { data, error } = post<PresignedOutput>("/s3/presigned", {
         key: fileKey,
-        contentType: fileContentType
+        contentType: fileContentType,
       });
 
       watch(data, async (presignedOutput: PresignedOutput) => {
@@ -71,7 +66,7 @@ export const useUpload = () => {
 
         const response = await fetch(presignedOutput.url, {
           body: formData,
-          method: "post"
+          method: "post",
         });
 
         if (response.ok) {
@@ -82,12 +77,14 @@ export const useUpload = () => {
             fileName,
             fileContentType,
             fileSize,
-            fileSource
+            fileSource,
           };
 
           resolve(uploadedFile);
         } else {
-          console.log(`upload to provider failed with status ${response.status}`);
+          console.log(
+            `upload to provider failed with status ${response.status}`
+          );
 
           reject("Upload to provider failed");
         }
@@ -116,6 +113,6 @@ export const useUpload = () => {
   };
 
   return {
-    uploadFile
+    uploadFile,
   };
 };

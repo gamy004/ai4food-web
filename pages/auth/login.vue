@@ -1,5 +1,7 @@
 <script setup>
 import { useToast } from "vue-toastification";
+import EyeClosed from "~icons/bi/eye-slash-fill";
+import Eye from "~icons/bi/eye-fill";
 
 definePageMeta({
   title: "Ai4FoodSafety - Login",
@@ -18,13 +20,14 @@ const { api: authApi } = useAuth();
 const invalid = ref(false);
 const error = ref(false);
 const loading = ref(false);
+const isPassword = ref(true)
 
 const form = reactive({
   username: "",
   password: ""
 });
 
-async function onFormSubmitted () {
+const onFormSubmitted = async () => {
   error.value = false;
   invalid.value = false;
 
@@ -55,7 +58,11 @@ async function onFormSubmitted () {
 
 const usernameInvalidState = computed(() => invalid.value ? form.username.length > 0 : null);
 const passwordInvalidState = computed(() => invalid.value ? form.password.length > 0 : null);
+const inputPasswordType = computed(() => isPassword.value ? "password" : "text");
 
+const showPassword = () => {
+  isPassword.value = !isPassword.value;
+}
 </script>
 
 <template>
@@ -70,27 +77,30 @@ const passwordInvalidState = computed(() => invalid.value ? form.password.length
             </div>
 
             <b-form-group id="username-group" label="บัญชีผู้ใช้:" label-for="username">
-              <b-form-input
-                id="username"
-                v-model="form.username"
-                :state="usernameInvalidState"
-                type="text"
-              />
+              <b-form-input id="username" v-model="form.username" :state="usernameInvalidState" type="text" />
               <b-form-invalid-feedback :state="usernameInvalidState">
                 กรุณาป้อนบัญชีผู้ใช้
               </b-form-invalid-feedback>
             </b-form-group>
 
             <b-form-group id="password-group" label="รหัสผ่าน:" label-for="username">
-              <b-form-input
-                id="password"
-                v-model="form.password"
-                :state="passwordInvalidState"
-                type="password"
-              />
-              <b-form-invalid-feedback :state="passwordInvalidState">
-                กรุณาป้อนรหัสผ่าน
-              </b-form-invalid-feedback>
+              <b-input-group>
+                <b-form-input id="password" v-model="form.password" :state="passwordInvalidState"
+                  :type="inputPasswordType" />
+
+                <span class="has-float-label"></span>
+
+                <b-form-invalid-feedback :state="passwordInvalidState">
+                  กรุณาป้อนรหัสผ่าน
+                </b-form-invalid-feedback>
+
+                <b-input-group-append>
+                  <b-input-group-text @click="showPassword">
+                    <EyeClosed v-if="isPassword" />
+                    <Eye v-else />
+                  </b-input-group-text>
+                </b-input-group-append>
+              </b-input-group>
             </b-form-group>
 
             <button-arrow-right variant="primary" type="submit" size="lg" :loading="loading">

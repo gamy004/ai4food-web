@@ -14,7 +14,11 @@ export interface Props {
 
 const props = defineProps<Props>();
 const toast = useToast();
-const { loadSwabAreaToSwabAreaHistory, getSwabAreaHistoriesByIds, api: swabApi } = useSwab();
+const {
+  loadSwabAreaToSwabAreaHistory,
+  getSwabAreaHistoriesByIds,
+  api: swabApi,
+} = useSwab();
 
 const loading = ref(false);
 const error = ref(false);
@@ -27,17 +31,23 @@ const historyWithSwabAreas = computed(() => {
 });
 
 const mainAreaHistories = computed((): SwabAreaHistory[] => {
-  return historyWithSwabAreas.value.filter(({ swabArea: SwabArea }) => SwabArea.isMainArea);
+  return historyWithSwabAreas.value.filter(
+    ({ swabArea: SwabArea }) => SwabArea.isMainArea
+  );
 });
 
 const subAreaHistories = computed((): SwabAreaHistory[] => {
-  return historyWithSwabAreas.value.filter(({ swabArea: SwabArea }) => SwabArea.isSubArea);
+  return historyWithSwabAreas.value.filter(
+    ({ swabArea: SwabArea }) => SwabArea.isSubArea
+  );
 });
 
 const isPropInvalid = (props): boolean => {
-  return props.facilityId === null ||
+  return (
+    props.facilityId === null ||
     props.mainSwabAreaId === null ||
-    props.swabPeriodId === null;
+    props.swabPeriodId === null
+  );
 };
 
 const fetch = async function fetch(props) {
@@ -52,7 +62,8 @@ const fetch = async function fetch(props) {
   loading.value = true;
 
   try {
-    const swapAreaHistoryData: SwabAreaHistory[] = await swabApi().loadAllSwabPlanForUpdate(props);
+    const swapAreaHistoryData: SwabAreaHistory[] =
+      await swabApi().loadAllSwabPlanForUpdate(props);
 
     if (swapAreaHistoryData && swapAreaHistoryData.length) {
       swapAreaHistoryIds.value = swapAreaHistoryData.map(({ id }) => id);
@@ -62,14 +73,16 @@ const fetch = async function fetch(props) {
 
     error.value = true;
 
-    toast.error("โหลดข้อมูลจุดตรวจ swab สำหรับอัพเดตไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", { timeout: 1500 });
+    toast.error(
+      "โหลดข้อมูลจุดตรวจ swab สำหรับอัพเดตไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
+      { timeout: 1500 }
+    );
   } finally {
     loading.value = false;
   }
 };
 
 watch(() => props, fetch, { immediate: true, deep: true });
-
 </script>
 
 <template>
@@ -77,9 +90,7 @@ watch(() => props, fetch, { immediate: true, deep: true });
     <b-col v-if="error" class="text-center">
       <p>พบข้อผิดพลาดในการโหลดข้อมูลจุดตรวจ swab</p>
 
-      <b-button variant="dark" @click="fetch">
-        โหลดข้อมูลใหม่
-      </b-button>
+      <b-button variant="dark" @click="fetch"> โหลดข้อมูลใหม่ </b-button>
     </b-col>
 
     <b-col v-else>
@@ -88,14 +99,26 @@ watch(() => props, fetch, { immediate: true, deep: true });
       </b-col>
 
       <b-col v-else>
-        <b-list-group v-if="historyWithSwabAreas.length" class="list-group__swab-area-history">
-          <swab-area-history-list-item v-for="mainAreaHistory in mainAreaHistories" :key="mainAreaHistory.id"
-            :history="mainAreaHistory" prefix-title="จุดหลัก" />
+        <b-list-group
+          v-if="historyWithSwabAreas.length"
+          class="list-group__swab-area-history"
+        >
+          <swab-area-history-list-item
+            v-for="mainAreaHistory in mainAreaHistories"
+            :key="mainAreaHistory.id"
+            :history="mainAreaHistory"
+            :prefix-title="`จุดหลัก (${mainAreaHistory.swabTestCode})`"
+          />
 
-          <hr v-if="subAreaHistories.length">
+          <hr v-if="subAreaHistories.length" />
 
-          <swab-area-history-list-item v-for="(subAreaHistory, index) in subAreaHistories" :key="subAreaHistory.id"
-            :history="subAreaHistory" :item-no="index + 1" prefix-title="จุดย่อยที่" />
+          <swab-area-history-list-item
+            v-for="(subAreaHistory, index) in subAreaHistories"
+            :key="subAreaHistory.id"
+            :history="subAreaHistory"
+            :item-no="index + 1"
+            prefix-title="จุดย่อยที่"
+          />
         </b-list-group>
 
         <b-card v-else bg-variant="light">
