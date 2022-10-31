@@ -311,6 +311,7 @@ watch(
           <facility-select
             id="facility"
             class="col"
+            style="margin-bottom: 0rem !important"
             :clearable="clearableState.isClearable('facility')"
             :disabled="disabled"
             v-model="formFacility"

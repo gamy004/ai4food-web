@@ -231,6 +231,7 @@ defineExpose({ clearState });
               v-model="form.facility"
               required
               show-label
+              label-cols-lg="4"
             ></facility-select>
           </b-col>
 

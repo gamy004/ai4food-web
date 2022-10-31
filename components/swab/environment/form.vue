@@ -2,45 +2,44 @@
 import { UpsertSwabEnvironmentData } from "~~/composables/useSwab";
 
 export interface FormData {
-    swabAreaTemperature?: number;
-    swabAreaHumidity?: number;
-    swabEnvironments?: UpsertSwabEnvironmentData[];
+  swabAreaTemperature?: number;
+  swabAreaHumidity?: number;
+  swabEnvironments?: UpsertSwabEnvironmentData[];
 }
 
 export interface FormInvalidData {
-    swabAreaTemperature?: boolean | null;
-    swabAreaHumidity?: boolean | null;
-    swabEnvironments?: boolean | null;
+  swabAreaTemperature?: boolean | null;
+  swabAreaHumidity?: boolean | null;
+  swabEnvironments?: boolean | null;
 }
 
 export interface Props {
-    disabled?: boolean;
-    modelValue?: any;
-    invalidState?: FormInvalidData
+  disabled?: boolean;
+  modelValue?: any;
+  invalidState?: FormInvalidData;
 }
 
-const props = withDefaults(
-  defineProps<Props>(),
-  {
-    disabled: false
-  }
-);
+const props = withDefaults(defineProps<Props>(), {
+  disabled: false,
+});
 
 const emit = defineEmits(["update:modelValue"]);
 
 const form = computed({
   get: () => props.modelValue,
-  set: value => emit("update:modelValue", value)
+  set: (value) => emit("update:modelValue", value),
 });
-
 </script>
 
 <template>
   <b-row>
     <b-col md="6" class="mt-2">
       <div class="input-group align-items-center">
-        <label for="swabAreaTemperature" class="form-label min-w-125px d-block col-12 col-md-auto">อุณหภูมิ
-          (°C)</label>
+        <label
+          for="swabAreaTemperature"
+          class="form-label min-w-125px d-block col-12 col-md-auto"
+          >อุณหภูมิ (°C)</label
+        >
 
         <div class="form-control p-0 border-0">
           <b-form-input
@@ -50,7 +49,9 @@ const form = computed({
             type="text"
           />
 
-          <b-form-invalid-feedback :state="props.invalidState?.swabAreaTemperature">
+          <b-form-invalid-feedback
+            :state="props.invalidState?.swabAreaTemperature"
+          >
             กรุณากรอกอุณหภูมิ
           </b-form-invalid-feedback>
         </div>
@@ -59,8 +60,11 @@ const form = computed({
 
     <b-col md="6" class="mt-2">
       <div class="input-group align-items-center">
-        <label for="swabAreaHumidity" class="form-label min-w-125px d-block col-12 col-md-auto">ความชื้น
-          (%RH)</label>
+        <label
+          for="swabAreaHumidity"
+          class="form-label min-w-125px d-block col-12 col-md-auto"
+          >ความชื้น (%RH)</label
+        >
 
         <div class="form-control p-0 border-0">
           <b-form-input
@@ -70,7 +74,9 @@ const form = computed({
             type="text"
           />
 
-          <b-form-invalid-feedback :state="props.invalidState?.swabAreaHumidity">
+          <b-form-invalid-feedback
+            :state="props.invalidState?.swabAreaHumidity"
+          >
             กรุณากรอกความชื้น
           </b-form-invalid-feedback>
         </div>
@@ -79,7 +85,10 @@ const form = computed({
 
     <b-col cols="12" class="mt-2">
       <div class="input-group align-items-center">
-        <label for="swabEnvironment" class="form-label min-w-125px d-block col-12 col-md-auto">สภาพแวดล้อม
+        <label
+          for="swabEnvironment"
+          class="form-label min-w-125px d-block col-12 col-md-auto"
+          >สภาพแวดล้อม
         </label>
 
         <swab-environment-select
@@ -87,6 +96,7 @@ const form = computed({
           v-model="form.swabEnvironments"
           class="form-control p-0 border-0"
           :disabled="disabled"
+          :taggable="false"
         />
 
         <b-form-invalid-feedback :state="props.invalidState?.swabEnvironments">

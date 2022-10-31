@@ -136,7 +136,7 @@ onBeforeMount(async () => {
               <h3 class="font-weight-bold">รายการจุดตรวจ swab/ ATK</h3>
             </b-row>
           </b-col>
-          <b-col align-self="end">
+          <b-col class="pe-0 text-end">
             <b-button variant="outline-primary" @click="createSwab">
               เพิ่มรายการจุดตรวจ
             </b-button>

@@ -17,6 +17,8 @@ export interface Props {
   defaultValue?: any | null;
 }
 
+const attrs = useAttrs();
+
 const toast = useToast();
 
 const { api: facilityApi, getFacilityByIds, getFacilityByName } = useFacility();
@@ -113,11 +115,11 @@ onBeforeMount(async () => {
 <template>
   <b-form-group
     id="fieldset-facility"
-    label-cols-lg="4"
     label-for="facilityName"
     :label="formGroupLabel"
     :label-class="formGroupLabelClass"
     :state="formInvalidState.facility"
+    v-bind="{ ...attrs }"
   >
     <v-select
       v-model="modelValue"
