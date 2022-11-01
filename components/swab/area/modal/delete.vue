@@ -65,14 +65,14 @@ const onSubmit = async () => {
     );
 
     setTimeout(() => {
-      toast.success("ลบสินค้าสำเร็จ", { timeout: 1000 });
+      toast.success("ลบจุดตรวจสำเร็จ", { timeout: 1000 });
 
       modelValue.value = null;
 
       emit("success", deletedSwabArea);
     }, 1000);
   } catch (error) {
-    toast.error("ไม่สามารถลบสินค้าได้ กรุณาลองใหม่อีกครั้ง");
+    toast.error("ไม่สามารถลบจุดตรวจได้ กรุณาลองใหม่อีกครั้ง");
 
     emit("error", error);
   } finally {
@@ -104,11 +104,11 @@ watch(
 <template>
   <b-form @submit="onSubmit">
     <modal ref="modalRef" id="modalDeleteProduct" v-model="show">
-      <template #title> คุณต้องการลบข้อมูลสินค้านี้ใช่ไหม </template>
+      <template #title> คุณต้องการลบข้อมูลจุดตรวจนี้ใช่ไหม </template>
 
       <template #default>
         <div v-if="error" class="text-center">
-          <p>พบข้อผิดพลาดในการโหลดข้อมูลสินค้า</p>
+          <p>พบข้อผิดพลาดในการโหลดข้อมูลจุดตรวจ</p>
 
           <b-button variant="dark" @click="reFetch"> โหลดข้อมูลใหม่ </b-button>
         </div>
@@ -123,7 +123,7 @@ watch(
 
           <div v-else>
             <div>
-              <p>คุณยืนยันที่จะลบข้อมูลสินค้านี้ใช่ไหม</p>
+              <p>คุณยืนยันที่จะลบข้อมูลจุดตรวจนี้ใช่ไหม</p>
 
               <div
                 v-if="deletePermission && deletePermission.canDelete"
@@ -142,8 +142,8 @@ watch(
 
               <div v-else>
                 <p v-if="deletedSwabArea">
-                  ไม่สามารถลบข้อมูลจุดตรวจ
-                  <b>{{ deletedSwabArea.swabAreaName }}</b> ได้
+                  ข้อมูลจุดตรวจ
+                  <b>{{ deletedSwabArea.swabAreaName }}</b> มีการผูกข้อมูล
                 </p>
 
                 <div class="alert alert-danger" role="alert">
@@ -153,7 +153,7 @@ watch(
                       deletePermission.countSwabAreaHistories > 0
                     "
                   >
-                    <div><b>สาเหตุ:</b> ข้อมูลจุดตรวจมีการผูกข้อมูล</div>
+                    <!-- <div><b>สาเหตุ:</b> ข้อมูลจุดตรวจมีการผูกข้อมูล</div> -->
                     <div>
                       <b>ข้อมูลการตรวจจุดตรวจ:</b>
                       {{ deletePermission.countSwabAreaHistories }} รายการ
@@ -162,7 +162,7 @@ watch(
                 </div>
 
                 <p>
-                  หากจุดตรวจถูกลบ ข้อมูลที่ผูกกับจุดตรวจนี้ทั้งหมดจะถูกลบ
+                  หากจุดตรวจถูกลบ ข้อมูลที่ผูกกับจุดตรวจนี้ทั้งหมดจะถูกลบด้วย
                   คุณแน่ใจว่าต้องการลบจุดตรวจนี้ใช่ไหม
                 </p>
               </div>

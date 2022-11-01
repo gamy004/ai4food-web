@@ -16,7 +16,7 @@ const {
   today,
   onlyDate,
   dateToShift,
-  timePickerToTimeShift,
+  // timePickerToTimeShift,
   timeStringToTimePicker,
 } = useDate();
 const { redirect } = useNavigation();
@@ -75,6 +75,8 @@ const fetch = async (id) => {
 
   try {
     const swabProductHistory = await swabApi().loadSwabProductHistoryById(id);
+
+    form.shift = swabProductHistory.shift;
 
     form.swabProductDate = swabProductHistory.swabProductDate;
 
@@ -183,12 +185,12 @@ watch(
       }
     );
 
-    watch(
-      () => form.swabProductSwabedAt,
-      () => {
-        form.shift = timePickerToTimeShift(form.swabProductSwabedAt);
-      }
-    );
+    // watch(
+    //   () => form.swabProductSwabedAt,
+    //   () => {
+    //     form.shift = timePickerToTimeShift(form.swabProductSwabedAt);
+    //   }
+    // );
   },
   { immediate: true }
 );
