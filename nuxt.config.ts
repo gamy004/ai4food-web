@@ -8,12 +8,18 @@ export default defineNuxtConfig({
 
   target: "static",
 
-  meta: {
-    title: "Ai4FoodSafety",
-    charset: "utf-8",
-    name: "viewport",
-    content:
-      "width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes, ie=edge"
+  head: {
+    meta: [
+      {
+        title: "Ai4FoodSafety",
+        name: "viewport",
+        content:
+          "width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes, ie=edge"
+      },
+      {
+        charset: "utf-8",
+      }
+    ],
   },
 
   css: ["~/assets/scss/main.scss"],

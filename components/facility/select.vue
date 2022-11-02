@@ -53,9 +53,12 @@ const validationRules = {
   },
 };
 
-const { isInvalid, isFormInvalid } = useValidation(validationRules, {
-  modelValue,
-});
+const { isInvalid, isValidated, isFormInvalid } = useValidation(
+  validationRules,
+  {
+    modelValue,
+  }
+);
 
 const facilityRequiredState = computed(() =>
   isFormInvalid("modelValue", ["requiredIfPropsRequired"])

@@ -28,23 +28,26 @@ const validationRules = {
   },
 };
 
-const { isInvalid, isFormInvalid } = useValidation(validationRules, {
-  modelValue,
-});
+const { isInvalid, isValidated, isFormInvalid } = useValidation(
+  validationRules,
+  {
+    modelValue,
+  }
+);
 
 const subSwabAreaNameRequiredState = computed(() =>
   isFormInvalid("modelValue", ["required"])
 );
 
 const formInvalidState = computed(() => {
-  let issubSwabAreaNameInvalid = null;
+  let isSubSwabAreaNameInvalid = null;
 
   if (isInvalid.value) {
-    issubSwabAreaNameInvalid = subSwabAreaNameRequiredState.value;
+    isSubSwabAreaNameInvalid = subSwabAreaNameRequiredState.value;
   }
 
   return {
-    subSwabAreaName: issubSwabAreaNameInvalid,
+    subSwabAreaName: isSubSwabAreaNameInvalid,
   };
 });
 </script>

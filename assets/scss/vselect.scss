@@ -60,16 +60,16 @@
   }
 }
 
-.is-invalid {
-  .v-select {
-    .vs {
-      &__dropdown-toggle {
-        border: var(--vs-border-width) var(--vs-border-style) var(--bs-danger);
-      }
+// .is-invalid.was-validated {
+//   .v-select {
+//     .vs {
+//       &__dropdown-toggle {
+//         border: var(--vs-border-width) var(--vs-border-style) var(--bs-danger);
+//       }
 
-      &__open-indicator {
-        fill: var(--bs-danger);
-      }
-    }
-  }
-}
+//       &__open-indicator {
+//         fill: var(--bs-danger);
+//       }
+//     }
+//   }
+// }

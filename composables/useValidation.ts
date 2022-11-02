@@ -5,6 +5,8 @@ export const useValidation = (validationRules, form) => {
 
   const v$ = useVuelidate(validationRules, form);
 
+  const isValidated = computed(() => v$.value.$dirty === true);
+
   const isInvalid = computed(() => v$.value.$invalid === true);
 
   const isFormInvalid = (field, rules = []) => {
@@ -17,8 +19,6 @@ export const useValidation = (validationRules, form) => {
     // invalid.value = false;
 
     v$.value.$touch();
-
-    console.log(v$);
     
     // if (v$.value.$invalid) {
     //   invalid.value = true;
@@ -33,6 +33,7 @@ export const useValidation = (validationRules, form) => {
   return {
     v$,
     validate,
+    isValidated,
     isInvalid,
     isFormInvalid,
     resetValidation

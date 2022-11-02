@@ -1,4 +1,10 @@
-import { Attr, HasManyBy, Model, Str, Uid } from "pinia-orm";
+import { Model } from "pinia-orm";
+import {
+  Attr,
+  Str,
+  Uid,
+  HasManyBy
+} from "pinia-orm/dist/decorators";
 import SwabAreaHistory from "./SwabAreaHistory";
 import SwabProductHistory from "./SwabProductHistory";
 
@@ -6,26 +12,26 @@ export default class Product extends Model {
   static entity = "product";
 
   @Uid()
-  id!: string | null;
+  declare id: string;
 
   @Str("")
-  productCode!: string;
+  declare productCode: string;
 
   @Str("")
-  alternateProductCode!: string;
+  declare alternateProductCode: string;
 
   @Str("")
-  productName!: string;
+  declare productName: string;
 
   @Attr([])
-  swabAreaHistoryIds!: string[];
+  declare swabAreaHistoryIds: string[];
 
   @HasManyBy(() => SwabAreaHistory, "swabAreaHistoryIds", "productId")
-  swabAreaHistories!: SwabAreaHistory[];
+  declare swabAreaHistories: SwabAreaHistory[];
 
   @Attr([])
-  swabProductHistoryIds!: string[];
+  declare swabProductHistoryIds: string[];
 
   @HasManyBy(() => SwabProductHistory, "swabProductHistoryIds", "productId")
-  swabProductHistories!: SwabProductHistory[];
+  declare swabProductHistories: SwabProductHistory[];
 }

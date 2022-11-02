@@ -1,30 +1,37 @@
-import { Model, Str, Uid, Attr, BelongsTo, Num } from "pinia-orm";
+import { Model } from "pinia-orm";
+import {
+  Attr,
+  Num,
+  Str,
+  Uid,
+  BelongsTo
+} from "pinia-orm/dist/decorators";
 import User from "./User";
 
 export default class File extends Model {
   static entity = "file";
 
     @Uid()
-      id!: string | null;
+    declare id: string;
 
     @Str("")
-      fileKey!: string;
+    declare fileKey: string;
 
     @Str("")
-      fileName!: string;
+    declare fileName: string;
 
     @Str("")
-      fileSource!: string;
+    declare fileSource: string;
 
     @Str("")
-      fileContentType!: string;
+    declare fileContentType: string;
 
     @Num(0)
-      fileSize!: number;
+    declare fileSize: number;
 
     @Attr(null)
-      userId: string;
+    declare userId: string | null;
 
     @BelongsTo(() => User, "userId")
-      user: User;
+    declare user: User;
 }
