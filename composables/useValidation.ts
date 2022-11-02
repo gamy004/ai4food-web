@@ -12,14 +12,14 @@ export const useValidation = (validationRules, form) => {
   const isFormInvalid = (field, rules = []) => {
     return isInvalid.value
       ? !rules.some((rule) => v$.value[field][rule].$invalid)
-      : null;
+      : undefined;
   };
 
   const validate = (): void => {
     // invalid.value = false;
 
     v$.value.$touch();
-    
+
     // if (v$.value.$invalid) {
     //   invalid.value = true;
     // }
@@ -36,6 +36,6 @@ export const useValidation = (validationRules, form) => {
     isValidated,
     isInvalid,
     isFormInvalid,
-    resetValidation
+    resetValidation,
   };
 };

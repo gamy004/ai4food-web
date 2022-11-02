@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 definePageMeta({
-  title: "Ai4FoodSafety - Update Plan Page",
+  title: "Ai4FoodSafety - Update Swab Area History Page",
   middleware: ["auth"],
   canGoBack: true,
   fallBackRedirect: "/",
@@ -32,13 +32,6 @@ const form = reactive({
 
       <hr />
 
-      <!-- <swab-area-history-table
-        :date="form.date"
-        :facility-id="form.facilityId"
-        :main-swab-area-id="form.mainSwabAreaId"
-        :swab-period-id="form.swabPeriodId"
-        :shift="form.shift"
-      /> -->
       <swab-area-history-list
         :facility-id="form.facilityId"
         :main-swab-area-id="form.mainSwabAreaId"

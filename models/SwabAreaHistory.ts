@@ -1,14 +1,11 @@
-import {
-  Model,
-  useRepo
-} from "pinia-orm";
+import { Model, useRepo } from "pinia-orm";
 import {
   Attr,
   Str,
   Uid,
   BelongsTo,
   BelongsToMany,
-  HasManyBy
+  HasManyBy,
 } from "pinia-orm/dist/decorators";
 import { Shift } from "~~/composables/useDate";
 import FacilityItem from "./FacilityItem";
@@ -19,6 +16,8 @@ import SwabAreaHistoryImage from "./SwabAreaHistoryImage";
 import SwabEnvironment from "./SwabEnvironment";
 import SwabPeriod from "./SwabPeriod";
 import SwabTest from "./SwabTest";
+
+const { formatThLocale, formatTimeThLocale } = useDate();
 
 export default class SwabAreaHistory extends Model {
   static entity = "swab_area_history";
@@ -100,6 +99,16 @@ export default class SwabAreaHistory extends Model {
 
   @BelongsTo(() => FacilityItem, "facilityItemId")
   declare facilityItem: FacilityItem;
+
+  get readableSwabAreaDate() {
+    return this.swabAreaDate ? formatThLocale(new Date(this.swabAreaDate)) : "";
+  }
+
+  get readableSwabAreaTime() {
+    return this.swabAreaSwabedAt
+      ? formatTimeThLocale(this.swabAreaSwabedAt)
+      : "";
+  }
 
   get swabTestCode() {
     const swapTestRepo = useRepo(SwabTest);
