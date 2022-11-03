@@ -22,6 +22,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 const route = useRoute();
 const { updateQueryParams, getCurrentQuery } = useQueryParams();
+const { isAllRelatedSwabAreaCompleted } = useSwabAreaHistoryStatus();
 const toast = useToast();
 
 const {
@@ -99,7 +100,7 @@ const tableData = computed(() => {
       // productName: product ? product.productName : "",
       // productDate: swabAreaHistory.readableProductDate,
       // productLot: swabAreaHistory.productLot || "",
-      isCompleted: swabAreaHistory.isCompleted,
+      isCompleted: isAllRelatedSwabAreaCompleted(swabAreaHistory),
     };
 
     // if (swabProductHistory.facilityItemId) {
@@ -291,7 +292,9 @@ watch(
             align="center"
             :total-rows="countTotal"
             :per-page="pagination.$state.perPage"
-            aria-controls="result-table"
+            first-number
+            last-number
+            aria-controls="swabProductHistoryTable"
           />
         </div>
 

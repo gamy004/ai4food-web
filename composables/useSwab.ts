@@ -391,6 +391,30 @@ export const useSwab = () => {
     return query.first();
   };
 
+  const getSubSwabAreaHistoriesOfSamePeriodById = (
+    id: string
+  ): SwabAreaHistory[] => {
+    let subSwabAreaHistories = [];
+
+    const mainSwabAreaHistory = getSwabAreaHistoryById(id);
+    const mainSwabArea = getSwabAreaById(mainSwabAreaHistory.swabAreaId);
+    const subSwabAreas = getSwabAreaByMainSwabAreaId(
+      mainSwabAreaHistory.swabAreaId
+    );
+
+    if (mainSwabAreaHistory && subSwabAreas.length) {
+      const subSwabAreaIds = subSwabAreas.map(({ id }) => id).filter(Boolean);
+
+      subSwabAreaHistories = swabAreaHistoryRepo
+        .where("swabAreaId", subSwabAreaIds)
+        .where("swabPeriodId", mainSwabAreaHistory.swabPeriodId)
+        .where("swabAreaDate", mainSwabAreaHistory.swabAreaDate)
+        .get();
+    }
+
+    return subSwabAreaHistories;
+  };
+
   const getSwabProductHistoriesByIds = (
     ids: string[],
     filters: any = {}
@@ -830,6 +854,8 @@ export const useSwab = () => {
     getSwabAreaHistoriesByIds,
 
     getSwabAreaHistoryById,
+
+    getSubSwabAreaHistoriesOfSamePeriodById,
 
     getSwabProductHistoriesByIds,
 
