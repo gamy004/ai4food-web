@@ -104,6 +104,12 @@ export default class SwabAreaHistory extends Model {
     return this.swabAreaDate ? formatThLocale(new Date(this.swabAreaDate)) : "";
   }
 
+  get shortSwabAreaDate() {
+    return this.swabAreaDate
+      ? formatThLocale(new Date(this.swabAreaDate), "ddMMyy")
+      : "";
+  }
+
   get readableSwabAreaTime() {
     return this.swabAreaSwabedAt
       ? formatTimeThLocale(this.swabAreaSwabedAt)
