@@ -61,18 +61,6 @@ const facilityRequiredState = computed(() =>
   isFormInvalid("modelValue", ["requiredIfPropsRequired"])
 );
 
-const formInvalidState = computed(() => {
-  let isFacilityInvalid = null;
-
-  if (isInvalid.value) {
-    isFacilityInvalid = facilityRequiredState.value;
-  }
-
-  return {
-    facility: isFacilityInvalid,
-  };
-});
-
 const formGroupLabel = computed(() => (props.showLabel ? "เครื่องจักร" : ""));
 
 const formGroupLabelClass = computed(() => (!props.showLabel ? "p-0" : ""));
@@ -118,7 +106,7 @@ onBeforeMount(async () => {
     label-for="facilityName"
     :label="formGroupLabel"
     :label-class="formGroupLabelClass"
-    :state="formInvalidState.facility"
+    :state="facilityRequiredState"
     v-bind="{ ...attrs }"
   >
     <v-select

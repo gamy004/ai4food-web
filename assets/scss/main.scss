@@ -5,7 +5,9 @@
 
 @import "node_modules/bootstrap/scss/_functions";
 @import "node_modules/bootstrap/scss/_variables";
+@import "node_modules/bootstrap/scss/_maps";
 @import "node_modules/bootstrap/scss/_mixins";
+@import "node_modules/bootstrap/scss/_utilities";
 
 // add custom colors to the bootstrap theme
 $custom-theme-colors: ();

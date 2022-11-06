@@ -1,6 +1,5 @@
-import { Attr, Model, Uid, Str, HasManyBy, BelongsToMany } from "pinia-orm";
-import SwabAreaHistory from "./SwabAreaHistory";
-import SwabProductHistory from "./SwabProductHistory";
+import { Model } from "pinia-orm";
+import { Attr, Str, BelongsToMany, Uid } from "pinia-orm/dist/decorators";
 import Bacteria from "./Bacteria";
 import BacteriaSpecie from "./BacteriaSpecie";
 import SwabTestBacteria from "./SwabTestBacteria";
@@ -8,17 +7,17 @@ import SwabTestBacteriaSpecie from "./SwabTestBacteriaSpecie";
 export default class SwabTest extends Model {
   static entity = "swab_test";
 
-  @Attr(null)
-  id!: string | null;
+  @Uid()
+  declare id: string;
 
   @Str("")
-  swabTestCode!: string;
+  declare swabTestCode: string;
 
   @Attr(null)
-  swabTestRecordedAt?: string;
+  declare swabTestRecordedAt: string | null;
 
   @Attr(null)
-  swabTestNote?: string;
+  declare swabTestNote: string | null;
 
   @BelongsToMany(
     () => Bacteria,
@@ -26,7 +25,7 @@ export default class SwabTest extends Model {
     "swabTestId",
     "bacteriaId"
   )
-  bacteria: Bacteria[];
+  declare bacteria: Bacteria[];
 
   @BelongsToMany(
     () => BacteriaSpecie,
@@ -34,7 +33,7 @@ export default class SwabTest extends Model {
     "swabTestId",
     "bacteriaSpecieId"
   )
-  bacteriaSpecies: BacteriaSpecie[];
+  declare bacteriaSpecies: BacteriaSpecie[];
 
   // @Attr([])
   // swabAreaHistoryIds!: string[];

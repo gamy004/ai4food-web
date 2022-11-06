@@ -4,7 +4,7 @@ import CarbonEdit from "~icons/carbon/edit";
 // import CarbonTrashCan from "~icons/carbon/trash-can";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import SwabProductHistory from "~~/models/SwabProductHistory";
-import { Shift, ShiftMapper } from "~~/composables/useDate";
+import { Shift } from "~~/composables/useDate";
 
 export interface Props {
   date: string;
@@ -17,9 +17,11 @@ export interface Props {
 
 const props = defineProps<Props>();
 const route = useRoute();
+const router = useRouter();
 const toast = useToast();
 
 const { formatThLocale, formatTimeThLocale } = useDate();
+const { shiftToAbbreviation } = useDate();
 
 const {
   getSwabProductHistoryById,
@@ -56,12 +58,12 @@ const tableFields = [
   { key: "code", label: "รหัส" },
   { key: "shift", label: "กะ" },
   { key: "swabPeriodName", label: "ช่วงตรวจ" },
-  { key: "time", label: "เวลา" },
   { key: "facilityName", label: "เครื่อง" },
   { key: "facilityItemName", label: "ไลน์" },
   { key: "productName", label: "สินค้า" },
   { key: "productDate", label: "วันที่ผลิต" },
   { key: "productLot", label: "SubLot" },
+  { key: "time", label: "เวลาบันทึก" },
   { key: "isCompleted", label: "สถานะ" },
   { key: "action", label: "", thClass: "text-center", tdClass: "text-center" },
 ];
@@ -82,12 +84,12 @@ const tableData = computed(() => {
       // date: swabProductHistory.swabProductDate,
       time: swabProductHistory.readableSwabProductTime,
       code: swabTest.swabTestCode,
-      shift: ShiftMapper[swabProductHistory.shift],
+      shift: swabProductHistory.shift,
       swabPeriodName: swabPeriod ? swabPeriod.swabPeriodName : "",
       facilityName: facility ? facility.facilityName : "",
       facilityItemName: facilityItem ? facilityItem.facilityItemName : "",
       productName: product ? product.productName : "",
-      productDate: swabProductHistory.readableProductDate,
+      productDate: swabProductHistory.shortProductDate,
       productLot: swabProductHistory.productLot || "",
       isCompleted: swabProductHistory.isCompleted,
     };
@@ -158,13 +160,9 @@ const fetch = async function fetch(props) {
   }
 };
 
-// const onDeleteSuccess = async () => {
-//   await fetch(props);
-// };
-
-// const promptRemove = (id) => {
-//   removedId.value = id;
-// };
+const onTableRowClicked = (item): void => {
+  router.push(getRouteManageSwabProductHistory(item.id));
+};
 
 watch(() => props, fetch, { immediate: true, deep: true });
 </script>
@@ -191,7 +189,12 @@ watch(() => props, fetch, { immediate: true, deep: true });
           responsive
           :items="tableData"
           :fields="tableFields"
+          @row-clicked="onTableRowClicked"
         >
+          <template #cell(shift)="{ item }">
+            {{ shiftToAbbreviation(item.shift) }}
+          </template>
+
           <template #cell(status)="{ item }">
             <div class="text-center">
               <nuxt-link

@@ -20,28 +20,41 @@ import {
   useFilterSwabProductHistory,
 } from "./useFilterSwabProductHistory";
 import Facility from "~~/models/Facility";
+import {
+  LoadAllSwabAreaHistoryFilter,
+  useFilterSwabAreaHistory,
+} from "./useFilterSwabAreaHistory";
 
-export interface LoadAllSwabPlanForUpdateData {
-  date: string;
-  shift: Shift;
-  facilityId: string;
-  mainSwabAreaId: string;
-  swabPeriodId: string;
-}
+// export interface LoadSwabAreaHistoryData {
+//   date: string;
+//   shift: Shift;
+//   facilityId: string;
+//   mainSwabAreaId: string;
+//   swabPeriodId: string;
+// }
 
-export interface LoadSwabProductHistoryData {
-  date: string;
-  shift: Shift;
-  facilityId: string;
-  facilityItemId: string;
-  swabPeriodId: string;
-}
+// export interface LoadSwabProductHistoryData {
+//   date: string;
+//   shift: Shift;
+//   facilityId: string;
+//   facilityItemId: string;
+//   swabPeriodId: string;
+// }
 
 export interface LoadSwabProductHistoryResponse {
   facilities: Facility[];
   facilityItems: FacilityItem[];
   products: Product[];
   swabProductHistories: SwabProductHistory[];
+}
+
+export interface LoadSwabAreaHistoryResponse {
+  total: number;
+  facilities: Facility[];
+  swabAreas: SwabArea[];
+  facilityItems: FacilityItem[];
+  swabAreaHistories: SwabAreaHistory[];
+  subSwabAreaHistories: SwabAreaHistory[];
 }
 
 export type ConenctProductData = {
@@ -186,7 +199,9 @@ export const useSwab = () => {
     });
   };
 
-  const loadDeletePermissionSwabArea = (id: string) : Promise<ResponseSwabAreaDeletePermission> => {
+  const loadDeletePermissionSwabArea = (
+    id: string
+  ): Promise<ResponseSwabAreaDeletePermission> => {
     return new Promise((resolve, reject) => {
       const { data, error } = get<ResponseSwabAreaDeletePermission>(
         `/swab/area/${id}/delete-permission`
@@ -196,7 +211,7 @@ export const useSwab = () => {
 
       watch(error, reject);
     });
-  }
+  };
 
   const createMainSwabArea = (body: BodyManageSwabArea): Promise<any> => {
     return new Promise((resolve, reject) => {
@@ -353,7 +368,7 @@ export const useSwab = () => {
     const query = swabAreaRepo.where("mainSwabAreaId", id);
 
     return query.orderBy("createdAt", "asc").get();
-  }
+  };
 
   const getSwabAreaById = (id: string): SwabArea => {
     const query = swabAreaRepo.where("id", id);
@@ -374,6 +389,30 @@ export const useSwab = () => {
     const query = swabAreaHistoryRepo.where("id", id);
 
     return query.first();
+  };
+
+  const getSubSwabAreaHistoriesOfSamePeriodById = (
+    id: string
+  ): SwabAreaHistory[] => {
+    let subSwabAreaHistories = [];
+
+    const mainSwabAreaHistory = getSwabAreaHistoryById(id);
+    const mainSwabArea = getSwabAreaById(mainSwabAreaHistory.swabAreaId);
+    const subSwabAreas = getSwabAreaByMainSwabAreaId(
+      mainSwabAreaHistory.swabAreaId
+    );
+
+    if (mainSwabAreaHistory && subSwabAreas.length) {
+      const subSwabAreaIds = subSwabAreas.map(({ id }) => id).filter(Boolean);
+
+      subSwabAreaHistories = swabAreaHistoryRepo
+        .where("swabAreaId", subSwabAreaIds)
+        .where("swabPeriodId", mainSwabAreaHistory.swabPeriodId)
+        .where("swabAreaDate", mainSwabAreaHistory.swabAreaDate)
+        .get();
+    }
+
+    return subSwabAreaHistories;
   };
 
   const getSwabProductHistoriesByIds = (
@@ -508,23 +547,16 @@ export const useSwab = () => {
     return swabAreaHistory;
   };
 
-  const loadAllSwabPlanForUpdate = (
-    loadAllSwabPlanForUpdateData: LoadAllSwabPlanForUpdateData
+  const loadSwabAreaHistory = (
+    filter: LoadAllSwabAreaHistoryFilter
   ): Promise<SwabAreaHistory[]> => {
     return new Promise((resolve, reject) => {
-      const { date, shift, facilityId, mainSwabAreaId, swabPeriodId } =
-        loadAllSwabPlanForUpdateData;
+      const { toDto } = useFilterSwabAreaHistory();
 
-      const { onlyDate } = useDate();
+      const params: SearchParams = toDto(filter);
 
       const { data, error } = get<SwabAreaHistory[]>("/swab/area-history", {
-        params: {
-          swabAreaDate: onlyDate(new Date(date)),
-          shift,
-          facilityId,
-          mainSwabAreaId,
-          swabPeriodId,
-        },
+        params,
       });
 
       watch(data, (swabHistoryForUpdateData) => {
@@ -552,6 +584,55 @@ export const useSwab = () => {
         console.log(e);
 
         reject("Load swab plan for updating failed");
+      });
+    });
+  };
+
+  const loadSwabAreaHistoryV2 = (
+    filter: LoadAllSwabAreaHistoryFilter
+  ): Promise<LoadSwabAreaHistoryResponse> => {
+    return new Promise((resolve, reject) => {
+      const { toDto } = useFilterSwabAreaHistory();
+
+      const params: SearchParams = toDto(filter);
+
+      const { data, error } = get<LoadSwabAreaHistoryResponse>(
+        "/swab/area-history/v2",
+        { params }
+      );
+
+      watch(data, (swabAreaHistoryData: LoadSwabAreaHistoryResponse) => {
+        let {
+          total = 0,
+          facilities = [],
+          swabAreas = [],
+          facilityItems = [],
+          swabAreaHistories = [],
+          subSwabAreaHistories = [],
+        } = swabAreaHistoryData;
+
+        facilities = facilityRepo.save(facilities);
+
+        swabAreas = swabAreaRepo.save(swabAreas);
+
+        facilityItems = facilityItemRepo.save(facilityItems);
+
+        swabAreaHistories = swabAreaHistoryRepo.save(swabAreaHistories);
+
+        subSwabAreaHistories = swabAreaHistoryRepo.save(subSwabAreaHistories);
+
+        resolve({
+          total,
+          facilities,
+          swabAreas,
+          facilityItems,
+          swabAreaHistories,
+          subSwabAreaHistories,
+        });
+      });
+
+      watch(error, (e) => {
+        reject(e);
       });
     });
   };
@@ -774,6 +855,8 @@ export const useSwab = () => {
 
     getSwabAreaHistoryById,
 
+    getSubSwabAreaHistoriesOfSamePeriodById,
+
     getSwabProductHistoriesByIds,
 
     getSwabProductHistoryById,
@@ -805,7 +888,8 @@ export const useSwab = () => {
         createMainSwabArea,
         upadateMainSwabArea,
         deleteMainSwabArea,
-        loadAllSwabPlanForUpdate,
+        loadSwabAreaHistory,
+        loadSwabAreaHistoryV2,
         // loadAllLabSwabAreaHistory,
         loadSwabPlanForUpdateById,
         loadSwabProductHistory,

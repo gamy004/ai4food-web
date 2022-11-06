@@ -1,4 +1,4 @@
-import { get, groupBy } from "lodash";
+import { map, get, groupBy } from "lodash";
 import { helpers } from '@vuelidate/validators';
 
 export const useValidationRule = () => {
@@ -8,9 +8,21 @@ export const useValidationRule = () => {
             const isRequired = helpers.req(value);
 
             let isDuplicated = false;
-
+            
             if (isRequired) {
-                const groupedRecords = groupBy(value, (record) => {
+                const validValue = value.filter(record => {
+                    return fields.every(
+                        field => {
+                            const fieldValue = get(record, field);
+
+                            return fieldValue !== undefined &&
+                                fieldValue !== null &&
+                                fieldValue.length > 0
+                        }
+                    );
+                });
+
+                const groupedRecords = groupBy(validValue, (record) => {
                     return fields.reduce(
                         (acc, field) => {
                             return `${acc}_${get(record, field)}`;

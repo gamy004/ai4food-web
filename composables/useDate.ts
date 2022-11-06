@@ -1,3 +1,4 @@
+import { parseISO } from "date-fns";
 import { format, utcToZonedTime } from "date-fns-tz";
 import { th } from "date-fns/locale";
 
@@ -11,6 +12,12 @@ export enum ShiftMapper {
   all = "ทั้งหมด",
   day = "กลางวัน",
   night = "กลางคืน",
+}
+
+export enum ShiftAbbreviation {
+  all = "A",
+  day = "D",
+  night = "N",
 }
 
 export interface TimePickerTimeInterface {
@@ -30,8 +37,12 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     return utcToZonedTime(new Date(), timeZone);
   }
 
+  function parseDate(date) {
+    return typeof date === "string" ? parseISO(date) : date;
+  }
+
   function onlyDate(date) {
-    return format(date, "yyyy-MM-dd", { timeZone });
+    return format(parseDate(date), "yyyy-MM-dd", { timeZone });
   }
 
   function onlyTime(date, includeSeconds = true) {
@@ -41,7 +52,7 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
       timeFormat += ":ss";
     }
 
-    return format(date, timeFormat, { timeZone });
+    return format(parseDate(date), timeFormat, { timeZone });
   }
 
   function timePickerToTimeString(
@@ -95,12 +106,16 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     return dateToShift(mockDate);
   }
 
-  function stringToShift(string): Shift {
+  function stringToShift(string): Shift | null {
     return string ? Shift[string.toUpperCase()] : null;
   }
 
+  function shiftToAbbreviation(shift: Shift): ShiftAbbreviation | null {
+    return shift ? ShiftAbbreviation[shift] : null;
+  }
+
   function formatThLocale(date, formatType = "PP"): string {
-    return format(date, formatType, { locale: th });
+    return format(parseDate(date), formatType, { locale: th });
   }
 
   function formatTimeThLocale(timeString, formatType = "p"): string {
@@ -133,6 +148,7 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     dateToShift,
     timePickerToTimeShift,
     stringToShift,
+    shiftToAbbreviation,
     formatThLocale,
     formatTimeThLocale,
   };

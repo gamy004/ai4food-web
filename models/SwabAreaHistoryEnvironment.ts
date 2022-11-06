@@ -1,13 +1,13 @@
-import { Model, Uid } from "pinia-orm";
-
+import { Model } from "pinia-orm";
+import { Uid } from "pinia-orm/dist/decorators";
 export default class SwabAreaHistoryEnvironment extends Model {
   static entity = "swab_area_history_environment";
 
   static primaryKey = ["swabAreaHistoryId", "swabEnvironmentId"];
 
     @Uid()
-      swabAreaHistoryId!: string;
+    declare swabAreaHistoryId: string;
 
     @Uid()
-      swabEnvironmentId!: string;
+    declare swabEnvironmentId: string;
 }

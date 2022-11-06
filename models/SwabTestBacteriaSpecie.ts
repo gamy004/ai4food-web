@@ -1,4 +1,5 @@
-import { Model, Uid } from "pinia-orm";
+import { Model } from "pinia-orm";
+import { Uid } from "pinia-orm/dist/decorators";
 
 export default class SwabTestBacteriaSpecie extends Model {
   static entity = "swab_test_bacteria_specie";
@@ -6,8 +7,8 @@ export default class SwabTestBacteriaSpecie extends Model {
   static primaryKey = ["swabTestId", "bacteriaSpecieId"];
 
   @Uid()
-  swabTestId!: string;
+  declare swabTestId: string;
 
   @Uid()
-  bacteriaSpecieId!: string;
+  declare bacteriaSpecieId: string;
 }

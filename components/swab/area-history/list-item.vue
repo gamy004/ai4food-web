@@ -61,12 +61,7 @@ const pageUpdateSwabAreaHistory: ComputedRef<object> = computed(() => {
 </script>
 
 <template>
-  <nuxt-link
-    v-slot="{ navigate }"
-    :to="pageUpdateSwabAreaHistory"
-    class="list-group-item__swab-area-history text-decoration-none"
-    custom
-  >
+  <nuxt-link v-slot="{ navigate }" :to="pageUpdateSwabAreaHistory" custom>
     <b-list-group-item
       class="d-flex justify-content-between align-items-center py-4"
       @click="navigate"
