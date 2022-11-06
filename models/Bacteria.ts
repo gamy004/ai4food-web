@@ -1,4 +1,11 @@
-import { Attr, Model, Uid, Str, BelongsToMany, HasManyBy } from "pinia-orm";
+import { Model } from "pinia-orm";
+import {
+  Attr,
+  Str,
+  Uid,
+  BelongsToMany,
+  HasManyBy
+} from "pinia-orm/dist/decorators";
 import BacteriaSpecie from "./BacteriaSpecie";
 import SwabTest from "./SwabTest";
 import SwabTestBacteria from "./SwabTestBacteria";
@@ -7,10 +14,10 @@ export default class Bacteria extends Model {
   static entity = "bacteria";
 
   @Uid()
-  id!: string | null;
+  declare id: string;
 
   @Str("")
-  bacteriaName!: string;
+  declare bacteriaName: string;
 
   @BelongsToMany(
     () => SwabTest,
@@ -18,11 +25,11 @@ export default class Bacteria extends Model {
     "bacteriaId",
     "swabTestId"
   )
-  swabTests: SwabTest[];
+  declare swabTests: SwabTest[];
 
   @Attr([])
-  bacteriaSpecieIds: string[];
+  declare bacteriaSpecieIds: string[];
 
   @HasManyBy(() => BacteriaSpecie, "bacteriaSpecieIds", "bacteriaId")
-  bacteriaSpecies: BacteriaSpecie[];
+  declare bacteriaSpecies: BacteriaSpecie[];
 }

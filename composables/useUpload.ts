@@ -70,7 +70,7 @@ export const useUpload = () => {
         });
 
         if (response.ok) {
-          const fileSource = `${presignedOutput.url}/${presignedOutput.fields.key}`;
+          const fileSource = `${presignedOutput.url}${presignedOutput.fields.key}`;
 
           const uploadedFile = {
             fileKey,

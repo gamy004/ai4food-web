@@ -9,14 +9,12 @@ import SwabPlan from "~~/models/SwabPlan";
 
 definePageMeta({
   title: "Ai4FoodSafety - Swab report",
-  middleware: [
-    "auth"
-  ],
+  middleware: ["auth"],
   canGoBack: true,
-  fallBackRedirect: "/"
+  fallBackRedirect: "/",
 });
 const toast = useToast();
-const { onlyDate } = useDate();
+const { onlyDate, formatThLocale, shiftToAbbreviation } = useDate();
 const { getSwabPlan } = useSwab();
 
 const loading = ref(false);
@@ -28,7 +26,7 @@ const perPage = ref(100);
 const currentPage = ref(1);
 
 function reportMixin_setWidthColumn(ws, header, data, fixedLengthHeader = {}) {
-  const objectMaxLength = header.map(h => fixedLengthHeader[h] || h.length);
+  const objectMaxLength = header.map((h) => fixedLengthHeader[h] || h.length);
 
   for (let i = 0; i < data.length; i++) {
     header.forEach((key, j) => {
@@ -42,7 +40,7 @@ function reportMixin_setWidthColumn(ws, header, data, fixedLengthHeader = {}) {
     });
   }
 
-  ws["!cols"] = objectMaxLength.map(obj => ({ width: obj }));
+  ws["!cols"] = objectMaxLength.map((obj) => ({ width: obj }));
 
   return ws;
 }
@@ -51,12 +49,16 @@ const dateRange = reactive({
   from: null,
   to: null,
   cachedFromDateString: null,
-  cachedToDateString: null
+  cachedToDateString: null,
 });
 
-const fromDateString = computed(() => dateRange.from !== null ? onlyDate(dateRange.from) : "");
+const fromDateString = computed(() =>
+  dateRange.from !== null ? onlyDate(dateRange.from) : ""
+);
 
-const toDateString = computed(() => dateRange.to !== null ? onlyDate(dateRange.to) : "");
+const toDateString = computed(() =>
+  dateRange.to !== null ? onlyDate(dateRange.to) : ""
+);
 
 watch(date, (dateValue) => {
   if (dateValue !== null) {
@@ -81,26 +83,41 @@ async function onFormSubmitted() {
     dateRange.cachedFromDateString = fromDateString.value;
     dateRange.cachedToDateString = toDateString.value;
 
-    const swabPlanData: SwabPlan = await getSwabPlan(fromDateString.value, toDateString.value);
+    const swabPlanData: SwabPlan = await getSwabPlan(
+      fromDateString.value,
+      toDateString.value
+    );
     // console.log(swabPlanData)
     if (swabPlanData.swabAreaHistories.length) {
       const swabAreaHistories = swabPlanData.swabAreaHistories;
       // let updatedDt = new Date(swabAreaHistories[0].updatedAt)
       // report.value = updatedDt.getDate() + '/' + (updatedDt.getMonth() + 1) + '/' + updatedDt.getFullYear()
       swabAreaHistories.forEach((el, idx) => {
-        const swabArea = swabPlanData.swabAreas.find(item => item.id === el.swabAreaId);
+        const swabArea = swabPlanData.swabAreas.find(
+          (item) => item.id === el.swabAreaId
+        );
         // console.log(swabArea)
-        const swabPeriodName = swabPlanData.swabPeriods.find(item => item.id === el.swabPeriodId);
-        const mainswabArea = swabArea.mainSwabAreaId ? swabPlanData.swabAreas.find(item => item.id == swabArea.mainSwabAreaId).swabAreaName : swabArea.swabAreaName;
-        const facility = swabArea.facilityId ? swabPlanData.facilities.find(item => item.id == swabArea.facilityId).facilityName : "";
+        const swabPeriodName = swabPlanData.swabPeriods.find(
+          (item) => item.id === el.swabPeriodId
+        );
+        const mainswabArea = swabArea.mainSwabAreaId
+          ? swabPlanData.swabAreas.find(
+              (item) => item.id == swabArea.mainSwabAreaId
+            ).swabAreaName
+          : swabArea.swabAreaName;
+        const facility = swabArea.facilityId
+          ? swabPlanData.facilities.find(
+              (item) => item.id == swabArea.facilityId
+            ).facilityName
+          : "";
         results.value.push({
           ลำดับ: idx + 1,
-          วันที่ตรวจ: el.swabAreaDate,
-          เครื่อง: facility,
-          จุดตรวจหลัก: mainswabArea,
+          วันที่ตรวจ: formatThLocale(new Date(el.swabAreaDate), "ddMMyy"),
           รหัส: el.swabTest.swabTestCode,
+          กะ: el.shift ? shiftToAbbreviation(el.shift) : "",
           ช่วงตรวจ: swabPeriodName ? swabPeriodName.swabPeriodName : "",
-          กะ: el.shift ? ShiftMapper[el.shift] : ""
+          เครื่อง: facility,
+          จุดตรวจ: mainswabArea,
         });
       });
     }
@@ -112,10 +129,22 @@ async function onFormSubmitted() {
 
       const wb = utils.book_new();
 
-      ws = reportMixin_setWidthColumn(ws, ["ลำดับ", "วันที่ตรวจ", "เครื่อง", "จุดตรวจหลัก", "รหัส", "ช่วงตรวจ", "กะ"], results.value, { ลำดับ: 10 });
+      ws = reportMixin_setWidthColumn(
+        ws,
+        ["ลำดับ", "วันที่ตรวจ", "รหัส", "กะ", "ช่วงตรวจ", "เครื่อง", "จุดตรวจ"],
+        results.value,
+        { ลำดับ: 10 }
+      );
 
       utils.book_append_sheet(wb, ws, "รายการจุดตรวจ swab");
-      writeFile(wb, `รายการจุดตรวจswab_${fromDateString.value === toDateString.value ? fromDateString.value : `${fromDateString.value}-${toDateString.value}`} .xlsx`);
+      writeFile(
+        wb,
+        `รายการจุดตรวจswab_${
+          fromDateString.value === toDateString.value
+            ? fromDateString.value
+            : `${fromDateString.value}-${toDateString.value}`
+        } .xlsx`
+      );
 
       toast.success("โหลดข้อมูล จุด swab สำเร็จ", { timeout: 1000 });
     }
@@ -123,18 +152,22 @@ async function onFormSubmitted() {
     console.log(e);
 
     error.value = true;
-    toast.error("โหลดข้อมูล จุด swab ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", { timeout: 1000 });
+    toast.error("โหลดข้อมูล จุด swab ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", {
+      timeout: 1000,
+    });
   } finally {
     loading.value = false;
   }
 }
 
-const filteredData = computed(
-  () => results.value.filter((_, idx) => {
-    return (idx >= (currentPage.value - 1) * perPage.value) && (idx < currentPage.value * perPage.value);
+const filteredData = computed(() =>
+  results.value.filter((_, idx) => {
+    return (
+      idx >= (currentPage.value - 1) * perPage.value &&
+      idx < currentPage.value * perPage.value
+    );
   })
 );
-
 </script>
 
 <template>
@@ -144,9 +177,7 @@ const filteredData = computed(
         <b-row>
           <b-col cols="7">
             <b-row>
-              <h3 class="font-weight-bold">
-                รายการจุดตรวจ swab
-              </h3>
+              <h3 class="font-weight-bold">รายการจุดตรวจ swab</h3>
             </b-row>
             <!-- <b-row>
                             <h6 v-if="report" class="font-weight-normal">รายงานจุดตรวจ | ข้อมูลล่าสุด {{ report }}</h6>
@@ -154,8 +185,15 @@ const filteredData = computed(
                         </b-row> -->
           </b-col>
           <b-col cols="3">
-            <Datepicker v-model="date" :enable-time-picker="false" range locale="en" cancel-text="ยกเลิก"
-              select-text="ยืนยัน" @cleared="onDatepickerCleared" />
+            <Datepicker
+              v-model="date"
+              :enable-time-picker="false"
+              range
+              locale="en"
+              cancel-text="ยกเลิก"
+              select-text="ยืนยัน"
+              @cleared="onDatepickerCleared"
+            />
           </b-col>
           <b-col>
             <b-button variant="outline-primary" type="submit">
@@ -169,19 +207,32 @@ const filteredData = computed(
       <line-md-loading-twotone-loop :style="{ fontSize: '2em' }" />
     </div>
     <div v-if="hasResults">
-      <b-table id="result-table" hover small caption-top responsive :items="filteredData" />
+      <b-table
+        id="result-table"
+        hover
+        small
+        caption-top
+        responsive
+        :items="filteredData"
+      />
 
-      <b-pagination v-model="currentPage" align="center" :total-rows="results.length" :per-page="perPage"
-        aria-controls="result-table" />
+      <b-pagination
+        v-model="currentPage"
+        align="center"
+        :total-rows="results.length"
+        :per-page="perPage"
+        aria-controls="result-table"
+      />
     </div>
 
     <p v-else>
-      ไม่พบข้อมูลรายการจุดตรวจ swab ในวันที่ {{ dateRange.cachedFromDateString ===
-          dateRange.cachedToDateString ? dateRange.cachedFromDateString :
-          `${dateRange.cachedFromDateString} ถึง ${dateRange.cachedToDateString}`
+      ไม่พบข้อมูลรายการจุดตรวจ swab ในวันที่
+      {{
+        dateRange.cachedFromDateString === dateRange.cachedToDateString
+          ? dateRange.cachedFromDateString
+          : `${dateRange.cachedFromDateString} ถึง ${dateRange.cachedToDateString}`
       }}
     </p>
   </div>
 </template>
-<style module>
-</style>
+<style module></style>

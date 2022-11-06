@@ -1,18 +1,24 @@
-import { Model, Attr, Str, BelongsTo, Uid } from "pinia-orm";
+import { Model } from "pinia-orm";
+import {
+  Attr,
+  Str,
+  Uid,
+  BelongsTo
+} from "pinia-orm/dist/decorators";
 import Bacteria from "./Bacteria";
 
 export default class BacteriaSpecie extends Model {
   static entity = "bacteria_species";
 
   @Uid()
-  id!: string | null;
+  declare id: string;
 
   @Str("")
-  bacteriaSpecieName!: string;
+  declare bacteriaSpecieName: string;
 
   @Attr(null)
-  bacteriaId!: string | null;
+  declare bacteriaId: string | null;
 
   @BelongsTo(() => Bacteria, "bacteriaId")
-  bacteria!: Bacteria;
+  declare bacteria: Bacteria;
 }

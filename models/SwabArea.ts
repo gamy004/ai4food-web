@@ -1,34 +1,39 @@
-import { SubSwabAreasData } from './../composables/useSwab';
-import { Attr, BelongsTo, HasManyBy, Model, Str, Uid, useRepo } from "pinia-orm";
+import { Model, useRepo } from "pinia-orm";
+import {
+  Attr,
+  Str,
+  Uid,
+  BelongsTo,
+  HasManyBy
+} from "pinia-orm/dist/decorators";
 import Facility from "./Facility";
-import FacilityItem from "./FacilityItem";
 
 export default class SwabArea extends Model {
   static entity = "swab_area";
 
     @Uid()
-      id!: string | null;
+    declare id: string;
 
     @Str("")
-      swabAreaName!: string;
+    declare swabAreaName: string;
 
     @Attr(null)
-      mainSwabAreaId!: string;
+    declare mainSwabAreaId: string | null;
 
     @Attr(null)
-      facilityId!: string;
+    declare facilityId: string | null;
 
     @Attr([])
-      subSwabAreaIds!: string[];
+    declare subSwabAreaIds: string[];
 
     @HasManyBy(() => SwabArea, "subSwabAreaIds", "mainSwabAreaId")
-      subSwabAreas!: SwabArea[];
+    declare subSwabAreas: SwabArea[];
 
     @BelongsTo(() => SwabArea, "mainSwabAreaId")
-      mainSwabArea!: SwabArea;
+    declare mainSwabArea: SwabArea;
 
     @BelongsTo(() => Facility, "facilityId")
-      facility!: Facility;
+    declare facility: Facility;
 
     get isMainArea (): boolean {
       return this.mainSwabAreaId === null;

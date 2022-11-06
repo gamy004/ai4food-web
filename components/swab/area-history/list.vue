@@ -63,7 +63,7 @@ const fetch = async function fetch(props) {
 
   try {
     const swapAreaHistoryData: SwabAreaHistory[] =
-      await swabApi().loadAllSwabPlanForUpdate(props);
+      await swabApi().loadSwabAreaHistory(props);
 
     if (swapAreaHistoryData && swapAreaHistoryData.length) {
       swapAreaHistoryIds.value = swapAreaHistoryData.map(({ id }) => id);

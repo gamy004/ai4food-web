@@ -134,8 +134,8 @@ watch(
 
             <div v-else>
               <p v-if="deletedProduct">
-                ไม่สามารถลบข้อมูลสินค้า
-                <b>{{ deletedProduct.productName }}</b> ได้
+                ข้อมูลสินค้า
+                <b>{{ deletedProduct.productName }}</b> มีการผูกข้อมูล
               </p>
 
               <div class="alert alert-danger" role="alert">
@@ -147,7 +147,7 @@ watch(
                       deletePermission.countProductSchedules > 0)
                   "
                 >
-                  <div><b>สาเหตุ:</b> ข้อมูลสินค้ามีการผูกข้อมูล</div>
+                  <!-- <div><b>สาเหตุ:</b> ข้อมูลสินค้ามีการผูกข้อมูล</div> -->
                   <div>
                     <b>ข้อมูลการตรวจจุดตรวจ:</b>
                     {{ deletePermission.countSwabAreaHistories }} รายการ
@@ -164,7 +164,7 @@ watch(
               </div>
 
               <p>
-                หากสินค้าถูกลบ ข้อมูลที่ผูกกับสินค้านี้ทั้งหมดจะถูกลบ
+                หากสินค้าถูกลบ ข้อมูลที่ผูกกับสินค้านี้ทั้งหมดจะถูกลบด้วย
                 คุณแน่ใจว่าต้องการลบสินค้านี้ใช่ไหม
               </p>
             </div>

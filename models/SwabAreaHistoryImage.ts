@@ -1,4 +1,9 @@
-import { Model, Str, Uid, Attr, BelongsTo } from "pinia-orm";
+import { Model } from "pinia-orm";
+import {
+  Attr,
+  Uid,
+  BelongsTo
+} from "pinia-orm/dist/decorators";
 import File from "./File";
 import SwabAreaHistory from "./SwabAreaHistory";
 
@@ -6,20 +11,20 @@ export default class SwabAreaHistoryImage extends Model {
   static entity = "swab_area_history_image";
 
     @Uid()
-      id!: string | null;
+    declare id: string;
 
     @Attr(null)
-      swabAreaHistoryImageDescription?: string;
+    declare swabAreaHistoryImageDescription: string | null;
 
     @Attr(null)
-      swabAreaHistoryId: string;
+    declare swabAreaHistoryId: string | null;
 
     @BelongsTo(() => SwabAreaHistory, "swabAreaHistoryId")
-      swabArea!: SwabAreaHistory;
+    declare swabArea: SwabAreaHistory;
 
     @Attr(null)
-      fileId: string;
+    declare fileId: string | null;
 
     @BelongsTo(() => File, "fileId")
-      file!: File;
+    declare file: File;
 }

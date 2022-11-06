@@ -1,13 +1,12 @@
+import { Model, useRepo } from "pinia-orm";
 import {
   Attr,
+  Str,
+  Uid,
   BelongsTo,
   BelongsToMany,
   HasManyBy,
-  Model,
-  Str,
-  Uid,
-  useRepo,
-} from "pinia-orm";
+} from "pinia-orm/dist/decorators";
 import { Shift } from "~~/composables/useDate";
 import FacilityItem from "./FacilityItem";
 import Product from "./Product";
@@ -18,65 +17,67 @@ import SwabEnvironment from "./SwabEnvironment";
 import SwabPeriod from "./SwabPeriod";
 import SwabTest from "./SwabTest";
 
+const { formatThLocale, formatTimeThLocale } = useDate();
+
 export default class SwabAreaHistory extends Model {
   static entity = "swab_area_history";
 
   @Uid()
-  id!: string | null;
+  declare id: string;
 
   @Str("")
-  swabAreaDate!: string;
+  declare swabAreaDate: string;
 
   @Attr(null)
-  shift!: Shift;
+  declare shift: Shift | null;
 
   @Attr(null)
-  swabAreaSwabedAt!: string;
+  declare swabAreaSwabedAt: string | null;
 
   @Attr(null)
-  swabAreaTemperature!: string;
+  declare swabAreaTemperature: string | null;
 
   @Attr(null)
-  swabAreaHumidity!: string;
+  declare swabAreaHumidity: string | null;
 
   @Attr(null)
-  swabAreaAtp!: number;
+  declare swabAreaAtp: number | null;
 
   @Attr(null)
-  swabAreaNote!: string;
+  declare swabAreaNote: string | null;
 
   @Attr(null)
-  swabAreaId!: string;
+  declare swabAreaId: string | null;
 
   @Attr(null)
-  swabPeriodId!: string;
+  declare swabPeriodId: string | null;
 
   @Attr(null)
-  swabTestId!: string;
+  declare swabTestId: string | null;
 
   @Attr(null)
-  productId!: string;
+  declare productId: string | null;
 
   @Attr(null)
-  productDate!: string;
+  declare productDate: string | null;
 
   @Attr(null)
-  productLot!: string;
+  declare productLot: string | null;
 
   @Attr(null)
-  facilityItemId!: string;
+  declare facilityItemId: string | null;
 
   @Attr([])
-  swabAreaHistoryImageIds!: string[];
+  declare swabAreaHistoryImageIds: string[];
 
   @BelongsTo(() => SwabArea, "swabAreaId")
-  swabArea!: SwabArea;
+  declare swabArea: SwabArea;
 
   @BelongsTo(() => SwabPeriod, "swabPeriodId")
-  swabPeriod!: SwabPeriod;
+  declare swabPeriod: SwabPeriod;
 
   @BelongsTo(() => SwabTest, "swabTestId")
-  swabTest: SwabTest;
+  declare swabTest: SwabTest;
 
   @BelongsToMany(
     () => SwabEnvironment,
@@ -84,20 +85,36 @@ export default class SwabAreaHistory extends Model {
     "swabAreaHistoryId",
     "swabEnvironmentId"
   )
-  swabEnvironments!: SwabEnvironment[];
+  declare swabEnvironments: SwabEnvironment[];
 
   @HasManyBy(
     () => SwabAreaHistoryImage,
     "swabAreaHistoryImageIds",
     "swabAreaHistoryId"
   )
-  swabAreaHistoryImages!: SwabAreaHistoryImage[];
+  declare swabAreaHistoryImages: SwabAreaHistoryImage[];
 
   @BelongsTo(() => Product, "productId")
-  product!: Product;
+  declare product: Product;
 
   @BelongsTo(() => FacilityItem, "facilityItemId")
-  facilityItem!: FacilityItem;
+  declare facilityItem: FacilityItem;
+
+  get readableSwabAreaDate() {
+    return this.swabAreaDate ? formatThLocale(new Date(this.swabAreaDate)) : "";
+  }
+
+  get shortSwabAreaDate() {
+    return this.swabAreaDate
+      ? formatThLocale(new Date(this.swabAreaDate), "ddMMyy")
+      : "";
+  }
+
+  get readableSwabAreaTime() {
+    return this.swabAreaSwabedAt
+      ? formatTimeThLocale(this.swabAreaSwabedAt)
+      : "";
+  }
 
   get swabTestCode() {
     const swapTestRepo = useRepo(SwabTest);

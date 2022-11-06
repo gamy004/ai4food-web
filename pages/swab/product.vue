@@ -53,13 +53,6 @@ const form = reactive({
         :hidden-state="{
           product: false,
         }"
-        :col-state="{
-          date: 'sm-6 md-4',
-          shift: 'sm-6 md-3',
-          swabPeriod: 'sm-12 md-5',
-          facility: 'sm-12 md-6',
-          facilityItem: 'sm-12 md-6',
-        }"
         :clearable-state="{
           swabPeriod: true,
           facility: true,

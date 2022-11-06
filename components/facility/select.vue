@@ -17,6 +17,8 @@ export interface Props {
   defaultValue?: any | null;
 }
 
+const attrs = useAttrs();
+
 const toast = useToast();
 
 const { api: facilityApi, getFacilityByIds, getFacilityByName } = useFacility();
@@ -58,18 +60,6 @@ const { isInvalid, isFormInvalid } = useValidation(validationRules, {
 const facilityRequiredState = computed(() =>
   isFormInvalid("modelValue", ["requiredIfPropsRequired"])
 );
-
-const formInvalidState = computed(() => {
-  let isFacilityInvalid = null;
-
-  if (isInvalid.value) {
-    isFacilityInvalid = facilityRequiredState.value;
-  }
-
-  return {
-    facility: isFacilityInvalid,
-  };
-});
 
 const formGroupLabel = computed(() => (props.showLabel ? "เครื่องจักร" : ""));
 
@@ -113,11 +103,11 @@ onBeforeMount(async () => {
 <template>
   <b-form-group
     id="fieldset-facility"
-    label-cols-lg="4"
     label-for="facilityName"
     :label="formGroupLabel"
     :label-class="formGroupLabelClass"
-    :state="formInvalidState.facility"
+    :state="facilityRequiredState"
+    v-bind="{ ...attrs }"
   >
     <v-select
       v-model="modelValue"

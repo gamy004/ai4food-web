@@ -1,4 +1,9 @@
-import { Model, Attr, Uid, BelongsTo, Str } from "pinia-orm";
+import { Model } from "pinia-orm";
+import {
+  Attr,
+  Str,
+  Uid,
+} from "pinia-orm/dist/decorators";
 import SwabTest from "./SwabTest";
 import SwabArea from "./SwabArea";
 import SwabPeriod from "./SwabPeriod";
@@ -7,23 +12,23 @@ export default class LabTest extends Model {
   static entity = "lab_test";
 
   @Uid()
-  id!: string | null;
+  declare id: string;
 
   @Str("")
-  swabAreaDate!: string;
+  declare swabAreaDate: string;
 
   @Str("")
-  swabAreaSwabedAt!: string;
+  declare swabAreaSwabedAt: string;
 
   @Attr(null)
-  swabTestId!: number;
+  declare swabTestId: number | null;
 
   @Attr(null)
-  swabTest!: SwabTest;
+  declare swabTest: SwabTest | null;
 
   @Attr(null)
-  swabArea!: SwabArea;
+  declare swabArea: SwabArea | null;
 
   @Attr(null)
-  swabPeriod!: SwabPeriod;
+  declare swabPeriod: SwabPeriod | null;
 }
