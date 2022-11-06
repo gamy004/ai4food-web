@@ -1,4 +1,10 @@
-import { Model, Str, Uid, Attr, HasManyBy } from "pinia-orm";
+import { Model } from "pinia-orm";
+import {
+  Attr,
+  Str,
+  Uid,
+  HasManyBy
+} from "pinia-orm/dist/decorators";
 import FacilityItem from "./FacilityItem";
 import SwabArea from "./SwabArea";
 
@@ -12,23 +18,23 @@ export default class Facility extends Model {
   static entity = "facility";
 
     @Uid()
-      id!: string | null;
+    declare id: string;
 
     @Str("")
-      facilityName!: string;
+    declare facilityName: string;
 
     @Str("")
-      facilityType!: FacilityType;
+    declare facilityType: FacilityType;
 
     @Attr([])
-      swabAreaIds!: string[];
+    declare swabAreaIds: string[];
 
     @HasManyBy(() => SwabArea, "swabAreaIds", "facilityId")
-      swabAreas!: SwabArea[];
+    declare swabAreas: SwabArea[];
 
     @Attr([])
-      facilityItemIds!: string[];
+    declare facilityItemIds: string[];
 
     @HasManyBy(() => FacilityItem, "FacilityItemIds", "facilityId")
-      facilityItems!: FacilityItem[];
+    declare facilityItems: FacilityItem[];
 }

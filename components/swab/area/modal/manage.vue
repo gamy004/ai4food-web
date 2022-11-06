@@ -309,100 +309,34 @@ defineExpose({ clearState });
               <div class="d-grid gap-1 mt-3">
                 <div
                   v-if="
+                    isInvalid &&
                     subSwabAreaNameIsDuplicatedState !== null &&
                     !subSwabAreaNameIsDuplicatedState
                   "
                   class="alert alert-danger"
                   role="alert"
                 >
-                  พบชื่อจุดตรวจย่อยwซ้ำ กรุณาแก้ไขชื่อจุดตรวจให้ไม่ซ้ำกัน
+                  ชื่อจุดตรวจย่อยไม่สามารถซ้ำกันได้ภายในจุดตรวจหลัก
+                  กรุณาเปลี่ยนชื่อจุดที่ซ้ำกัน
                 </div>
 
-                <template v-for="(_, subIndex) in form.subSwabAreas">
-                  <swab-area-input-sub-swab-area
-                    :disabled="submitting"
-                    :order="subIndex + 1"
-                    v-model="form.subSwabAreas[subIndex].subSwabAreaName"
-                    @remove="removeSubSwabArea(subIndex)"
-                  >
-                  </swab-area-input-sub-swab-area>
-                  <!-- <b-form-group
-                    :style="{
-                      marginBottom: '0.25rem !important',
-                    }"
-                    :state="formInvalidState.subSwabAreas[subIndex]"
-                  >
-                    <b-input-group :prepend="`${subIndex + 1}`">
-                      <b-form-input
-                        :id="`subSwabName${subIndex + 1}`"
-                        v-model="form.subSwabAreas[subIndex].subSwabAreaName"
-                        type="text"
-                        placeholder="กรอกชื่อจุดตรวจรอง"
-                      >
-                      </b-form-input>
-
-                      <b-input-group-append>
-                        <b-button
-                          v-if="!submitting"
-                          :id="`removeSubSwabName${subIndex + 1}`"
-                          variant="light"
-                          class="border"
-                          @click="removeSubSwabArea(subIndex)"
-                        >
-                          <CircleMinus />
-                        </b-button>
-                      </b-input-group-append>
-                    </b-input-group>
-                  </b-form-group> -->
-
-                  <!-- <div class="form-control p-0 border-0">
-                    <b-form-input
-                      v-model="form.subSwabAreas[n - 1].swabAreaName"
-                      id="subSwabName{{n}}"
-                      type="text"
-                      placeholder="กรอกชื่อจุดตรวจรอง"
-                    />
-
-                    <b-button
-                      v-if="!submitting"
-                      variant="light"
-                      @click="removeSubSwabArea"
-                    >
-                      <CircleMinus />
-                    </b-button>
-                  </div> -->
-                </template>
+                <swab-area-input-sub-swab-area
+                  v-for="(_, subIndex) in form.subSwabAreas"
+                  :key="`sub-swab-area-${subIndex}`"
+                  :disabled="submitting"
+                  :order="subIndex + 1"
+                  v-model="form.subSwabAreas[subIndex].subSwabAreaName"
+                  @remove="removeSubSwabArea(subIndex)"
+                >
+                </swab-area-input-sub-swab-area>
               </div>
             </b-col>
           </div>
         </b-row>
-
-        <!-- <b-row class="mt-2">
-          <div class="input-group align-items-center">
-            <label
-              for="detail"
-              class="form-label min-w-125px d-block col-12 col-md-auto"
-              >รายละเอียด</label
-            >
-            <div class="form-control p-0 border-0">
-              <b-form-textarea
-                id="detail"
-                type="text"
-                placeholder="กรอกรายละเอียด(ถ้ามี)"
-              />
-            </div>
-          </div>
-        </b-row> -->
       </b-container>
     </template>
 
     <template #footer>
-      <!-- <b-button v-if="!submitting" variant="light" @click="removeSubSwabArea">
-        <CircleMinus />
-      </b-button>
-      <b-button v-if="!submitting" variant="light" @click="addSubSwabArea">
-        <CirclePlusFill />
-      </b-button> -->
       <b-button v-if="!submitting" variant="light" @click.prevent="onCancel">
         ยกเลิก
       </b-button>

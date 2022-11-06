@@ -1,4 +1,11 @@
-import { Model, Str, Uid, Attr, HasManyBy, BelongsTo } from "pinia-orm";
+import { Model } from "pinia-orm";
+import {
+  Attr,
+  Str,
+  Uid,
+  BelongsTo,
+  HasManyBy
+} from "pinia-orm/dist/decorators";
 import Facility from "./Facility";
 import SwabAreaHistory from "./SwabAreaHistory";
 import SwabProductHistory from "./SwabProductHistory";
@@ -7,33 +14,32 @@ export default class FacilityItem extends Model {
   static entity = "facility_item";
 
   @Uid()
-  id!: string | null;
+  declare id: string;
 
   @Str("")
-  facilityItemName!: string;
-
-
-  @Attr(null)
-  roomId!: string;
+  declare facilityItemName: string;
 
   @Attr(null)
-  zoneId!: string;
+  declare roomId: string | null;
 
   @Attr(null)
-  facilityId!: string;
+  declare zoneId: string | null;
+
+  @Attr(null)
+  declare facilityId: string | null;
 
   @BelongsTo(() => Facility, "facilityId")
-  facility!: Facility;
+  declare facility: Facility;
 
   @Attr([])
-  swabAreaHistoryIds!: string[];
+  declare swabAreaHistoryIds: string[];
 
   @HasManyBy(() => SwabAreaHistory, "swabAreaHistoryIds", "facilityItemId")
-  swabAreaHistories!: SwabAreaHistory[];
+  declare swabAreaHistories: SwabAreaHistory[];
 
   @Attr([])
-  swabProductHistoryIds!: string[];
+  declare swabProductHistoryIds: string[];
 
   @HasManyBy(() => SwabProductHistory, "swabProductHistoryIds", "facilityItemId")
-  swabProductHistories!: SwabProductHistory[];
+  declare swabProductHistories: SwabProductHistory[];
 }

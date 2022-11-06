@@ -1,13 +1,5 @@
-import {
-  Attr,
-  BelongsTo,
-  BelongsToMany,
-  HasManyBy,
-  Model,
-  Str,
-  Uid,
-  useRepo,
-} from "pinia-orm";
+import { Model } from "pinia-orm";
+import { Attr, Str, Uid, BelongsTo } from "pinia-orm/dist/decorators";
 import { Shift } from "~~/composables/useDate";
 import FacilityItem from "./FacilityItem";
 import Product from "./Product";
@@ -20,49 +12,49 @@ export default class SwabProductHistory extends Model {
   static entity = "swab_product_history";
 
   @Uid()
-  id!: string | null;
+  declare id: string;
 
   @Str("")
-  swabProductDate!: string;
+  declare swabProductDate: string;
 
   @Attr(null)
-  shift!: Shift;
+  declare shift: Shift | null;
 
   @Attr(null)
-  swabProductSwabedAt!: string;
+  declare swabProductSwabedAt: string | null;
 
   @Attr(null)
-  swabProductNote!: string;
+  declare swabProductNote: string | null;
 
   @Attr(null)
-  productDate!: string;
+  declare productDate: string | null;
 
   @Attr(null)
-  productLot!: string;
+  declare productLot: string | null;
 
   @Attr(null)
-  productId!: string;
+  declare productId: string | null;
 
   @BelongsTo(() => Product, "productId")
-  product!: Product;
+  declare product: Product;
 
   @Attr(null)
-  swabPeriodId!: string;
+  declare swabPeriodId: string | null;
 
   @BelongsTo(() => SwabPeriod, "swabPeriodId")
-  swabPeriod!: SwabPeriod;
+  declare swabPeriod: SwabPeriod;
 
   @Attr(null)
-  swabTestId!: string;
+  declare swabTestId: string | null;
 
   @BelongsTo(() => SwabTest, "swabTestId")
-  swabTest!: SwabTest;
+  declare swabTest: SwabTest;
 
   @Attr(null)
-  facilityItemId!: string;
+  declare facilityItemId: string | null;
 
   @BelongsTo(() => FacilityItem, "facilityItemId")
-  facilityItem!: FacilityItem;
+  declare facilityItem: FacilityItem;
 
   get readableSwabProductDate() {
     return this.swabProductDate
@@ -73,6 +65,12 @@ export default class SwabProductHistory extends Model {
   get readableSwabProductTime() {
     return this.swabProductSwabedAt
       ? formatTimeThLocale(this.swabProductSwabedAt)
+      : "";
+  }
+
+  get shortProductDate() {
+    return this.productDate
+      ? formatThLocale(new Date(this.productDate), "ddMMyy")
       : "";
   }
 

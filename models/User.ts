@@ -1,4 +1,5 @@
-import { Model, Str, Uid } from "pinia-orm";
+import { Model } from "pinia-orm";
+import { Uid, Str, Attr } from "pinia-orm/dist/decorators";
 
 export enum UserRole {
   ADMIN = "admin",
@@ -17,25 +18,25 @@ export default class User extends Model {
   static entity = "user";
 
   @Uid()
-  id!: string | null;
+  declare id: string;
 
   @Str("")
-  userName!: string;
+  declare userName: string;
 
   @Str("")
-  email!: string;
+  declare email: string;
 
-  @Str(null, { nullable: true })
-  firstName!: string | null;
+  @Str("")
+  declare firstName: string;
 
-  @Str(null, { nullable: true })
-  lastName!: string | null;
+  @Str("")
+  declare lastName: string;
 
   @Str(UserRole.USER)
-  role!: UserRole;
+  declare role: UserRole;
 
-  @Str(null, { nullable: true })
-  team!: UserTeam | null;
+  @Attr(null)
+  declare team: UserTeam | null;
 
   get isInLabTeam(): boolean {
     return this.isTeam("LAB");

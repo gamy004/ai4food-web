@@ -10,11 +10,9 @@ import SwabAreaHistory from "~~/models/SwabAreaHistory";
 definePageMeta({
   title: "Ai4FoodSafety - Update Swab Area History Page",
 
-  middleware: [
-    "auth"
-  ],
+  middleware: ["auth"],
 
-  canGoBack: true
+  canGoBack: true,
 });
 
 const toast = useToast();
@@ -29,7 +27,7 @@ const {
   getSwabTestById,
   getSwabPeriodById,
   getSwabAreaHistoryImagesByIds,
-  getSwabEnvironmentBySwabAreaHistoryId
+  getSwabEnvironmentBySwabAreaHistoryId,
 } = useSwab();
 const swabAreaHistoryId = ref(route.query.id as string);
 const areaTitle: string = route.query.areaTitle as string;
@@ -50,7 +48,7 @@ const form = reactive({
   swabAreaSwabedAt: {
     hours: currentDate.getHours(),
     minutes: currentDate.getMinutes(),
-    seconds: 0
+    seconds: 0,
   },
   swabAreaTemperature: null,
   swabAreaHumidity: null,
@@ -60,38 +58,78 @@ const form = reactive({
   product: null,
   facilityItem: null,
   swabAreaHistoryImages: [],
-  swabEnvironments: []
+  swabEnvironments: [],
 });
 
-const haveSomeImages = value => swabArea.value.shouldRecordImage
-  ? value?.length > 0 || imageBrowserRef.value?.hasPendingUploadImages
-  : true;
+const haveSomeImages = (value) =>
+  swabArea.value.shouldRecordImage
+    ? value?.length > 0 || imageBrowserRef.value?.hasPendingUploadImages
+    : true;
 
 const validationRules = {
   swabAreaSwabedAt: { required, $lazy: true },
   facilityItem: { required, $lazy: true },
-  productLot: { requiredIfShouldRecordProduct: requiredIf(() => swabArea.value.shouldRecordProduct), $lazy: true },
-  productDate: { requiredIfShouldRecordProduct: requiredIf(() => swabArea.value.shouldRecordProduct), $lazy: true },
-  product: { requiredIfShouldRecordProduct: requiredIf(() => swabArea.value.shouldRecordProduct), $lazy: true },
+  productLot: {
+    requiredIfShouldRecordProduct: requiredIf(
+      () => swabArea.value.shouldRecordProduct
+    ),
+    $lazy: true,
+  },
+  productDate: {
+    requiredIfShouldRecordProduct: requiredIf(
+      () => swabArea.value.shouldRecordProduct
+    ),
+    $lazy: true,
+  },
+  product: {
+    requiredIfShouldRecordProduct: requiredIf(
+      () => swabArea.value.shouldRecordProduct
+    ),
+    $lazy: true,
+  },
   swabAreaHistoryImages: { haveSomeImages, $lazy: true },
-  swabAreaTemperature: { requiredIfShouldRecordEnvironment: requiredIf(() => swabArea.value.shouldRecordEnvironment), $lazy: true },
-  swabAreaHumidity: { requiredIfShouldRecordEnvironment: requiredIf(() => swabArea.value.shouldRecordEnvironment), $lazy: true },
-  swabEnvironments: { requiredIfShouldRecordEnvironment: requiredIf(() => swabArea.value.shouldRecordEnvironment), $lazy: true }
+  swabAreaTemperature: {
+    requiredIfShouldRecordEnvironment: requiredIf(
+      () => swabArea.value.shouldRecordEnvironment
+    ),
+    $lazy: true,
+  },
+  swabAreaHumidity: {
+    requiredIfShouldRecordEnvironment: requiredIf(
+      () => swabArea.value.shouldRecordEnvironment
+    ),
+    $lazy: true,
+  },
+  swabEnvironments: {
+    requiredIfShouldRecordEnvironment: requiredIf(
+      () => swabArea.value.shouldRecordEnvironment
+    ),
+    $lazy: true,
+  },
 };
 
-const { validate, isInvalid, isFormInvalid } = useValidation(validationRules, form);
+const { validate, isInvalid, isFormInvalid } = useValidation(
+  validationRules,
+  form
+);
 // const v$ = useVuelidate(validationRules, form);
 
 const swabProductFormInvalidState = computed(() => ({
   productLot: isFormInvalid("productLot", ["requiredIfShouldRecordProduct"]),
   productDate: isFormInvalid("productDate", ["requiredIfShouldRecordProduct"]),
-  product: isFormInvalid("product", ["requiredIfShouldRecordProduct"])
+  product: isFormInvalid("product", ["requiredIfShouldRecordProduct"]),
 }));
 
 const swabEnvironmentFormInvalidState = computed(() => ({
-  swabAreaTemperature: isFormInvalid("swabAreaTemperature", ["requiredIfShouldRecordEnvironment"]),
-  swabAreaHumidity: isFormInvalid("swabAreaHumidity", ["requiredIfShouldRecordEnvironment"]),
-  swabEnvironments: isFormInvalid("swabEnvironments", ["requiredIfShouldRecordEnvironment"])
+  swabAreaTemperature: isFormInvalid("swabAreaTemperature", [
+    "requiredIfShouldRecordEnvironment",
+  ]),
+  swabAreaHumidity: isFormInvalid("swabAreaHumidity", [
+    "requiredIfShouldRecordEnvironment",
+  ]),
+  swabEnvironments: isFormInvalid("swabEnvironments", [
+    "requiredIfShouldRecordEnvironment",
+  ]),
 }));
 
 const title = computed(() => {
@@ -102,53 +140,67 @@ const title = computed(() => {
   }
 
   if (areaName.value) {
-    title += title.length
-      ? ` : ${areaName.value}`
-      : areaName.value;
+    title += title.length ? ` : ${areaName.value}` : areaName.value;
   }
 
   return title;
 });
 
-const swabAreaHistory = computed(() => getSwabAreaHistoryById(swabAreaHistoryId.value));
+const swabAreaHistory = computed(() =>
+  getSwabAreaHistoryById(swabAreaHistoryId.value)
+);
 
-const swabAreaDate = computed(() => formatThLocale(new Date(swabAreaHistory.value.swabAreaDate)));
+const swabAreaDate = computed(() =>
+  formatThLocale(new Date(swabAreaHistory.value.swabAreaDate))
+);
 
 const swabArea = computed(() => getSwabAreaById(swabAreaId.value));
 
-const facility = computed(() => swabArea.value ? getFacilityById(swabArea.value.facilityId) : null);
+const facility = computed(() =>
+  swabArea.value ? getFacilityById(swabArea.value.facilityId) : null
+);
 
 const swabTest = computed(() => getSwabTestById(swabTestId.value));
 
 const swabPeriod = computed(() => getSwabPeriodById(swabPeriodId.value));
 
-const swabAreaHistoryImages = computed(
-  () => {
-    return getSwabAreaHistoryImagesByIds(
-      form.swabAreaHistoryImages.map(({ id }) => id)
-    );
-  }
-);
+const swabAreaHistoryImages = computed(() => {
+  return getSwabAreaHistoryImagesByIds(
+    form.swabAreaHistoryImages.map(({ id }) => id)
+  );
+});
 
 const displayedImages = computed({
   get: () => {
-    return swabAreaHistoryImages.value.map(({ id, file }) => ({ id: file.id, src: file.fileSource, parentId: id }));
+    return swabAreaHistoryImages.value.map(({ id, file }) => ({
+      id: file.id,
+      src: file.fileSource,
+      parentId: id,
+    }));
   },
   set: (value) => {
-    form.swabAreaHistoryImages = value.map(({ parentId }) => ({ id: parentId }));
-  }
+    form.swabAreaHistoryImages = value.map(({ parentId }) => ({
+      id: parentId,
+    }));
+  },
 });
 
 const checkMarkClassName = computed(() => ({
   "text-secondary": !swabAreaHistory.value.isCompleted,
-  "text-success": swabAreaHistory.value.isCompleted
+  "text-success": swabAreaHistory.value.isCompleted,
 }));
 
-const badgeVariant = computed(() => swabAreaHistory.value.isCompleted ? "success" : "light");
+const badgeVariant = computed(() =>
+  swabAreaHistory.value.isCompleted ? "success" : "light"
+);
 
-const badgeText = computed(() => swabAreaHistory.value.isCompleted ? "บันทึกสำเร็จ" : "บันทึกไม่สำเร็จ");
+const badgeText = computed(() =>
+  swabAreaHistory.value.isCompleted ? "บันทึกสำเร็จ" : "บันทึกไม่สำเร็จ"
+);
 
-const imageDirectory = computed(() => `swab-area-history-image/${kebabCase(swabTest.value?.swabTestCode)}`);
+const imageDirectory = computed(
+  () => `swab-area-history-image/${kebabCase(swabTest.value?.swabTestCode)}`
+);
 
 const init = async function init() {
   error.value = false;
@@ -156,9 +208,8 @@ const init = async function init() {
   loading.value = true;
 
   try {
-    const swabAreaHistoryData: SwabAreaHistory = await swabApi().loadSwabPlanForUpdateById(
-      swabAreaHistoryId.value
-    );
+    const swabAreaHistoryData: SwabAreaHistory =
+      await swabApi().loadSwabPlanForUpdateById(swabAreaHistoryId.value);
 
     if (swabAreaHistoryData) {
       swabAreaHistoryId.value = swabAreaHistoryData.id;
@@ -167,12 +218,14 @@ const init = async function init() {
       swabPeriodId.value = swabAreaHistoryData.swabPeriodId;
 
       if (swabAreaHistoryData.swabAreaSwabedAt) {
-        form.swabAreaSwabedAt = timeStringToTimePicker(swabAreaHistoryData.swabAreaSwabedAt);
+        form.swabAreaSwabedAt = timeStringToTimePicker(
+          swabAreaHistoryData.swabAreaSwabedAt
+        );
       }
 
       if (swabAreaHistoryData.facilityItemId) {
         form.facilityItem = {
-          id: swabAreaHistoryData.facilityItemId
+          id: swabAreaHistoryData.facilityItemId,
         };
       }
 
@@ -183,7 +236,7 @@ const init = async function init() {
       if (swabArea.value.shouldRecordProduct) {
         if (swabAreaHistoryData.productId) {
           form.product = {
-            id: swabAreaHistoryData.productId
+            id: swabAreaHistoryData.productId,
           };
         }
 
@@ -200,30 +253,42 @@ const init = async function init() {
 
       if (swabArea.value.shouldRecordImage) {
         if (swabAreaHistoryData.swabAreaHistoryImages) {
-          form.swabAreaHistoryImages = swabAreaHistoryData.swabAreaHistoryImages.map(({ id }) => ({ id }));
+          form.swabAreaHistoryImages =
+            swabAreaHistoryData.swabAreaHistoryImages.map(({ id }) => ({ id }));
         }
       }
 
       if (swabArea.value.shouldRecordEnvironment) {
         if (swabAreaHistoryData.swabAreaTemperature) {
-          form.swabAreaTemperature = parseFloat(swabAreaHistoryData.swabAreaTemperature);
+          form.swabAreaTemperature = parseFloat(
+            swabAreaHistoryData.swabAreaTemperature
+          );
         }
 
         if (swabAreaHistoryData.swabAreaHumidity) {
-          form.swabAreaHumidity = parseFloat(swabAreaHistoryData.swabAreaHumidity);
+          form.swabAreaHumidity = parseFloat(
+            swabAreaHistoryData.swabAreaHumidity
+          );
         }
 
-        const relatedSwabEnvironments = getSwabEnvironmentBySwabAreaHistoryId(swabAreaHistoryData.id);
+        const relatedSwabEnvironments = getSwabEnvironmentBySwabAreaHistoryId(
+          swabAreaHistoryData.id
+        );
 
         if (relatedSwabEnvironments.length) {
-          form.swabEnvironments = relatedSwabEnvironments.map(({ id }) => ({ id }));
+          form.swabEnvironments = relatedSwabEnvironments.map(({ id }) => ({
+            id,
+          }));
         }
       }
     }
   } catch (e) {
     error.value = true;
 
-    toast.error("โหลดข้อมูลจุดตรวจ swab สำหรับอัพเดตไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", { timeout: 1000 });
+    toast.error(
+      "โหลดข้อมูลจุดตรวจ swab สำหรับอัพเดตไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
+      { timeout: 1000 }
+    );
   } finally {
     loading.value = false;
   }
@@ -272,9 +337,7 @@ onMounted(async () => {
 
 <template>
   <div class="page__swab-area--update mt-4">
-    <h2 class="font-weight-bold text-center">
-      บันทึกจุดตรวจ swab
-    </h2>
+    <h2 class="font-weight-bold text-center">บันทึกจุดตรวจ swab</h2>
 
     <b-col v-if="loading" class="text-center mt-5">
       <line-md-loading-twotone-loop :style="{ fontSize: '2em' }" />
@@ -283,9 +346,15 @@ onMounted(async () => {
     <div v-else class="d-grid gap-2 mt-3">
       <b-form id="formUpdateSwabAreaHistory" @submit="onSubmit">
         <b-row v-if="swabArea">
-          <b-col cols="12" class="d-flex justify-content-between align-items-center">
+          <b-col
+            cols="12"
+            class="d-flex justify-content-between align-items-center"
+          >
             <h5>
-              <carbon-checkmark-filled :style="{ fontSize: '1em', marginRight: '1rem' }" :class="checkMarkClassName" />
+              <carbon-checkmark-filled
+                :style="{ fontSize: '1em', marginRight: '1rem' }"
+                :class="checkMarkClassName"
+              />
 
               <b>{{ title }} : </b>
 
@@ -307,59 +376,67 @@ onMounted(async () => {
         <b-row class="mt-2">
           <div class="d-grid gap-2">
             <div v-if="swabAreaHistory" class="text__swab-area-date">
-              <b>วันที่ : </b>{{
-                  swabAreaDate
-              }}
+              <b>วันที่ : </b>{{ swabAreaDate }}
             </div>
 
             <div v-if="swabPeriod" class="text__swab-period-name">
-              <b>ช่วงตรวจ : </b>{{
-                  swabPeriod.swabPeriodName
-              }}
+              <b>ช่วงตรวจ : </b>{{ swabPeriod.swabPeriodName }}
             </div>
 
             <div v-if="facility" class="text__facility-name">
-              <b>เครื่่อง : </b>{{
-                  facility.facilityName
-              }}
+              <b>เครื่่อง : </b>{{ facility.facilityName }}
             </div>
 
             <div v-if="swabArea" class="text__swab-area-name">
-              <b>จุดตรวจ : </b>{{
-                  swabArea.swabAreaName
-              }}
+              <b>จุดตรวจ : </b>{{ swabArea.swabAreaName }}
             </div>
           </div>
         </b-row>
 
         <b-row class="mt-3">
           <b-col>
-            <h6 class="fw-bold">
-              ข้อมูลจุดตรวจ :
-            </h6>
+            <h6 class="fw-bold">ข้อมูลจุดตรวจ :</h6>
 
             <b-row class="px-3">
               <b-col md="6" class="mt-2">
                 <div class="input-group align-items-baseline">
-                  <label for="swabAreaSwabedAt" class="form-label min-w-125px d-block col-12 col-md-auto">เวลาตรวจ
+                  <label
+                    for="swabAreaSwabedAt"
+                    class="form-label min-w-125px d-block col-12 col-md-auto"
+                    >เวลาตรวจ
                   </label>
 
-                  <date-picker id="swabAreaSwabedAt" v-model.number="form.swabAreaSwabedAt"
-                    class="form-control p-0 border-0" :disabled="submitting" time-picker auto-apply
-                    :clearable="false" />
+                  <date-picker
+                    id="swabAreaSwabedAt"
+                    v-model.number="form.swabAreaSwabedAt"
+                    class="form-control p-0 border-0"
+                    :disabled="submitting"
+                    time-picker
+                    auto-apply
+                    :clearable="false"
+                  />
                 </div>
               </b-col>
 
               <b-col v-if="swabArea" md="6" class="mt-2">
                 <div class="input-group align-items-baseline">
-                  <label for="swabAreaSwabedAt" class="form-label min-w-125px d-block col-12 col-md-auto">ไลน์
+                  <label
+                    for="swabAreaSwabedAt"
+                    class="form-label min-w-125px d-block col-12 col-md-auto"
+                    >ไลน์
                   </label>
 
                   <div class="form-control p-0 border-0">
-                    <facility-item-select id="facilityItem" v-model="form.facilityItem" :disabled="submitting"
-                      :facility-id="swabArea.facilityId" />
+                    <facility-item-select
+                      id="facilityItem"
+                      v-model="form.facilityItem"
+                      :disabled="submitting"
+                      :facility-id="swabArea.facilityId"
+                    />
 
-                    <b-form-invalid-feedback :state="isFormInvalid('facilityItem', ['required'])">
+                    <b-form-invalid-feedback
+                      :state="isFormInvalid('facilityItem', ['required'])"
+                    >
                       กรุณาเลือกไลน์
                     </b-form-invalid-feedback>
                   </div>
@@ -371,38 +448,48 @@ onMounted(async () => {
 
         <b-row v-if="swabArea && swabArea.shouldRecordProduct" class="mt-4">
           <b-col>
-            <h6 class="fw-bold">
-              ข้อมูลสินค้าในไลน์ที่กำลังผลิต :
-            </h6>
+            <h6 class="fw-bold">ข้อมูลสินค้าในไลน์ที่กำลังผลิต :</h6>
 
-            <swab-product-form v-model="form" :disabled="submitting" :invalid-state="swabProductFormInvalidState"
-              class="px-3" />
+            <swab-product-form
+              v-model="form"
+              :disabled="submitting"
+              :invalid-state="swabProductFormInvalidState"
+              class="px-3"
+            />
           </b-col>
         </b-row>
 
         <b-row v-if="swabArea && swabArea.shouldRecordEnvironment" class="mt-4">
           <b-col>
-            <h6 class="fw-bold">
-              ข้อมูลสภาพแวดล้อม :
-            </h6>
+            <h6 class="fw-bold">ข้อมูลสภาพแวดล้อม :</h6>
 
-            <swab-environment-form v-model="form" :disabled="submitting"
-              :invalid-state="swabEnvironmentFormInvalidState" class="px-3" />
+            <swab-environment-form
+              v-model="form"
+              :disabled="submitting"
+              :invalid-state="swabEnvironmentFormInvalidState"
+              class="px-3"
+            />
           </b-col>
         </b-row>
 
         <b-row v-if="swabArea && swabArea.shouldRecordImage" class="mt-4">
           <b-col>
-            <h6 class="fw-bold">
-              รูปภาพประกอบ :
-            </h6>
+            <h6 class="fw-bold">รูปภาพประกอบ :</h6>
 
             <b-row class="px-3">
               <b-col>
-                <image-browser ref="imageBrowserRef" v-model="displayedImages" :directory="imageDirectory"
-                  :disabled="submitting" />
+                <image-browser
+                  ref="imageBrowserRef"
+                  v-model="displayedImages"
+                  :directory="imageDirectory"
+                  :disabled="submitting"
+                />
 
-                <b-form-invalid-feedback :state="isFormInvalid('swabAreaHistoryImages', ['haveSomeImages'])">
+                <b-form-invalid-feedback
+                  :state="
+                    isFormInvalid('swabAreaHistoryImages', ['haveSomeImages'])
+                  "
+                >
                   กรุณาอัพโหลดรูปภาพประกอบ อย่างน้อย 1 รูป
                 </b-form-invalid-feedback>
               </b-col>
@@ -418,8 +505,14 @@ onMounted(async () => {
 
             <b-row class="px-3">
               <b-col>
-                <b-form-textarea id="swabAreaNote" v-model="form.swabAreaNote" :disabled="submitting" rows="3"
-                  max-rows="3" no-resize />
+                <b-form-textarea
+                  id="swabAreaNote"
+                  v-model="form.swabAreaNote"
+                  :disabled="submitting"
+                  rows="3"
+                  max-rows="3"
+                  no-resize
+                />
               </b-col>
             </b-row>
           </b-col>
@@ -427,13 +520,23 @@ onMounted(async () => {
 
         <b-row align-h="center" class="my-4">
           <b-col cols="auto">
-            <b-button variant="outline-primary" size="lg" :disabled="submitting" @click="router.back">
+            <b-button
+              variant="outline-primary"
+              size="lg"
+              :disabled="submitting"
+              @click="router.back"
+            >
               ยกเลิก
             </b-button>
           </b-col>
 
           <b-col cols="auto">
-            <button-arrow-right variant="primary" size="lg" :loading="submitting" type="submit">
+            <button-arrow-right
+              variant="primary"
+              size="lg"
+              :loading="submitting"
+              type="submit"
+            >
               บันทึก
             </button-arrow-right>
           </b-col>
@@ -444,9 +547,7 @@ onMounted(async () => {
     <b-col v-if="error" class="text-center mt-3">
       <p>พบข้อผิดพลาดในการโหลดข้อมูลจุดตรวจ swab {{ title }}</p>
 
-      <b-button variant="dark" @click="init">
-        โหลดข้อมูลใหม่
-      </b-button>
+      <b-button variant="dark" @click="init"> โหลดข้อมูลใหม่ </b-button>
     </b-col>
   </div>
 </template>

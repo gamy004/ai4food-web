@@ -28,21 +28,15 @@ const form = reactive({
       <swab-filter
         v-model="form"
         :hidden-state="{ facilityItem: true, mainSwabArea: false }"
-        :clearable-state="{
-          swabPeriod: true,
-          facility: true,
-          mainSwabArea: true,
-        }"
-        show-shift-all
       />
 
       <hr />
 
-      <swab-area-history-table
-        :date="form.date"
+      <swab-area-history-list
         :facility-id="form.facilityId"
         :main-swab-area-id="form.mainSwabAreaId"
         :swab-period-id="form.swabPeriodId"
+        :date="form.date"
         :shift="form.shift"
       />
     </div>

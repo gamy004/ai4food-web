@@ -4,7 +4,7 @@ import Auth from "~~/models/Auth";
 import User from "~~/models/User";
 
 export interface LoginData {
-    access_token: string
+  access_token: string;
 }
 
 export const useAuth = () => {
@@ -12,21 +12,21 @@ export const useAuth = () => {
   const { $cookies } = useNuxtApp();
   const userRepo = useRepo(User);
 
-  function clearAuth (): void {
+  function clearAuth(): void {
     $cookies.remove("auth_data", {
-      path: "/"
+      path: "/",
     });
   }
 
-  function isAuthenticated () {
+  function isAuthenticated() {
     const auth = getAuth();
 
     return auth !== null;
   }
 
-  function getAuth (): Auth | null {
+  function getAuth(): Auth | null {
     const authCookie = $cookies.get("auth_data", {
-      path: "/"
+      path: "/",
     });
 
     let auth = null;
@@ -46,35 +46,31 @@ export const useAuth = () => {
         const user = userRepo.find(authData.userId);
 
         if (user) {
-          auth.setUser(
-            userRepo.find(authData.userId)
-          );
+          auth.setUser(userRepo.find(authData.userId));
         }
       }
 
       if (authData.user) {
-        auth.setUser(
-          userRepo.make({ ...authData.user })
-        );
+        auth.setUser(userRepo.make({ ...authData.user }));
       }
     }
 
     return auth;
   }
 
-  function saveAuth (data) {
+  function saveAuth(data) {
     $cookies.set("auth_data", data, {
       path: "/",
-      maxAge: 60 * 60 * 24 * 14
+      maxAge: 60 * 60 * 24 * 14,
     });
   }
 
-  function login (username: string, password: string): Promise<void> {
+  function login(username: string, password: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      const { data, error } = post<LoginData>(
-        "/auth/login",
-        { username, password }
-      );
+      const { data, error } = post<LoginData>("/auth/login", {
+        username,
+        password,
+      });
 
       watch(data, ({ access_token }) => {
         const auth = new Auth();
@@ -94,7 +90,7 @@ export const useAuth = () => {
     });
   }
 
-  async function loadProfile (): Promise<void> {
+  async function loadProfile(): Promise<void> {
     return new Promise((resolve, reject) => {
       const { data, error } = get<User>("/auth/profile");
 
@@ -133,11 +129,11 @@ export const useAuth = () => {
 
     isAuthenticated: computed(isAuthenticated),
 
-    api () {
+    api() {
       return {
         login,
-        loadProfile
+        loadProfile,
       };
-    }
+    },
   };
 };
