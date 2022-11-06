@@ -371,25 +371,24 @@ watch(
     <div class="page__product-schedule">
       <b-container>
         <b-row>
-          <b-col cols="7">
+          <b-col cols="8">
             <b-row>
-              <h3 class="font-weight-bold">รายการสินค้า</h3>
+              <h3 class="font-weight-bold">แผนการผลิตสินค้า</h3>
             </b-row>
           </b-col>
 
-          <b-col cols="3">
-            <date-picker-range v-model="form.date" />
-          </b-col>
-          <b-col class="d-flex justify-content-center">
-            <b-button
+          <b-col class="d-flex justify-content-end">
+            <!-- <b-button
               class="me-1"
               variant="outline-primary"
               @click="showModal = true"
             >
               เพิ่มรายการสินค้า
-            </b-button>
+            </b-button> -->
             <label for="fileInput" class="btn btn-outline-primary">
               <upload-icon />
+
+              <span>นำเข้าข้อมูล</span>
             </label>
             <input
               id="fileInput"
@@ -400,7 +399,19 @@ watch(
           </b-col>
         </b-row>
 
-        <b-row class="mt-5">
+        <b-row class="row-gap-2 mt-3">
+          <b-col cols="12" sm="8" md="4">
+            <div class="input-group align-items-baseline">
+              <label for="date" class="form-label d-block min-w-75px"
+                >วันที่</label
+              >
+
+              <date-picker-range v-model="form.date" class="col" />
+            </div>
+          </b-col>
+        </b-row>
+
+        <b-row class="mt-3">
           <b-col v-if="loading" cols="12" class="text-center">
             <line-md-loading-twotone-loop :style="{ fontSize: '2em' }" />
           </b-col>
