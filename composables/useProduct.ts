@@ -1,5 +1,6 @@
 import { useRepo } from "pinia-orm";
 import Product from "~~/models/Product";
+import ProductSchedule from "~~/models/ProductSchedule";
 
 export type createProductInterface = (
   body: BodyManageProduct
@@ -16,22 +17,26 @@ export type BodyManageProduct = {
   alternateProductCode: string;
 };
 
-export type BodyProductSchedule = {
-  importTransaction: {
-    id: string
-  },
-  records: [
-    {
-      productScheduleAmount: number,
-      productScheduleDate: string,
-      productScheduleStartedAt: string,
-      productScheduleEndedAt: string,
-      product: {
-        id: string
-      }
-    }
-  ]
-}
+export type ConnectImportTransaction = {
+  id: string;
+};
+
+export type ConnectProduct = {
+  id: string;
+};
+
+export type ImportProductScheduleData = {
+  productScheduleAmount: number;
+  productScheduleDate: string;
+  productScheduleStartedAt: string;
+  productScheduleEndedAt: string;
+  product: ConnectProduct;
+};
+
+export type BodyImportProductSchedule = {
+  importTransaction: ConnectImportTransaction;
+  records: ImportProductScheduleData[];
+};
 
 export type ResponseDeletePermission = {
   canDelete: boolean;
@@ -43,9 +48,19 @@ export type ResponseDeletePermission = {
 
 export type deleteProductInterface = (id: string) => Promise<Product>;
 
+export type LoadProductScheduleParams = {
+  fromDate: string;
+  toDate: string;
+};
+
+export type LoadProductScheduleData = {
+  productSchedules: ProductSchedule[];
+};
+
 export const useProduct = () => {
   const { get, post, put, destroy } = useRequest();
   const productRepo = useRepo(Product);
+  const productScheduleRepo = useRepo(ProductSchedule);
 
   const getProductByIds = (ids: string[]): Product[] => {
     const query = productRepo.where("id", ids);
@@ -59,7 +74,6 @@ export const useProduct = () => {
     return query.first();
   };
 
-  
   const getProductByCodes = (codes: string[]): Product[] => {
     const query = productRepo.where("productCode", codes);
 
@@ -72,6 +86,11 @@ export const useProduct = () => {
     return query.first();
   };
 
+  const getProductScheduleByIds = (ids: string[]): ProductSchedule[] => {
+    const query = productScheduleRepo.where("id", ids);
+
+    return query.orderBy("createdAt", "asc").get();
+  };
 
   const loadAllProduct = async (): Promise<Product[]> => {
     return new Promise((resolve, reject) => {
@@ -156,7 +175,47 @@ export const useProduct = () => {
     });
   };
 
-  const createProductSchedule = async (body: BodyProductSchedule): Promise<any> => {
+  const loadProductSchedule = async (
+    params: LoadProductScheduleParams
+  ): Promise<ProductSchedule[]> => {
+    return new Promise((resolve, reject) => {
+      const requestParams: any = {};
+
+      if (params.fromDate) {
+        requestParams.fromDate = params.fromDate;
+      }
+
+      if (params.toDate) {
+        requestParams.toDate = params.toDate;
+      }
+
+      const { data, error } = get<LoadProductScheduleData>(
+        "/product-schedule",
+        { params: requestParams }
+      );
+
+      watch(data, (productScheduleData) => {
+        const { productSchedules: insertedProductSchedules = [] } =
+          productScheduleData;
+
+        const productSchedules = productScheduleRepo.save(
+          insertedProductSchedules
+        );
+
+        resolve(productSchedules);
+      });
+
+      watch(error, (e) => {
+        console.log(e);
+
+        reject("Load product failed");
+      });
+    });
+  };
+
+  const createProductSchedule = async (
+    body: BodyImportProductSchedule
+  ): Promise<any> => {
     return new Promise((resolve, reject) => {
       const { data, error } = post<any>(`/product-schedule/import`, body);
 
@@ -174,6 +233,8 @@ export const useProduct = () => {
     getProductByCodes,
 
     getProductByCode,
+
+    getProductScheduleByIds,
     api() {
       return {
         loadAllProduct,
@@ -181,7 +242,8 @@ export const useProduct = () => {
         updateProduct,
         createProduct,
         deleteProduct,
-        createProductSchedule
+        loadProductSchedule,
+        createProductSchedule,
       };
     },
   };

@@ -1,22 +1,19 @@
-import { useRepo } from "pinia-orm";
-const { today } = useDate();
+export type ConnectUser = {
+  id: string;
+};
 
-export interface BodyImportTransaction {
-    importType: string,
-    importSource: string,
-    importedFileUrl: string,
-    importedFileName: string,
-    importedUser: {
-      id: string
-    }
-  }
+export type BodyImportTransaction = {
+  importType: string;
+  importSource: string;
+  importedFileUrl: string;
+  importedFileName: string;
+  importedUser: ConnectUser;
+};
 
 export const useImport = () => {
-  const { post } = useRequest();
-  const { timePickerToTimeString } = useDate();
-  
+  const { post, put } = useRequest();
 
-  const imortTransaction = (body: BodyImportTransaction): Promise<any> => {
+  const createTransaction = (body: BodyImportTransaction): Promise<any> => {
     return new Promise((resolve, reject) => {
       console.log(body);
       const { data, error } = post<any>(`/import-transaction`, {
@@ -33,12 +30,43 @@ export const useImport = () => {
     });
   };
 
+  const completeTransaction = (id: string): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const { data, error } = put<any>(
+        `/import-transaction/${id}/complete`,
+        {}
+      );
+
+      watch(data, (responseData) => {
+        resolve(responseData);
+      });
+
+      watch(error, (e) => {
+        reject(e);
+      });
+    });
+  };
+
+  const cancelTransaction = (id: string): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const { data, error } = put<any>(`/import-transaction/${id}/cancel`, {});
+
+      watch(data, (responseData) => {
+        resolve(responseData);
+      });
+
+      watch(error, (e) => {
+        reject(e);
+      });
+    });
+  };
 
   return {
-
     api() {
       return {
-        imortTransaction
+        createTransaction,
+        completeTransaction,
+        cancelTransaction,
       };
     },
   };
