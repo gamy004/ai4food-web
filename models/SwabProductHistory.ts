@@ -1,12 +1,5 @@
-import {
-  Model
-} from "pinia-orm";
-import {
-  Attr,
-  Str,
-  Uid,
-  BelongsTo
-} from "pinia-orm/dist/decorators";
+import { Model } from "pinia-orm";
+import { Attr, Str, Uid, BelongsTo } from "pinia-orm/dist/decorators";
 import { Shift } from "~~/composables/useDate";
 import FacilityItem from "./FacilityItem";
 import Product from "./Product";
@@ -72,6 +65,12 @@ export default class SwabProductHistory extends Model {
   get readableSwabProductTime() {
     return this.swabProductSwabedAt
       ? formatTimeThLocale(this.swabProductSwabedAt)
+      : "";
+  }
+
+  get shortProductDate() {
+    return this.productDate
+      ? formatThLocale(new Date(this.productDate), "ddMMyy")
       : "";
   }
 

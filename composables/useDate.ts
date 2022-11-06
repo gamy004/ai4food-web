@@ -14,6 +14,12 @@ export enum ShiftMapper {
   night = "กลางคืน",
 }
 
+export enum ShiftAbbreviation {
+  all = "A",
+  day = "D",
+  night = "N",
+}
+
 export interface TimePickerTimeInterface {
   hours: number;
   minutes: number;
@@ -100,8 +106,12 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     return dateToShift(mockDate);
   }
 
-  function stringToShift(string): Shift {
+  function stringToShift(string): Shift | null {
     return string ? Shift[string.toUpperCase()] : null;
+  }
+
+  function shiftToAbbreviation(shift: Shift): ShiftAbbreviation | null {
+    return shift ? ShiftAbbreviation[shift] : null;
   }
 
   function formatThLocale(date, formatType = "PP"): string {
@@ -138,6 +148,7 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     dateToShift,
     timePickerToTimeShift,
     stringToShift,
+    shiftToAbbreviation,
     formatThLocale,
     formatTimeThLocale,
   };

@@ -327,12 +327,6 @@ watch(
                       :disabled="submitting"
                       default-value="ขึ้นรูป"
                     />
-
-                    <b-form-invalid-feedback
-                      :state="isFormInvalid('facility', ['required'])"
-                    >
-                      กรุณาเลือกเครื่อง
-                    </b-form-invalid-feedback>
                   </div>
                 </div>
               </b-col>

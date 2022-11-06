@@ -245,7 +245,7 @@ watch(
     <div class="row row-gap-2">
       <div
         v-if="!hiddenState.isHidden('date', false)"
-        :class="[colState.colClass('date', 8)]"
+        :class="[colState.colClass('date', 'md-8')]"
       >
         <div class="input-group align-items-baseline">
           <label for="date" class="form-label d-block min-w-75px">วันที่</label>
@@ -264,7 +264,7 @@ watch(
 
       <div
         v-if="!hiddenState.isHidden('shift', false)"
-        :class="[colState.colClass('shift', 4)]"
+        :class="[colState.colClass('shift', 'md-4')]"
       >
         <div class="input-group align-items-baseline">
           <label for="shift" class="form-label d-block min-w-75px">กะ</label>

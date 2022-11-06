@@ -3,8 +3,7 @@ import { useToast } from "vue-toastification";
 import CarbonEdit from "~icons/carbon/edit";
 // import CarbonTrashCan from "~icons/carbon/trash-can";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
-import { Shift, ShiftMapper } from "~~/composables/useDate";
-import SwabAreaHistory from "~~/models/SwabAreaHistory";
+import { Shift } from "~~/composables/useDate";
 
 export interface Props {
   date: string;
@@ -21,7 +20,9 @@ const props = withDefaults(defineProps<Props>(), {
   currentPage: 1,
 });
 const route = useRoute();
+const router = useRouter();
 const { updateQueryParams, getCurrentQuery } = useQueryParams();
+const { shiftToAbbreviation } = useDate();
 const { isAllRelatedSwabAreaCompleted } = useSwabAreaHistoryStatus();
 const toast = useToast();
 
@@ -38,10 +39,12 @@ const hasData = ref(false);
 const loading = ref(false);
 const error = ref(false);
 const swapAreaHistoryIds = ref([]);
+
 const pagination = usePagination({
   perPage: parseInt(route.query.perPage as string) || props.perPage,
   currentPage: parseInt(route.query.currentPage as string) || props.currentPage,
 });
+
 const getRouteUpdateSwabAreaHistory = (id) => {
   const swabAreaHistory = getSwabAreaHistoryById(id);
   const swabArea = getSwabAreaById(swabAreaHistory.swabAreaId);
@@ -66,12 +69,12 @@ const swabAreaHistories = computed(() => {
 const tableFields = [
   // { key: 'date', label: 'วันที่' },
   { key: "code", label: "รหัส", thStyle: { width: "10%" } },
-  { key: "shift", label: "กะ", thStyle: { width: "10%" } },
-  { key: "swabPeriodName", label: "ช่วงตรวจ", thStyle: { width: "10%" } },
+  { key: "shift", label: "กะ", thStyle: { width: "5%" } },
+  { key: "swabPeriodName", label: "ช่วงตรวจ", thStyle: { width: "15%" } },
   { key: "swabAreaName", label: "จุดตรวจ", thStyle: { width: "30%" } },
   { key: "facilityName", label: "เครื่อง", thStyle: { width: "10%" } },
-  { key: "time", label: "เวลา", thStyle: { width: "10%" } },
   { key: "facilityItemName", label: "ไลน์", thStyle: { width: "10%" } },
+  { key: "time", label: "เวลาบันทึก", thStyle: { width: "10%" } },
   // { key: "productName", label: "จุดตรวจ" },
   // { key: "productDate", label: "วันที่ผลิต" },
   // { key: "productLot", label: "SubLot" },
@@ -92,7 +95,7 @@ const tableData = computed(() => {
       // date: swabAreaHistory.swabAreaDate,
       time: swabAreaHistory.readableSwabAreaTime,
       code: swabTest.swabTestCode,
-      shift: ShiftMapper[swabAreaHistory.shift],
+      shift: swabAreaHistory.shift,
       swabPeriodName: swabPeriod ? swabPeriod.swabPeriodName : "",
       swabAreaName: swabArea ? swabArea.swabAreaName : "",
       facilityName: facility ? facility.facilityName : "",
@@ -180,13 +183,9 @@ const fetch = async function fetch(props) {
   }
 };
 
-// const onDeleteSuccess = async () => {
-//   await fetch(props);
-// };
-
-// const promptRemove = (id) => {
-//   removedId.value = id;
-// };
+const onTableRowClicked = (item): void => {
+  router.push(getRouteUpdateSwabAreaHistory(item.id));
+};
 
 watch(() => props, fetch, { immediate: true, deep: true });
 
@@ -227,7 +226,12 @@ watch(
             responsive
             :items="tableData"
             :fields="tableFields"
+            @row-clicked="onTableRowClicked"
           >
+            <template #cell(shift)="{ item }">
+              {{ shiftToAbbreviation(item.shift) }}
+            </template>
+
             <template #cell(status)="{ item }">
               <div class="text-center">
                 <nuxt-link
