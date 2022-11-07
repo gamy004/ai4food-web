@@ -25,6 +25,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(["update:showValue", "success", "error"]);
 
 const modalRef = ref();
+const fileInputRef = ref();
 const submitting = ref(false);
 const error: Ref<ResponseErrorT | null> = ref(null);
 const loading = ref(false);
@@ -100,6 +101,9 @@ const filteredImportedData = computed(() => {
 
 const clearState = () => {
   error.value = null;
+  selectedImportedDate.value = null;
+  hasImportedData.value = false;
+  importedDate.value = [];
   importedData.value = [];
 };
 
@@ -269,6 +273,8 @@ const onWorkbookRead = async (workbook) => {
       }, 1000);
     }
   }
+
+  fileInputRef.value.value = null;
 };
 
 const onSubmit = async () => {
@@ -398,6 +404,7 @@ watch(() => workbook, onWorkbookRead, { deep: true });
           </b-col>
 
           <input
+            ref="fileInputRef"
             id="fileInput"
             type="file"
             style="display: none"
