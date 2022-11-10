@@ -10,7 +10,8 @@ export interface Props {
   cancelText?: string;
   selectText?: string;
   locale?: string;
-  modelValue?: ModelValue;
+  clearable?: boolean;
+  modelValue?: ModelValue | null;
 }
 
 const { onlyDate, parseDate } = useDate();
@@ -21,20 +22,33 @@ const props = withDefaults(defineProps<Props>(), {
   cancelText: "ยกเลิก",
   selectText: "ยืนยัน",
   locale: "en",
-  modelValue: () => ({
-    from: null,
-    to: null,
-  }),
+  clearable: false,
+  modelValue: null,
 });
 
-const date = ref(
-  props.modelValue
-    ? [
-        props.modelValue.from ? parseDate(props.modelValue.from) : null,
-        props.modelValue.to ? parseDate(props.modelValue.to) : null,
-      ]
-    : null
-);
+const date = computed({
+  get: () => {
+    return props.modelValue
+      ? [
+          props.modelValue.from ? parseDate(props.modelValue.from) : null,
+          props.modelValue.to ? parseDate(props.modelValue.to) : null,
+        ]
+      : null;
+  },
+
+  set: (dateValue) => {
+    if (dateValue !== null) {
+      const fromDateString = onlyDate(dateValue[0]);
+
+      emit("update:modelValue", {
+        from: fromDateString,
+        to: dateValue[1] !== null ? onlyDate(dateValue[1]) : fromDateString,
+      });
+    } else {
+      emit("update:modelValue", null);
+    }
+  },
+});
 
 // const fromDateString = computed(() =>
 //   dateRange.from !== null ? onlyDate(dateRange.from) : ""
@@ -43,22 +57,38 @@ const date = ref(
 // const toDateString = computed(() =>
 //   dateRange.to !== null ? onlyDate(dateRange.to) : ""
 // );
+// watch(
+//   () => props.modelValue,
+//   (modelValue) => {
+//     console.log(1);
 
-watch(date, (dateValue) => {
-  if (dateValue !== null) {
-    const fromDateString = onlyDate(dateValue[0]);
+//     date.value = modelValue
+//       ? [
+//           modelValue.from ? parseDate(modelValue.from) : null,
+//           modelValue.to ? parseDate(modelValue.to) : null,
+//         ]
+//       : null;
+//   },
+//   { immediate: true }
+// );
 
-    emit("update:modelValue", {
-      from: fromDateString,
-      to: dateValue[1] !== null ? onlyDate(dateValue[1]) : fromDateString,
-    });
-  } else {
-    emit("update:modelValue", {
-      from: null,
-      to: null,
-    });
-  }
-});
+// watch(date, (dateValue) => {
+//   console.log(2);
+
+//   if (dateValue !== null) {
+//     const fromDateString = onlyDate(dateValue[0]);
+
+//     emit("update:modelValue", {
+//       from: fromDateString,
+//       to: dateValue[1] !== null ? onlyDate(dateValue[1]) : fromDateString,
+//     });
+//   } else {
+//     emit("update:modelValue", {
+//       from: null,
+//       to: null,
+//     });
+//   }
+// });
 
 function onDatepickerCleared() {
   date.value = null;
@@ -73,6 +103,7 @@ function onDatepickerCleared() {
     :locale="locale"
     :cancel-text="cancelText"
     :select-text="selectText"
+    :clearable="clearable"
     @cleared="onDatepickerCleared"
   />
 </template>

@@ -126,6 +126,15 @@ const fetch = async (formValue) => {
   }
 };
 
+const onImportedSuccess = ({ fromDate, toDate }) => {
+  console.log(fromDate, toDate);
+
+  form.date = {
+    from: fromDate,
+    to: toDate,
+  };
+};
+
 const promptEdit = (id) => {
   // do something
   console.log("edit");
@@ -255,7 +264,10 @@ watch(
           </b-card>
         </b-row>
 
-        <product-schedule-modal-import v-model:show-value="showImportModal" />
+        <product-schedule-modal-import
+          v-model:show-value="showImportModal"
+          @success="onImportedSuccess"
+        />
       </b-container>
     </div>
   </div>

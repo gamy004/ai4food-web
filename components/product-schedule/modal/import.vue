@@ -312,7 +312,23 @@ const onSubmit = async () => {
       setTimeout(() => {
         toast.success("นำเข้าข้อมูลแผลการผลิตสำเร็จ", { timeout: 1000 });
 
-        emit("success");
+        console.log(
+          importedDate.value[0].value.replaceAll("/", "-"),
+          importedDate.value[importedDate.value.length - 1].value.replaceAll(
+            "/",
+            "-"
+          )
+        );
+
+        const splittedFromDate: string = importedDate.value[0].value.split("/");
+        const splittedToDate: string =
+          importedDate.value[importedDate.value.length - 1].value.split("/");
+
+        const fromDate: string = `${splittedFromDate[2]}-${splittedFromDate[1]}-${splittedFromDate[0]}`;
+        const toDate: string = `${splittedToDate[2]}-${splittedToDate[1]}-${splittedToDate[0]}`;
+        console.log(fromDate, toDate);
+
+        emit("success", { fromDate, toDate });
       }, 1000);
     }
   } catch (error) {
