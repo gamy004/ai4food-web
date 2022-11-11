@@ -7,6 +7,7 @@ export interface Props {
   hideHeader?: boolean;
   hideFooter?: boolean;
   closable?: boolean;
+  fullscreen?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -15,11 +16,16 @@ const props = withDefaults(defineProps<Props>(), {
   hideHeader: false,
   hideFooter: false,
   closable: false,
+  fullscreen: false,
 });
 
 const { registerModal, showModal, hideModal } = useModal();
 
 const modalRef = ref();
+
+const modalDialogClasses = computed(() => ({
+  "modal-fullscreen": props.fullscreen,
+}));
 
 onMounted(() => {
   registerModal(modalRef);
@@ -50,20 +56,22 @@ defineExpose({ showModal, hideModal });
     data-bs-backdrop="static"
     data-bs-keyboard="false"
   >
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered" :class="modalDialogClasses">
       <div class="modal-content">
         <div v-if="!hideHeader" class="modal-header">
           <h5 id="modalLabel" class="modal-title">
             <slot name="title">{{ title }}</slot>
           </h5>
 
-          <button
-            v-if="closable"
-            type="button"
-            class="btn-close"
-            aria-label="Close"
-            @click.prevent="hideModal"
-          />
+          <slot name="header-close">
+            <button
+              v-if="closable"
+              type="button"
+              class="btn-close"
+              aria-label="Close"
+              @click.prevent="hideModal"
+            />
+          </slot>
         </div>
 
         <div class="modal-body">
