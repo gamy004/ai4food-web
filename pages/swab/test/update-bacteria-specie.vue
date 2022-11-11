@@ -60,7 +60,7 @@ onBeforeMount(fetch);
     <b-row align-h="center">
       <b-col cols="8" lg="6">
         <b-row>
-          <b-button-group size="sm">
+          <b-button-group size="sm" class="text-center">
             <b-button
               :pressed="isPage('swab-test-update-bacteria-specie-area')"
               variant="outline-primary"
