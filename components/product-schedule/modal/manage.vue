@@ -17,7 +17,8 @@ export interface Props {
 
 const toast = useToast();
 const {
-  timeStringToTimePicker,
+    timeStringToTimePicker,
+    timePickerToTimeString
 } = useDate();
 const { isErrorDataExists } = useRequest();
 const { getProductById, getProductScheduleById, api: productApi } = useProduct();
@@ -191,16 +192,21 @@ const onSubmit = async () => {
     try {
 
         console.log("do something");
-//         {
-//   "productScheduleAmount": 1,
-//   "productScheduleDate": "string",
-//   "productScheduleStartedAt": "string",
-//   "productScheduleEndedAt": "string",
-//   "product": {
-//     "id": "string"
-//   }
-// }
-        console.log(form);
+        const body =
+        {
+            "productScheduleAmount": Number(form.productScheduleAmount),
+            "productScheduleDate": form.productScheduleDate,
+            "productScheduleStartedAt": timePickerToTimeString(form.productScheduleStartedAt),
+            "productScheduleEndedAt": timePickerToTimeString(form.productScheduleEndedAt),
+            "product": { 'id': form.productId.id }
+        }
+
+        await productApi().updateProductSchedule(idValue.value, body);
+        setTimeout(() => {
+            toast.success("นำเข้าข้อมูลแผลการผลิตสำเร็จ", { timeout: 1000 });
+
+            emit("success");
+        }, 1000);
 
     } catch (errorResponse) {
         error.value = errorResponse;
@@ -213,6 +219,7 @@ const onSubmit = async () => {
     } finally {
         setTimeout(() => {
             submitting.value = false;
+            showValue.value = false;
         }, 1000);
     }
 };

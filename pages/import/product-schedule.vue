@@ -133,7 +133,6 @@ const promptEdit = (id) => {
   // do something
   showManageModal.value = true;
   productScheduleId.value = id;
-  console.log("edit",id);
 };
 
 const promptDelete = async (id) => {
@@ -141,7 +140,7 @@ const promptDelete = async (id) => {
   console.log("delete");
 };
 const onSuccess = async => {
-
+  fetch(form)
 }
 watch(
   () => form,
