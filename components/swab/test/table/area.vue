@@ -23,7 +23,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(["update:modelValue"]);
 
 const toast = useToast();
-const { formatTimeThLocale } = useDate();
+const { formatTimeThLocale, shiftToAbbreviation } = useDate();
 const { getFacilityById, getFacilityItemById } = useFacility();
 const {
   getSwabPeriodById,
@@ -108,7 +108,7 @@ const displayData = computed(() => {
       index: idx,
       order: idx + 1,
       time: formatTimeThLocale(swabAreaHistory.swabAreaSwabedAt),
-      shift: ShiftMapper[swabAreaHistory.shift],
+      shift: swabAreaHistory.shift,
       swabTestCode: swabTest ? swabTest.swabTestCode : "",
       swabPeriodName: swabPeriod ? swabPeriod.swabPeriodName : "",
       facilityName: facility ? facility.facilityName : "",
@@ -180,6 +180,10 @@ watch(() => form, fetch, { immediate: true, deep: true });
         :items="paginatedData"
         :fields="tableFields"
       >
+        <template #cell(shift)="{ item }">
+          {{ shiftToAbbreviation(item.shift) }}
+        </template>
+
         <template #cell(status)="{ item }">
           <line-md-loading-twotone-loop
             v-if="submittingSwabTestId === item.swabTestId"

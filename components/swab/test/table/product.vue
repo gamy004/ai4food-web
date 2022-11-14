@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { useToast } from "vue-toastification";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
-import { ShiftMapper } from "~~/composables/useDate";
 import SwabProductHistory from "~~/models/SwabProductHistory";
 import { FormData as SwabTestFilterFormData } from "~~/components/swab/test/filter.vue";
 
@@ -21,7 +20,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(["update:modelValue"]);
 
 const toast = useToast();
-const { formatThLocale, formatTimeThLocale } = useDate();
+const { formatTimeThLocale, shiftToAbbreviation } = useDate();
 const { getProductById } = useProduct();
 const { getFacilityById, getFacilityItemById } = useFacility();
 const { getSwabPeriodById, getSwabProductHistoryById } = useSwab();
@@ -90,13 +89,13 @@ const displayData = computed(() => {
       index: idx,
       order: idx + 1,
       time: formatTimeThLocale(swabProductHistory.swabProductSwabedAt),
-      shift: ShiftMapper[swabProductHistory.shift],
+      shift: swabProductHistory.shift,
       swabTestCode: swabTest ? swabTest.swabTestCode : "",
       swabPeriodName: swabPeriod ? swabPeriod.swabPeriodName : "",
       facilityName: facility ? facility.facilityName : "",
       facilityItemName: facilityItem ? facilityItem.facilityItemName : "",
       productName: product ? product.productName : "",
-      productDate: formatThLocale(new Date(swabProductHistory.productDate)),
+      productDate: swabProductHistory.shortProductDate,
       productLot: swabProductHistory.productLot,
       id: swabProductHistory.id,
       swabTestId: swabProductHistory.swabTestId,
@@ -162,6 +161,10 @@ watch(() => form, fetch, { immediate: true, deep: true });
         :items="paginatedData"
         :fields="tableFields"
       >
+        <template #cell(shift)="{ item }">
+          {{ shiftToAbbreviation(item.shift) }}
+        </template>
+
         <template #cell(status)="{ item }">
           <line-md-loading-twotone-loop
             v-if="submittingSwabTestId === item.swabTestId"

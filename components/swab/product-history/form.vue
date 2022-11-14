@@ -172,8 +172,6 @@ const onFormSubmitted = async () => {
 watch(
   () => props.id,
   async (value) => {
-    console.log(value);
-
     if (value) {
       await fetch(value);
     }
