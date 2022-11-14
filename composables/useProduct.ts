@@ -92,6 +92,12 @@ export const useProduct = () => {
     return query.orderBy("createdAt", "asc").get();
   };
 
+  const getProductScheduleById = (id: string): ProductSchedule => {
+    const query = productScheduleRepo.where("id", id);
+
+    return query.first();
+  };
+
   const loadAllProduct = async (): Promise<Product[]> => {
     return new Promise((resolve, reject) => {
       const { data, error } = get<Product[]>("/product");
@@ -225,6 +231,18 @@ export const useProduct = () => {
     });
   };
 
+  const updateProductSchedule = async (
+    id: string,
+    body: ImportProductScheduleData
+  ): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const { data, error } = put<any>(`/product-schedule/${id}`, body);
+
+      watch(data, resolve);
+
+      watch(error, reject);
+    });
+  };
   return {
     getProductByIds,
 
@@ -235,6 +253,8 @@ export const useProduct = () => {
     getProductByCode,
 
     getProductScheduleByIds,
+
+    getProductScheduleById,
     api() {
       return {
         loadAllProduct,
@@ -244,6 +264,7 @@ export const useProduct = () => {
         deleteProduct,
         loadProductSchedule,
         createProductSchedule,
+        updateProductSchedule,
       };
     },
   };
