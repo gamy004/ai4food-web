@@ -448,6 +448,14 @@ export const useSwab = () => {
     return query.get();
   };
 
+  const getSwabEnvironmentByName = (
+    name: string
+  ): SwabEnvironment => {
+    const query = swabEnvironmentRepo.where("swabEnvironmentName", name);
+
+    return query.first();
+  };
+
   const getSwabEnvironmentBySwabAreaHistoryId = (
     swabAreaHistoryId: string,
     filters: any = {}
@@ -868,6 +876,8 @@ export const useSwab = () => {
     getSwabAreaHistoryImagesByIds,
 
     getSwabEnvironmentByIds,
+
+    getSwabEnvironmentByName,
 
     getSwabEnvironmentBySwabAreaHistoryId,
 

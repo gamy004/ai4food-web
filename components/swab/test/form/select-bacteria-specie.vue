@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import vSelect from "vue-select";
+import { useLab } from "~~/composables/useLab";
 import { useToast } from "vue-toastification";
 
 export type SelectData = {
