@@ -7,6 +7,9 @@ definePageMeta({
 
 const route = useRoute();
 const { isAuthenticated, authUser } = useAuth();
+const { execute } = useCustomScript();
+
+execute();
 
 const pageExportSwabPlan = {
   name: "export-swab-report",
