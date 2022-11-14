@@ -27,10 +27,12 @@ const form = reactive({
 });
 const loading = ref(false);
 const showImportModal = ref(false);
+const showManageModal = ref(false);
 const currentPage = ref(1);
 const hasResult = ref(false);
 const perPage = ref(100);
 const productScheduleIds = ref([]);
+const productScheduleId = ref(null);
 
 const tableFields = computed(() => {
   return [
@@ -69,6 +71,7 @@ const tableData = computed(() => {
     const product = getProductById(record.productId);
 
     return {
+      id: record.id,
       date: formatThLocale(record.productScheduleDate, "ddMMyy"),
       productCode: product.productCode,
       alternateProductCode: product.alternateProductCode,
@@ -128,14 +131,18 @@ const fetch = async (formValue) => {
 
 const promptEdit = (id) => {
   // do something
-  console.log("edit");
+  showManageModal.value = true;
+  productScheduleId.value = id;
+  console.log("edit",id);
 };
 
 const promptDelete = async (id) => {
   // do something
   console.log("delete");
 };
+const onSuccess = async => {
 
+}
 watch(
   () => form,
   (formValue) => {
@@ -175,9 +182,7 @@ watch(
         <b-row class="row-gap-2 mt-3">
           <b-col cols="12" sm="8" md="4">
             <div class="input-group align-items-baseline">
-              <label for="date" class="form-label d-block min-w-75px"
-                >วันที่</label
-              >
+              <label for="date" class="form-label d-block min-w-75px">วันที่</label>
 
               <date-picker-range v-model="form.date" class="col" />
             </div>
@@ -195,15 +200,7 @@ watch(
               {{ importedData.length }} รายการ
             </div> -->
 
-            <b-table
-              id="result-table"
-              hover
-              small
-              caption-top
-              responsive
-              :fields="tableFields"
-              :items="filteredData"
-            >
+            <b-table id="result-table" hover small caption-top responsive :fields="tableFields" :items="filteredData">
               <template #cell(date)="{ item, index }">
                 <div>
                   <p>{{ item.date }}</p>
@@ -211,43 +208,26 @@ watch(
                 </div>
               </template>
               <template #cell(action)="{ item, index }">
-                <b-button
-                  variant="link"
-                  @click="promptEdit(item.id)"
-                  class="p-0"
-                >
-                  <CarbonEdit
-                    style="
+                <b-button variant="link" @click="promptEdit(item.id)" class="p-0">
+                  <CarbonEdit style="
                        {
                         fontsize: '1em';
                       }
-                    "
-                  />
+                    " />
                 </b-button>
 
-                <b-button
-                  variant="link"
-                  @click="promptDelete(item.id)"
-                  class="ms-3 p-0 text-danger"
-                >
-                  <CarbonTrashCan
-                    style="
+                <b-button variant="link" @click="promptDelete(item.id)" class="ms-3 p-0 text-danger">
+                  <CarbonTrashCan style="
                        {
                         fontsize: '1em';
                       }
-                    "
-                  />
+                    " />
                 </b-button>
               </template>
             </b-table>
 
-            <b-pagination
-              v-model="currentPage"
-              align="center"
-              :total-rows="tableData.length"
-              :per-page="perPage"
-              aria-controls="result-table"
-            />
+            <b-pagination v-model="currentPage" align="center" :total-rows="tableData.length" :per-page="perPage"
+              aria-controls="result-table" />
           </b-col>
 
           <b-card v-else bg-variant="light">
@@ -256,6 +236,8 @@ watch(
         </b-row>
 
         <product-schedule-modal-import v-model:show-value="showImportModal" />
+        <product-schedule-modal-manage v-model:id-value="productScheduleId" v-model:show-value="showManageModal"
+          @success="onSuccess" />
       </b-container>
     </div>
   </div>
