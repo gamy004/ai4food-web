@@ -9,7 +9,15 @@ const route = useRoute();
 const { isAuthenticated, authUser } = useAuth();
 const { execute } = useCustomScript();
 
-execute();
+const notFullResult = execute(false);
+
+console.log(notFullResult.header);
+console.log(notFullResult.result);
+
+const fullResult = execute(true);
+
+console.log(fullResult.header);
+console.log(fullResult.result);
 
 const pageExportSwabPlan = {
   name: "export-swab-report",
