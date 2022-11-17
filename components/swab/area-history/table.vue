@@ -78,7 +78,13 @@ const tableFields = [
   // { key: "productName", label: "จุดตรวจ" },
   // { key: "productDate", label: "วันที่ผลิต" },
   // { key: "productLot", label: "SubLot" },
-  { key: "isCompleted", label: "สถานะ", thStyle: { width: "10%" } },
+  {
+    key: "isCompleted",
+    label: "สถานะ",
+    thClass: "text-center",
+    tdClass: "text-center",
+    thStyle: { width: "10%" },
+  },
   { key: "action", label: "", thClass: "text-center", tdClass: "text-center" },
 ];
 
@@ -89,6 +95,9 @@ const tableData = computed(() => {
     const swabPeriod = getSwabPeriodById(swabAreaHistory.swabPeriodId);
     const swabTest = getSwabTestById(swabAreaHistory.swabTestId);
     const facilityItem = getFacilityItemById(swabAreaHistory.facilityItemId);
+
+    const { isCompleted, countComplete, countArea } =
+      isAllRelatedSwabAreaCompleted(swabAreaHistory);
 
     const tableRecord = {
       id: swabAreaHistory.id,
@@ -103,7 +112,9 @@ const tableData = computed(() => {
       // productName: product ? product.productName : "",
       // productDate: swabAreaHistory.readableProductDate,
       // productLot: swabAreaHistory.productLot || "",
-      isCompleted: isAllRelatedSwabAreaCompleted(swabAreaHistory),
+      isCompleted,
+      countComplete,
+      countArea,
     };
 
     // if (swabProductHistory.facilityItemId) {
@@ -287,6 +298,8 @@ watch(
             <template #cell(isCompleted)="{ item }">
               <badge-complete-status
                 :is-completed="item.isCompleted"
+                complete-text="บันทึกครบเรียบร้อย"
+                :in-complete-text="`บันทึกแล้ว ${item.countComplete}/${item.countArea} จุด`"
               ></badge-complete-status>
             </template>
           </b-table>

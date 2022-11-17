@@ -1,7 +1,5 @@
 import { v4 } from "uuid";
 
-let authToken = null;
-
 export interface SearchParams {
   [key: string]: any;
 }
@@ -28,7 +26,10 @@ export interface ResponseErrorData {
   error: string;
 }
 
+// let authToken = null;
+
 export const useRequest = () => {
+  const { $cookies } = useNuxtApp();
   const config = useRuntimeConfig();
   const baseURL = config.public.apiBaseUrl;
 
@@ -52,12 +53,29 @@ export const useRequest = () => {
   function getRequestOptions() {
     let additionalHeaders: HeadersInit = {};
 
-    if (authToken) {
-      additionalHeaders = {
-        ...additionalHeaders,
-        Authorization: `Bearer ${authToken}`,
-      };
+    // something was wrong with local variable within composable (the value didn't update after the variable was set)
+    // change to detect access token from cookie instead for now
+    const authCookie = $cookies.get("auth_data", {
+      path: "/",
+    });
+
+    if (authCookie !== undefined) {
+      const authData = JSON.parse(authCookie);
+
+      if (authData.accessToken) {
+        additionalHeaders = {
+          ...additionalHeaders,
+          Authorization: `Bearer ${authData.accessToken}`,
+        };
+      }
     }
+
+    // if (authToken) {
+    //   additionalHeaders = {
+    //     ...additionalHeaders,
+    //     Authorization: `Bearer ${authToken}`,
+    //   };
+    // }
 
     return {
       key: v4(),
@@ -88,13 +106,17 @@ export const useRequest = () => {
   }
 
   return {
-    setAuthToken(value): void {
-      authToken = value;
-    },
+    // setAuthToken(value): void {
+    //   authToken = value;
+
+    //   console.log(authToken);
+    // },
 
     get<T>(url: string, options: FetchOptions = {}) {
       const { params = {}, ...otherFetchOptions } = options;
+
       let requestUrl = url;
+
       const serializedParams = serialize(params);
 
       if (serializedParams.length) {
@@ -175,20 +197,31 @@ export const useRequest = () => {
       return isError;
     },
 
-    isErrorDataDuplicate(error: ResponseErrorT, entity: string, fields: string[]) {
+    isErrorDataDuplicate(
+      error: ResponseErrorT,
+      entity: string,
+      fields: string[]
+    ) {
       let isError = false;
       console.log(error);
-      
+
       if (error && error.response) {
         const { response } = error;
         const statusCode = response._data.statusCode;
         const message = response._data.message;
 
-        console.log(message.includes(`${entity} has duplicated value by fields '${fields.join(",")}'`), fields.join(","));
-        
+        console.log(
+          message.includes(
+            `${entity} has duplicated value by fields '${fields.join(",")}'`
+          ),
+          fields.join(",")
+        );
+
         isError =
           statusCode === 400 &&
-          message.includes(`${entity} has duplicated value by fields '${fields.join(",")}'`);
+          message.includes(
+            `${entity} has duplicated value by fields '${fields.join(",")}'`
+          );
       }
 
       return isError;

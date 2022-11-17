@@ -7,7 +7,7 @@ import {
   BelongsToMany,
   HasManyBy,
 } from "pinia-orm/dist/decorators";
-import { Shift } from "~~/composables/useDate";
+import { useDate, Shift } from "~~/composables/useDate";
 import FacilityItem from "./FacilityItem";
 import Product from "./Product";
 import SwabArea from "./SwabArea";

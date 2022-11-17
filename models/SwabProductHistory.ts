@@ -1,6 +1,6 @@
 import { Model } from "pinia-orm";
 import { Attr, Str, Uid, BelongsTo } from "pinia-orm/dist/decorators";
-import { Shift } from "~~/composables/useDate";
+import { useDate, Shift } from "~~/composables/useDate";
 import FacilityItem from "./FacilityItem";
 import Product from "./Product";
 import SwabPeriod from "./SwabPeriod";

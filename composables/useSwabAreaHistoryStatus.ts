@@ -6,7 +6,13 @@ export const useSwabAreaHistoryStatus = () => {
     const { getSwabAreaById, getSubSwabAreaHistoriesOfSamePeriodById } =
       useSwab();
 
+    let countComplete = 0;
+    let countArea = 1;
     let isCompleted = swabAreaHistory.isCompleted;
+
+    if (isCompleted) {
+      countComplete += 1;
+    }
 
     const swabArea = getSwabAreaById(swabAreaHistory.swabAreaId);
 
@@ -20,9 +26,17 @@ export const useSwabAreaHistoryStatus = () => {
         relatedSubSwabAreaHistories.every(
           (subSwabAreaHistory) => subSwabAreaHistory.isCompleted
         );
+
+      relatedSubSwabAreaHistories.forEach((subSwabAreaHistory) => {
+        countArea += 1;
+
+        if (subSwabAreaHistory.isCompleted) {
+          countComplete += 1;
+        }
+      });
     }
 
-    return isCompleted;
+    return { isCompleted, countComplete, countArea };
   };
 
   return {
