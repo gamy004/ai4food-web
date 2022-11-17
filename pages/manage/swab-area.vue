@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { useToast } from "vue-toastification";
-import { format } from "date-fns-tz";
 import CarbonEdit from "~icons/carbon/edit";
 import CarbonTrashCan from "~icons/carbon/trash-can";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
@@ -15,10 +14,8 @@ definePageMeta({
 });
 const toast = useToast();
 const { api: swabApi } = useSwab();
-const { today } = useDate();
 const { api: facilityApi, getFacilityById } = useFacility();
 
-const currentDate = format(today(), "dd/MM/yyyy HH:mm:ss");
 const isFetched = ref(false);
 const loading = ref(false);
 const error = ref(false);
@@ -133,7 +130,7 @@ onBeforeMount(async () => {
         <b-row>
           <b-col cols="9">
             <b-row>
-              <h3 class="font-weight-bold">รายการจุดตรวจ swab/ ATK</h3>
+              <h3 class="font-weight-bold">รายการจุดตรวจ Swab</h3>
             </b-row>
           </b-col>
           <b-col class="pe-0 text-end">
@@ -207,7 +204,7 @@ onBeforeMount(async () => {
       />
     </b-col>
 
-    <p v-else>ไม่พบข้อมูลรายการจุดตรวจ swab ในวันที่ {{ currentDate }} น.</p>
+    <p v-else>ไม่พบข้อมูลรายการจุดตรวจ swab</p>
 
     <swab-area-modal-manage
       v-model:id-value="swabAreaId"
