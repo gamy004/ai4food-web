@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { useToast } from "vue-toastification";
+import { useLab } from "~~/composables/useLab";
 import checkLg from "~icons/bi/check-lg";
 import crossIcon from "~icons/akar-icons/cross";
 

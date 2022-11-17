@@ -227,11 +227,11 @@ watch(
   (value) => {
     const updatedQuery = { ...getCurrentQuery() };
 
-    if (value === Shift.ALL) {
-      delete updatedQuery.shift;
-    } else {
-      updatedQuery.shift = value;
-    }
+    // if (value === Shift.ALL) {
+    //   delete updatedQuery.shift;
+    // } else {
+    updatedQuery.shift = value;
+    // }
 
     updateQueryParams({
       ...updatedQuery,

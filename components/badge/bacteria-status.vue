@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { ComputedRef } from "vue";
+import { useLab } from "~~/composables/useLab";
 import SwabTest from "~~/models/SwabTest";
 
 export interface Props {

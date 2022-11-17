@@ -31,9 +31,26 @@ const isFetched = ref(false);
 const loading = ref(false);
 const swabEnvironmentIds = ref([]);
 
-const swabEnvironments = computed(() =>
-  getSwabEnvironmentByIds(swabEnvironmentIds.value)
-);
+const swabEnvironments = computed(() => {
+  const data = getSwabEnvironmentByIds(swabEnvironmentIds.value);
+
+  let notDefinedSwabEnvironment = null;
+  const orderedData = [];
+
+  data.forEach(record => {
+    if (record.swabEnvironmentName === "ไม่ระบุ") {
+      notDefinedSwabEnvironment = record;
+    } else {
+      orderedData.push(record);
+    }
+  });
+
+  if (notDefinedSwabEnvironment) {
+    orderedData.push(notDefinedSwabEnvironment);
+  }
+
+  return orderedData;
+});
 
 const modelValue = computed({
   get: () => props.modelValue,
