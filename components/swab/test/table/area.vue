@@ -132,15 +132,15 @@ const fetch = async function fetch(form) {
       ...form.value,
     });
 
+    if (props.editSpecie) {
+      data = data.filter((record) => {
+        const stateBacteria = getBacteriaStateBySwabTestId(record.swabTestId);
+
+        return stateBacteria;
+      });
+    }
+
     if (data && data.length) {
-      if (props.editSpecie) {
-        data = data.filter((record) => {
-          const stateBacteria = getBacteriaStateBySwabTestId(record.swabTestId);
-
-          return stateBacteria;
-        });
-      }
-
       swabAreaHistoryIds.value = data.map(({ id }) => id);
     } else {
       hasData.value = false;

@@ -115,15 +115,15 @@ const fetch = async () => {
         ...form.value,
       });
 
+    if (props.editSpecie) {
+      data = data.filter((record) => {
+        const stateBacteria = getBacteriaStateBySwabTestId(record.swabTestId);
+
+        return stateBacteria;
+      });
+    }
+
     if (data && data.length) {
-      if (props.editSpecie) {
-        data = data.filter((record) => {
-          const stateBacteria = getBacteriaStateBySwabTestId(record.swabTestId);
-
-          return stateBacteria;
-        });
-      }
-
       swabProductHistoryIds.value = data.map(({ id }) => id);
     } else {
       hasData.value = false;
