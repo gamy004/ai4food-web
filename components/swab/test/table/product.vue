@@ -3,17 +3,16 @@ import { useToast } from "vue-toastification";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import SwabProductHistory from "~~/models/SwabProductHistory";
 import { FormData as SwabTestFilterFormData } from "~~/components/swab/test/filter.vue";
+import { Pagination } from "~~/composables/usePagination";
 
 export interface Props {
   modelValue: SwabTestFilterFormData;
-  perPage?: number;
-  currentPage?: number;
+  pagination: Pagination;
   editSpecie?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  perPage: 100,
-  currentPage: 1,
+  pagination: () => usePagination({ perPage: 20, currentPage: 1 }),
   editSpecie: false,
 });
 
@@ -25,11 +24,6 @@ const { getProductById } = useProduct();
 const { getFacilityById, getFacilityItemById } = useFacility();
 const { getSwabPeriodById, getSwabProductHistoryById } = useSwab();
 const { getSwabTestById, getBacteriaStateBySwabTestId, api: labApi } = useLab();
-
-const pagination = usePagination({
-  perPage: props.perPage,
-  currentPage: props.currentPage,
-});
 
 const form = computed({
   get: () => props.modelValue,
@@ -105,7 +99,9 @@ const displayData = computed(() => {
   });
 });
 
-const paginatedData = computed(() => pagination.paginate(displayData.value));
+const paginatedData = computed(() =>
+  props.pagination.paginate(displayData.value)
+);
 
 const fetch = async () => {
   hasData.value = true;
@@ -154,7 +150,7 @@ watch(() => form, fetch, { immediate: true, deep: true });
 
     <div v-if="hasData">
       <b-table
-        id="swabTestAreaTable"
+        id="swabTestProductTable"
         hover
         small
         responsive
@@ -194,12 +190,11 @@ watch(() => form, fetch, { immediate: true, deep: true });
         </template>
       </b-table>
 
-      <b-pagination
+      <base-pagination
         v-model="pagination.$state.currentPage"
-        align="center"
-        :total-rows="displayData.length"
         :per-page="pagination.$state.perPage"
-        aria-controls="result-table"
+        :total-rows="displayData.length"
+        aria-controls="swabTestProductTable"
       />
     </div>
 

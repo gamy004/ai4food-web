@@ -6,6 +6,7 @@ import { BooleanState } from "~~/composables/useBooleanState";
 import { ColState } from "~~/composables/useColState";
 import { useHiddenState } from "~~/composables/useHiddenState";
 import { FormData as SwabFilterFormData } from "../filter.vue";
+import { PaginationState } from "~~/composables/usePagination";
 
 export interface FormData extends SwabFilterFormData {
   swabTestCode?: string;
@@ -40,6 +41,7 @@ export interface Props {
     | "mainSwabArea"
     | "swabTestCode"
   >;
+  paginationState?: PaginationState;
   // invalidState?: FormInvalidData
 }
 
@@ -49,7 +51,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(["update:modelValue"]);
 const route = useRoute();
-const { updateQueryParams } = useQueryParams();
+const { updateQueryParams, getCurrentQuery } = useQueryParams();
 const swabTestHiddenState = computed(() => useHiddenState(props.hiddenState));
 const swabTestFilterColState = useColState(props.colState);
 const form = computed({
@@ -58,6 +60,26 @@ const form = computed({
 });
 
 const swabTestCode = ref(form.value.swabTestCode || "");
+
+const getUpdatedQuery = () => {
+  let updatedQuery: any = { ...getCurrentQuery() };
+
+  if (updatedQuery.currentPage && updatedQuery.currentPage !== "1") {
+    updatedQuery = {
+      ...updatedQuery,
+      currentPage: 1,
+    };
+  }
+
+  return updatedQuery;
+};
+
+const updatePaginateState = () => {
+  if (props.paginationState && props.paginationState.currentPage !== 1) {
+    props.paginationState.currentPage = 1;
+  }
+};
+
 const formSwabTestCode = computed({
   get: () => {
     return swabTestCode.value;
@@ -69,7 +91,10 @@ const formSwabTestCode = computed({
 
 const onSearchSwabTestCode = () => {
   const { value } = swabTestCode;
-  const updatedQuery = { ...route.query };
+
+  let updatedQuery = getUpdatedQuery();
+
+  updatePaginateState();
 
   if (value && value.length) {
     form.value.swabTestCode = value;

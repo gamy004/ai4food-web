@@ -28,7 +28,10 @@ const form = reactive({
   productId: (route.query.productId as string) || null,
   swabTestCode: (route.query.swabTestCode as string) || null,
 });
-
+const pagination = usePagination({
+  perPage: parseInt(route.query.perPage as string) || 20,
+  currentPage: parseInt(route.query.currentPage as string) || 1,
+});
 const fetch = async () => {
   error.value = false;
   loading.value = true;
@@ -115,11 +118,12 @@ onBeforeMount(fetch);
                 mainSwabArea: true,
                 product: true,
               }"
+              :pagination-state="pagination.$state"
             />
 
             <hr />
 
-            <NuxtPage v-model="form" :per-page="20" />
+            <NuxtPage v-model="form" :pagination="pagination" />
           </b-col>
         </b-row>
       </b-col>
