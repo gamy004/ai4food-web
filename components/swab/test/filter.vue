@@ -119,6 +119,7 @@ const onSearchSwabTestCode = () => {
           :hidden-state="hiddenState"
           :clearable-state="clearableState"
           :col-state="colState"
+          :pagination-state="paginationState"
           :disabled="disabled"
           show-shift-all
           v-model="form"

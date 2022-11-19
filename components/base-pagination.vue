@@ -22,14 +22,8 @@ const currentPage = computed({
   },
 
   set: (currentPage) => {
-    console.log(currentPage);
-
     updateQueryParams({
       ...getCurrentQuery(),
-      currentPage,
-    });
-
-    console.log({
       currentPage,
     });
 

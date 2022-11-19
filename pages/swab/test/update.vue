@@ -48,7 +48,15 @@ const fetch = async () => {
 };
 
 const switchPage = async (name: string) => {
-  const query = getCurrentQuery();
+  let query: any = getCurrentQuery();
+
+  if (query.currentPage && query.currentPage !== "1") {
+    query.currentPage = 1;
+  }
+
+  if (pagination.$state.currentPage !== 1) {
+    pagination.$state.currentPage = 1;
+  }
 
   await goTo({ name, query });
 };
