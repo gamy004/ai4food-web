@@ -213,6 +213,16 @@ watch(
   },
   { deep: true }
 );
+
+watch(() => props.date, pagination.resetPage);
+
+watch(() => props.shift, pagination.resetPage);
+
+watch(() => props.facilityId, pagination.resetPage);
+
+watch(() => props.mainSwabAreaId, pagination.resetPage);
+
+watch(() => props.swabPeriodId, pagination.resetPage);
 </script>
 
 <template>
