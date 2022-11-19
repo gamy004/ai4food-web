@@ -18,9 +18,14 @@ export const usePagination = (options: PaginationState) => {
     });
   };
 
+  const resetPage = () => {
+    $state.currentPage = 1;
+  };
+
   return {
     $state,
     paginate,
     offset,
+    resetPage,
   };
 };

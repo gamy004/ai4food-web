@@ -391,8 +391,9 @@ export const useSwab = () => {
     return query.first();
   };
 
-  const getSubSwabAreaHistoriesOfSamePeriodById = (
-    id: string
+  const getSubSwabAreaHistoriesOfSamePeriodShift = (
+    id: string,
+    shift: Shift
   ): SwabAreaHistory[] => {
     let subSwabAreaHistories = [];
 
@@ -406,6 +407,7 @@ export const useSwab = () => {
       const subSwabAreaIds = subSwabAreas.map(({ id }) => id).filter(Boolean);
 
       subSwabAreaHistories = swabAreaHistoryRepo
+        .where("shift", shift)
         .where("swabAreaId", subSwabAreaIds)
         .where("swabPeriodId", mainSwabAreaHistory.swabPeriodId)
         .where("swabAreaDate", mainSwabAreaHistory.swabAreaDate)
@@ -448,9 +450,7 @@ export const useSwab = () => {
     return query.get();
   };
 
-  const getSwabEnvironmentByName = (
-    name: string
-  ): SwabEnvironment => {
+  const getSwabEnvironmentByName = (name: string): SwabEnvironment => {
     const query = swabEnvironmentRepo.where("swabEnvironmentName", name);
 
     return query.first();
@@ -863,7 +863,7 @@ export const useSwab = () => {
 
     getSwabAreaHistoryById,
 
-    getSubSwabAreaHistoriesOfSamePeriodById,
+    getSubSwabAreaHistoriesOfSamePeriodShift,
 
     getSwabProductHistoriesByIds,
 
