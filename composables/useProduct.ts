@@ -221,11 +221,15 @@ export const useProduct = () => {
 
   const createProductSchedule = async (
     body: BodyImportProductSchedule
-  ): Promise<any> => {
+  ): Promise<ProductSchedule> => {
     return new Promise((resolve, reject) => {
-      const { data, error } = post<any>(`/product-schedule/import`, body);
+      const { data, error } = post<ProductSchedule>(`/product-schedule`, body);
 
-      watch(data, resolve);
+      watch(data, (productScheduleData) => {
+        const productSchedule = productScheduleRepo.save(productScheduleData);
+
+        resolve(productSchedule);
+      });
 
       watch(error, reject);
     });
@@ -234,15 +238,41 @@ export const useProduct = () => {
   const updateProductSchedule = async (
     id: string,
     body: ImportProductScheduleData
-  ): Promise<any> => {
+  ): Promise<ProductSchedule> => {
     return new Promise((resolve, reject) => {
-      const { data, error } = put<any>(`/product-schedule/${id}`, body);
+      const { data, error } = put<ProductSchedule>(
+        `/product-schedule/${id}`,
+        body
+      );
 
-      watch(data, resolve);
+      watch(data, (productScheduleData) => {
+        const productSchedule = productScheduleRepo.save(productScheduleData);
+
+        resolve(productSchedule);
+      });
 
       watch(error, reject);
     });
   };
+
+  const deleteProductSchedule = async (
+    id: string
+  ): Promise<ProductSchedule> => {
+    return new Promise((resolve, reject) => {
+      const { data, error } = destroy<ProductSchedule>(
+        `/product-schedule/${id}`
+      );
+
+      watch(data, () => {
+        const productSchedule = productScheduleRepo.destroy(id);
+
+        resolve(productSchedule);
+      });
+
+      watch(error, reject);
+    });
+  };
+
   return {
     getProductByIds,
 
@@ -265,6 +295,7 @@ export const useProduct = () => {
         loadProductSchedule,
         createProductSchedule,
         updateProductSchedule,
+        deleteProductSchedule,
       };
     },
   };
