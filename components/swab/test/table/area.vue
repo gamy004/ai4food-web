@@ -6,6 +6,7 @@ import crossIcon from "~icons/akar-icons/cross";
 import SwabAreaHistory from "~~/models/SwabAreaHistory";
 import { FormData as SwabTestFilterFormData } from "~~/components/swab/test/filter.vue";
 import { Pagination } from "~~/composables/usePagination";
+import { LoadAllLabSwabAreaHistoryData } from "~~/composables/useLab";
 
 export interface Props {
   modelValue: SwabTestFilterFormData;
@@ -127,18 +128,24 @@ const fetch = async function fetch(form) {
   hasData.value = true;
   swabAreaHistoryIds.value = [];
 
+  const params: LoadAllLabSwabAreaHistoryData = { ...form.value };
+
+  if (props.editSpecie) {
+    params.hasBacteria = true;
+  }
+
   try {
-    let data: SwabAreaHistory[] = await labApi().loadAllLabSwabAreaHistory({
-      ...form.value,
-    });
+    let data: SwabAreaHistory[] = await labApi().loadAllLabSwabAreaHistory(
+      params
+    );
 
-    if (props.editSpecie) {
-      data = data.filter((record) => {
-        const stateBacteria = getBacteriaStateBySwabTestId(record.swabTestId);
+    // if (props.editSpecie) {
+    //   data = data.filter((record) => {
+    //     const stateBacteria = getBacteriaStateBySwabTestId(record.swabTestId);
 
-        return stateBacteria;
-      });
-    }
+    //     return stateBacteria;
+    //   });
+    // }
 
     if (data && data.length) {
       swabAreaHistoryIds.value = data.map(({ id }) => id);

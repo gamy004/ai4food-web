@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import CarbonClose from "~icons/carbon/close";
 import CarbonSearch from "~icons/carbon/search";
 import { useRoute } from "vue-router";
 import { BooleanState } from "~~/composables/useBooleanState";
@@ -92,19 +93,36 @@ const formSwabTestCode = computed({
 const onSearchSwabTestCode = () => {
   const { value } = swabTestCode;
 
+  if (value && value.length) {
+    onUpdateSwabTestCode(value);
+  } else {
+    onClearSwabTestCode();
+  }
+};
+
+const onUpdateSwabTestCode = (value) => {
   let updatedQuery = getUpdatedQuery();
 
   updatePaginateState();
 
-  if (value && value.length) {
-    form.value.swabTestCode = value;
-    updatedQuery.swabTestCode = value;
-  } else {
-    form.value.swabTestCode = null;
+  form.value.swabTestCode = value;
 
-    if (updatedQuery.swabTestCode) {
-      delete updatedQuery.swabTestCode;
-    }
+  updatedQuery.swabTestCode = value;
+
+  updateQueryParams(updatedQuery);
+};
+
+const onClearSwabTestCode = () => {
+  let updatedQuery = getUpdatedQuery();
+
+  updatePaginateState();
+
+  form.value.swabTestCode = null;
+
+  swabTestCode.value = "";
+
+  if (updatedQuery.swabTestCode) {
+    delete updatedQuery.swabTestCode;
   }
 
   updateQueryParams(updatedQuery);
@@ -144,6 +162,16 @@ const onSearchSwabTestCode = () => {
               />
 
               <b-input-group-append>
+                <b-input-group-text v-if="form.swabTestCode" class="bg-light">
+                  <b-button
+                    variant="link"
+                    class="p-0"
+                    @click="onClearSwabTestCode"
+                  >
+                    <CarbonClose class="text-dark" />
+                  </b-button>
+                </b-input-group-text>
+
                 <b-input-group-text class="bg-light">
                   <b-button
                     variant="link"
