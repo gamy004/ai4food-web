@@ -12,11 +12,13 @@ export interface Props {
   modelValue: SwabTestFilterFormData;
   pagination: Pagination;
   editSpecie?: boolean;
+  readOnly?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   pagination: () => usePagination({ perPage: 20, currentPage: 1 }),
   editSpecie: false,
+  readOnly: false,
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -59,10 +61,16 @@ const tableFields = computed(() => {
     },
     {
       key: "action",
-      label: props.editSpecie ? "ผลตรวจสายพันธุ์เชื้อ" : "ผลตรวจเชื้อ",
+      label:
+        props.editSpecie || props.readOnly
+          ? "ผลตรวจสายพันธุ์เชื้อ"
+          : "ผลตรวจเชื้อ",
       thClass: "text-center",
       tdClass: "text-center",
-      thStyle: props.editSpecie ? { width: "40%" } : {},
+      thStyle:
+        props.editSpecie || props.readOnly
+          ? { width: props.readOnly ? "30%" : "40%" }
+          : {},
     },
   ];
 
@@ -200,19 +208,27 @@ watch(() => form, fetch, { immediate: true, deep: true });
           </template>
 
           <template #cell(action)="{ item }">
-            <swab-test-form-select-bacteria-specie
-              v-if="editSpecie"
-              :swab-test-id="item.swabTestId"
-              :auto-fetch="false"
-              is-static
-              attach-to-body
-            />
+            <div v-if="readOnly">
+              <badge-bacteria-specie
+                :swab-test-id="item.swabTestId"
+              ></badge-bacteria-specie>
+            </div>
 
-            <swab-test-form-radio-bacteria
-              v-else
-              :swab-test-id="item.swabTestId"
-              v-model="submittingSwabTestId"
-            ></swab-test-form-radio-bacteria>
+            <div v-else>
+              <swab-test-form-select-bacteria-specie
+                v-if="editSpecie"
+                :swab-test-id="item.swabTestId"
+                :auto-fetch="false"
+                is-static
+                attach-to-body
+              />
+
+              <swab-test-form-radio-bacteria
+                v-else
+                :swab-test-id="item.swabTestId"
+                v-model="submittingSwabTestId"
+              ></swab-test-form-radio-bacteria>
+            </div>
           </template>
         </b-table>
 
