@@ -41,6 +41,7 @@ const keys_to_keep = [
   "productScheduleStartedAt",
   "productScheduleEndedAt",
   "product",
+  "shift",
 ];
 
 const redux = (array) =>
@@ -168,11 +169,17 @@ const onWorkbookRead = async (workbook) => {
         range.s.c = 0;
         range.e.c = night_cell - 4;
         let new_range = utils.encode_range(range);
-        const dayResult = utils.sheet_to_json(Sheets[sheetName], {
+        let dayResult: any[] = utils.sheet_to_json(Sheets[sheetName], {
           header,
           raw: true,
           defval: null,
           range: new_range,
+        });
+
+        dayResult = dayResult.map((dayRecord) => {
+          dayRecord.shift = Shift.DAY;
+
+          return dayRecord;
         });
 
         /* night cell */
@@ -181,24 +188,27 @@ const onWorkbookRead = async (workbook) => {
         range.s.c = night_cell;
         range.e.c = night_cell + night_cell - 4;
         new_range = utils.encode_range(range);
-        const nightResult = utils.sheet_to_json(Sheets[sheetName], {
+        let nightResult: any[] = utils.sheet_to_json(Sheets[sheetName], {
           header,
           raw: true,
           defval: null,
           range: new_range,
         });
 
+        nightResult = nightResult.map((dayRecord) => {
+          dayRecord.shift = Shift.NIGHT;
+
+          return dayRecord;
+        });
+
         /* concat json */
-        dayResult.push(...nightResult);
-        jsonResults[time] = dayResult;
+        jsonResults[time] = [...dayResult, ...nightResult];
 
         if (!selectedImportedDate.value) {
           selectedImportedDate.value = time;
         }
       }
 
-      console.log(jsonResults);
-      console.log(productMap);
       const results = [];
       Object.keys(jsonResults).forEach((sheetName) => {
         const arr = jsonResults[sheetName];
@@ -228,6 +238,7 @@ const onWorkbookRead = async (workbook) => {
                   sheetName.split("/")[0];
                 const resultJson = {
                   productCode: key,
+                  shift: obj.shift,
                   alternateProductCode: productMap[key].alt,
                   productName: productMap[key].name,
                   productScheduleAmount: parseInt(obj[key]),
@@ -299,7 +310,7 @@ const onSubmit = async () => {
       for (let index = 0; index < chunkedImportedData.length; index++) {
         const data = chunkedImportedData[index];
 
-        await productApi().createProductSchedule({
+        await productApi().importProductSchedule({
           importTransaction: {
             id: importTransaction.id,
           },

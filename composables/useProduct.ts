@@ -1,6 +1,7 @@
 import { useRepo } from "pinia-orm";
 import Product from "~~/models/Product";
 import ProductSchedule from "~~/models/ProductSchedule";
+import { Shift } from "./useDate";
 
 export type createProductInterface = (
   body: BodyManageProduct
@@ -31,6 +32,7 @@ export type ImportProductScheduleData = {
   productScheduleStartedAt: string;
   productScheduleEndedAt: string;
   product: ConnectProduct;
+  shift: Shift;
 };
 
 export type BodyImportProductSchedule = {
@@ -219,17 +221,13 @@ export const useProduct = () => {
     });
   };
 
-  const createProductSchedule = async (
+  const importProductSchedule = async (
     body: BodyImportProductSchedule
-  ): Promise<ProductSchedule> => {
+  ): Promise<any> => {
     return new Promise((resolve, reject) => {
-      const { data, error } = post<ProductSchedule>(`/product-schedule`, body);
+      const { data, error } = post<any>(`/product-schedule/import`, body);
 
-      watch(data, (productScheduleData) => {
-        const productSchedule = productScheduleRepo.save(productScheduleData);
-
-        resolve(productSchedule);
-      });
+      watch(data, resolve);
 
       watch(error, reject);
     });
@@ -293,7 +291,7 @@ export const useProduct = () => {
         createProduct,
         deleteProduct,
         loadProductSchedule,
-        createProductSchedule,
+        importProductSchedule,
         updateProductSchedule,
         deleteProductSchedule,
       };
