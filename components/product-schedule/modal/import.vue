@@ -5,6 +5,7 @@ import { useToast } from "vue-toastification";
 import { utils } from "xlsx";
 import { useXlsx } from "~~/composables/useXlsx";
 import { Ref } from "vue";
+import UploadIcon from "~icons/carbon/upload";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import { ResponseErrorT } from "~~/composables/useRequest";
 
@@ -323,7 +324,23 @@ const onSubmit = async () => {
       setTimeout(() => {
         toast.success("นำเข้าข้อมูลแผลการผลิตสำเร็จ", { timeout: 1000 });
 
-        emit("success");
+        showValue.value = false;
+
+        const firstImportedDate = importedDate.value[0].value; // dd/MM/yyyy
+        const lastImportedDate =
+          importedDate.value[importedDate.value.length - 1].value; // dd/MM/yyyy
+        const fromDate = firstImportedDate
+          .split("/")
+          .reduceRight((acc, val) => {
+            return acc.length ? `${acc}-${val}` : val;
+          }, "");
+        const toDate = lastImportedDate.split("/").reduceRight((acc, val) => {
+          return acc.length ? `${acc}-${val}` : val;
+        }, "");
+
+        clearState();
+
+        emit("success", { fromDate, toDate });
       }, 1000);
     }
   } catch (error) {
@@ -337,7 +354,6 @@ const onSubmit = async () => {
   } finally {
     setTimeout(() => {
       submitting.value = false;
-      showValue.value = false;
     }, 1000);
   }
 };

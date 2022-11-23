@@ -10,6 +10,7 @@ export interface Props {
   cancelText?: string;
   selectText?: string;
   locale?: string;
+  clearable?: boolean;
   modelValue?: ModelValue;
 }
 
@@ -21,20 +22,14 @@ const props = withDefaults(defineProps<Props>(), {
   cancelText: "ยกเลิก",
   selectText: "ยืนยัน",
   locale: "en",
+  clearable: false,
   modelValue: () => ({
     from: null,
     to: null,
   }),
 });
 
-const date = ref(
-  props.modelValue
-    ? [
-        props.modelValue.from ? parseDate(props.modelValue.from) : null,
-        props.modelValue.to ? parseDate(props.modelValue.to) : null,
-      ]
-    : null
-);
+const date = ref(null);
 
 // const fromDateString = computed(() =>
 //   dateRange.from !== null ? onlyDate(dateRange.from) : ""
@@ -43,6 +38,22 @@ const date = ref(
 // const toDateString = computed(() =>
 //   dateRange.to !== null ? onlyDate(dateRange.to) : ""
 // );
+const updateDate = (value: ModelValue) => {
+  date.value = value
+    ? [
+        value.from ? parseDate(value.from) : null,
+        value.to ? parseDate(value.to) : null,
+      ]
+    : null;
+};
+
+const clearDate = () => {
+  date.value = null;
+};
+
+defineExpose({ updateDate, clearDate });
+
+updateDate(props.modelValue);
 
 watch(date, (dateValue) => {
   if (dateValue !== null) {
@@ -59,10 +70,6 @@ watch(date, (dateValue) => {
     });
   }
 });
-
-function onDatepickerCleared() {
-  date.value = null;
-}
 </script>
 
 <template>
@@ -73,6 +80,7 @@ function onDatepickerCleared() {
     :locale="locale"
     :cancel-text="cancelText"
     :select-text="selectText"
-    @cleared="onDatepickerCleared"
+    :clearable="clearable"
+    @cleared="clearDate"
   />
 </template>

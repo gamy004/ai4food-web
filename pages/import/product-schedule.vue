@@ -3,6 +3,7 @@ import { useToast } from "vue-toastification";
 import UploadIcon from "~icons/carbon/upload";
 import CarbonEdit from "~icons/carbon/edit";
 import CarbonTrashCan from "~icons/carbon/trash-can";
+import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import { LoadProductScheduleParams } from "~~/composables/useProduct";
 
 definePageMeta({
@@ -11,27 +12,30 @@ definePageMeta({
   canGoBack: true,
   fallBackRedirect: "/",
 });
+const route = useRoute();
 const toast = useToast();
 const {
   getProductById,
   getProductScheduleByIds,
   api: productApi,
 } = useProduct();
+const { updateQueryParams, getCurrentQuery } = useQueryParams();
 const { today, onlyDate, formatThLocale, formatTimeThLocale } = useDate();
 const currentDate = today();
 const form = reactive({
   date: {
-    from: onlyDate(currentDate),
-    to: onlyDate(currentDate),
+    from: (route.query.from as string) || onlyDate(currentDate),
+    to: (route.query.to as string) || onlyDate(currentDate),
   },
 });
+const datePickerRangeRef = ref();
 const loading = ref(false);
 const showImportModal = ref(false);
 const showManageModal = ref(false);
 const showDeleteModal = ref(false);
 const currentPage = ref(1);
 const hasResult = ref(false);
-const perPage = ref(100);
+const perPage = ref(25);
 const productScheduleIds = ref([]);
 const productScheduleId = ref(null);
 const deletedProductScheduleId = ref(null);
@@ -99,7 +103,9 @@ const filteredData = computed(() =>
 );
 
 const fetch = async (formValue) => {
+  loading.value = true;
   hasResult.value = true;
+  productScheduleIds.value = [];
 
   const params: LoadProductScheduleParams = {
     fromDate: null,
@@ -128,6 +134,10 @@ const fetch = async (formValue) => {
     toast.error("ไม่สามรถโหลดข้อมูลแผนการผลิตได้ กรุณาลองใหม่อีกครั้ง", {
       timeout: 1000,
     });
+  } finally {
+    setTimeout(() => {
+      loading.value = false;
+    }, 1000);
   }
 };
 
@@ -141,12 +151,53 @@ const promptDelete = (id) => {
   deletedProductScheduleId.value = id;
 };
 
+const onImportSuccess = ({ fromDate = null, toDate = null } = {}) => {
+  const updatedDate: any = {};
+
+  if (fromDate) {
+    updatedDate.from = fromDate;
+  }
+
+  if (toDate) {
+    updatedDate.to = toDate;
+  }
+
+  if (Object.keys(updatedDate).length) {
+    form.date = updatedDate;
+
+    if (datePickerRangeRef.value) {
+      datePickerRangeRef.value.updateDate(updatedDate);
+    }
+  }
+};
+
 watch(
   () => form,
   (formValue) => {
     fetch(formValue);
   },
   { immediate: true, deep: true }
+);
+
+watch(
+  () => form.date,
+  (formDateValue) => {
+    const fromDate = formDateValue.from ? onlyDate(formDateValue.from) : null;
+
+    const toDate = formDateValue.to ? onlyDate(formDateValue.to) : null;
+
+    const updatedQuery = { ...getCurrentQuery() };
+
+    if (fromDate) {
+      updatedQuery.from = fromDate;
+      updatedQuery.to = !toDate ? fromDate : toDate;
+    }
+
+    updateQueryParams({
+      ...updatedQuery,
+    });
+  },
+  { deep: true }
 );
 </script>
 
@@ -184,7 +235,11 @@ watch(
                 >วันที่</label
               >
 
-              <date-picker-range v-model="form.date" class="col" />
+              <date-picker-range
+                ref="datePickerRangeRef"
+                v-model="form.date"
+                class="col"
+              />
             </div>
           </b-col>
         </b-row>
@@ -194,73 +249,78 @@ watch(
             <line-md-loading-twotone-loop :style="{ fontSize: '2em' }" />
           </b-col>
 
-          <b-col v-if="hasResult">
-            <!-- <div class="alert alert-info" role="alert">
+          <b-col v-else>
+            <div v-if="hasResult">
+              <!-- <div class="alert alert-info" role="alert">
               พบข้อมูลแผนการผลิตที่ตรงกับข้อมูลสินค้าในระบบทั้งหมด
               {{ importedData.length }} รายการ
             </div> -->
 
-            <b-table
-              id="result-table"
-              hover
-              small
-              caption-top
-              responsive
-              :fields="tableFields"
-              :items="filteredData"
-            >
-              <template #cell(date)="{ item, index }">
-                <div>
-                  <p>{{ item.date }}</p>
-                  <p id="time">({{ item.startTime }} - {{ item.endTime }})</p>
-                </div>
-              </template>
-              <template #cell(action)="{ item, index }">
-                <b-button
-                  variant="link"
-                  @click="promptEdit(item.id)"
-                  class="p-0"
-                >
-                  <CarbonEdit
-                    style="
-                       {
-                        fontsize: '1em';
-                      }
-                    "
-                  />
-                </b-button>
+              <b-table
+                id="result-table"
+                hover
+                small
+                caption-top
+                responsive
+                :fields="tableFields"
+                :items="filteredData"
+              >
+                <template #cell(date)="{ item, index }">
+                  <div>
+                    <p>{{ item.date }}</p>
+                    <p id="time">({{ item.startTime }} - {{ item.endTime }})</p>
+                  </div>
+                </template>
+                <template #cell(action)="{ item, index }">
+                  <b-button
+                    variant="link"
+                    @click="promptEdit(item.id)"
+                    class="p-0"
+                  >
+                    <CarbonEdit
+                      style="
+                         {
+                          fontsize: '1em';
+                        }
+                      "
+                    />
+                  </b-button>
 
-                <b-button
-                  variant="link"
-                  @click="promptDelete(item.id)"
-                  class="ms-3 p-0 text-danger"
-                >
-                  <CarbonTrashCan
-                    style="
-                       {
-                        fontsize: '1em';
-                      }
-                    "
-                  />
-                </b-button>
-              </template>
-            </b-table>
+                  <b-button
+                    variant="link"
+                    @click="promptDelete(item.id)"
+                    class="ms-3 p-0 text-danger"
+                  >
+                    <CarbonTrashCan
+                      style="
+                         {
+                          fontsize: '1em';
+                        }
+                      "
+                    />
+                  </b-button>
+                </template>
+              </b-table>
 
-            <b-pagination
-              v-model="currentPage"
-              align="center"
-              :total-rows="tableData.length"
-              :per-page="perPage"
-              aria-controls="result-table"
-            />
+              <b-pagination
+                v-model="currentPage"
+                align="center"
+                :total-rows="tableData.length"
+                :per-page="perPage"
+                aria-controls="result-table"
+              />
+            </div>
+
+            <b-card v-else bg-variant="light">
+              <b-card-text class="text-center"> ไม่พบรายการสินค้า </b-card-text>
+            </b-card>
           </b-col>
-
-          <b-card v-else bg-variant="light">
-            <b-card-text class="text-center"> ไม่พบรายการสินค้า </b-card-text>
-          </b-card>
         </b-row>
 
-        <product-schedule-modal-import v-model:show-value="showImportModal" />
+        <product-schedule-modal-import
+          v-model:show-value="showImportModal"
+          @success="onImportSuccess"
+        />
 
         <product-schedule-modal-manage
           v-model:id-value="productScheduleId"

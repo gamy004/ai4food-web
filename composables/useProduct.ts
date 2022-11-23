@@ -38,6 +38,7 @@ export type ImportProductScheduleData = {
 export type BodyImportProductSchedule = {
   importTransaction: ConnectImportTransaction;
   records: ImportProductScheduleData[];
+  timezone?: string;
 };
 
 export type ResponseDeletePermission = {
@@ -91,7 +92,7 @@ export const useProduct = () => {
   const getProductScheduleByIds = (ids: string[]): ProductSchedule[] => {
     const query = productScheduleRepo.where("id", ids);
 
-    return query.orderBy("createdAt", "asc").get();
+    return query.get();
   };
 
   const getProductScheduleById = (id: string): ProductSchedule => {
@@ -225,7 +226,10 @@ export const useProduct = () => {
     body: BodyImportProductSchedule
   ): Promise<any> => {
     return new Promise((resolve, reject) => {
-      const { data, error } = post<any>(`/product-schedule/import`, body);
+      const { data, error } = post<any>(`/product-schedule/import`, {
+        ...body,
+        timezone: "Asia/Bangkok", // force sent timezone as "Asia/Bangkok"
+      });
 
       watch(data, resolve);
 

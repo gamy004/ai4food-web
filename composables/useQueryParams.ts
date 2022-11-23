@@ -6,6 +6,7 @@ export const useQueryParams = () => {
     // const { href } = router.resolve({ path: route.path, query });
 
     // console.log(href);
+    console.log({ path: route.path, query });
 
     router.replace({ path: route.path, query });
   };
