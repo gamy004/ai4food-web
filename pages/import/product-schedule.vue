@@ -16,7 +16,7 @@ const route = useRoute();
 const toast = useToast();
 const {
   getProductById,
-  getProductScheduleByIds,
+  getProductScheduleById,
   api: productApi,
 } = useProduct();
 const { updateQueryParams, getCurrentQuery } = useQueryParams();
@@ -28,14 +28,15 @@ const form = reactive({
     to: (route.query.to as string) || onlyDate(currentDate),
   },
 });
-const datePickerRangeRef = ref();
 const loading = ref(false);
 const showImportModal = ref(false);
 const showManageModal = ref(false);
 const showDeleteModal = ref(false);
-const currentPage = ref(1);
+const pagination = usePagination({
+  perPage: parseInt(route.query.perPage as string) || 25,
+  currentPage: parseInt(route.query.currentPage as string) || 1,
+});
 const hasResult = ref(false);
-const perPage = ref(25);
 const productScheduleIds = ref([]);
 const productScheduleId = ref(null);
 const deletedProductScheduleId = ref(null);
@@ -71,36 +72,30 @@ const tableFields = computed(() => {
 });
 
 const tableData = computed(() => {
-  const data = getProductScheduleByIds(productScheduleIds.value);
+  return productScheduleIds.value
+    .map((productScheduleId) => getProductScheduleById(productScheduleId))
+    .filter(Boolean)
+    .map((record) => {
+      const product = getProductById(record.productId);
 
-  return data.map((record) => {
-    const product = getProductById(record.productId);
-
-    return {
-      id: record.id,
-      date: formatThLocale(record.productScheduleDate, "ddMMyy"),
-      productCode: product.productCode,
-      alternateProductCode: product.alternateProductCode,
-      productName: product.productName,
-      productScheduleAmount: record.productScheduleAmount,
-      startTime: formatTimeThLocale(record.productScheduleStartedAt),
-      endTime: formatTimeThLocale(
-        record.productScheduleEndedAt === "23:59:59"
-          ? "00:00:00"
-          : record.productScheduleEndedAt
-      ),
-    };
-  });
+      return {
+        id: record.id,
+        date: formatThLocale(record.productScheduleDate, "ddMMyy"),
+        productCode: product.productCode,
+        alternateProductCode: product.alternateProductCode,
+        productName: product.productName,
+        productScheduleAmount: record.productScheduleAmount,
+        startTime: formatTimeThLocale(record.productScheduleStartedAt),
+        endTime: formatTimeThLocale(
+          record.productScheduleEndedAt === "23:59:59"
+            ? "00:00:00"
+            : record.productScheduleEndedAt
+        ),
+      };
+    });
 });
 
-const filteredData = computed(() =>
-  tableData.value.filter((_, idx) => {
-    return (
-      idx >= (currentPage.value - 1) * perPage.value &&
-      idx < currentPage.value * perPage.value
-    );
-  })
-);
+const filteredData = computed(() => pagination.paginate(tableData.value));
 
 const fetch = async (formValue) => {
   loading.value = true;
@@ -142,12 +137,14 @@ const fetch = async (formValue) => {
 };
 
 const onImportedSuccess = ({ fromDate, toDate }) => {
-  console.log(fromDate, toDate);
-
   form.date = {
     from: fromDate,
     to: toDate,
   };
+};
+
+const onManagedSuccess = async () => {
+  await fetch(form);
 };
 
 const promptEdit = (id) => {
@@ -158,26 +155,6 @@ const promptEdit = (id) => {
 const promptDelete = (id) => {
   showDeleteModal.value = true;
   deletedProductScheduleId.value = id;
-};
-
-const onImportSuccess = ({ fromDate = null, toDate = null } = {}) => {
-  const updatedDate: any = {};
-
-  if (fromDate) {
-    updatedDate.from = fromDate;
-  }
-
-  if (toDate) {
-    updatedDate.to = toDate;
-  }
-
-  if (Object.keys(updatedDate).length) {
-    form.date = updatedDate;
-
-    if (datePickerRangeRef.value) {
-      datePickerRangeRef.value.updateDate(updatedDate);
-    }
-  }
 };
 
 watch(
@@ -244,11 +221,7 @@ watch(
                 >วันที่</label
               >
 
-              <date-picker-range
-                ref="datePickerRangeRef"
-                v-model="form.date"
-                class="col"
-              />
+              <date-picker-range v-model="form.date" class="col" />
             </div>
           </b-col>
         </b-row>
@@ -266,7 +239,7 @@ watch(
             </div> -->
 
               <b-table
-                id="result-table"
+                id="productScheduleTable"
                 hover
                 small
                 caption-top
@@ -311,12 +284,11 @@ watch(
                 </template>
               </b-table>
 
-              <b-pagination
-                v-model="currentPage"
-                align="center"
+              <base-pagination
+                v-model="pagination.$state.currentPage"
+                :per-page="pagination.$state.perPage"
                 :total-rows="tableData.length"
-                :per-page="perPage"
-                aria-controls="result-table"
+                aria-controls="productScheduleTable"
               />
             </div>
 
@@ -334,6 +306,7 @@ watch(
         <product-schedule-modal-manage
           v-model:id-value="productScheduleId"
           v-model:show-value="showManageModal"
+          @success="onManagedSuccess"
         />
 
         <product-schedule-modal-delete

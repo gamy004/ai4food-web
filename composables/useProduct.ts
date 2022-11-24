@@ -26,6 +26,15 @@ export type ConnectProduct = {
   id: string;
 };
 
+export type UpdateProductScheduleData = {
+  productScheduleAmount: number;
+  productScheduleDate: string;
+  productScheduleStartedAt: string;
+  productScheduleEndedAt: string;
+  product: ConnectProduct;
+  timezone?: string;
+};
+
 export type ImportProductScheduleData = {
   productScheduleAmount: number;
   productScheduleDate: string;
@@ -239,13 +248,13 @@ export const useProduct = () => {
 
   const updateProductSchedule = async (
     id: string,
-    body: ImportProductScheduleData
+    body: UpdateProductScheduleData
   ): Promise<ProductSchedule> => {
     return new Promise((resolve, reject) => {
-      const { data, error } = put<ProductSchedule>(
-        `/product-schedule/${id}`,
-        body
-      );
+      const { data, error } = put<ProductSchedule>(`/product-schedule/${id}`, {
+        ...body,
+        timezone: "Asia/Bangkok", // force sent timezone as "Asia/Bangkok"
+      });
 
       watch(data, (productScheduleData) => {
         const productSchedule = productScheduleRepo.save(productScheduleData);

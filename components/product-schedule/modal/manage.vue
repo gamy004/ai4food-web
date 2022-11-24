@@ -67,47 +67,29 @@ const productIdRequiredState = computed(() =>
   isFormInvalid("productId", ["required"])
 );
 
-const productIdExistsState = computed(() =>
-  error.value ? !isErrorDataExists(error.value, "Product", "productId") : null
-);
-
 const productScheduleDateRequiredState = computed(() =>
   isFormInvalid("productId", ["required"])
-);
-
-const productScheduleDateExistsState = computed(() =>
-  error.value
-    ? !isErrorDataExists(error.value, "Product", "productScheduleDate")
-    : null
 );
 
 const productScheduleAmountRequiredState = computed(() =>
   isFormInvalid("productScheduleAmount", ["required"])
 );
 
-const productScheduleAmountExistsState = computed(() =>
-  error.value
-    ? !isErrorDataExists(error.value, "Product", "productScheduleAmount")
-    : null
-);
-
 const productScheduleStartedAtRequiredState = computed(() =>
   isFormInvalid("productScheduleStartedAt", ["required"])
-);
-
-const productScheduleStartedAtExistsState = computed(() =>
-  error.value
-    ? !isErrorDataExists(error.value, "Product", "productScheduleStartedAt")
-    : null
 );
 
 const productScheduleEndedAtRequiredState = computed(() =>
   isFormInvalid("productScheduleEndedAt", ["required"])
 );
 
-const productScheduleEndedAtExistsState = computed(() =>
+const productScheduleExistsState = computed(() =>
   error.value
-    ? !isErrorDataExists(error.value, "Product", "productScheduleEndedAt")
+    ? !isErrorDataExists(
+        error.value,
+        "Product",
+        "product, productScheduleDate, productScheduleStartedAt, productScheduleEndedAt"
+      )
     : null
 );
 
@@ -117,6 +99,7 @@ const formInvalidState = computed(() => {
   let isProductScheduleAmountInvalid = null;
   let isProductScheduleStartedAtInvalid = null;
   let isProductScheduleEndedAtInvalid = null;
+  let productScheduleExist = null;
 
   if (isInvalid.value) {
     isProductIdInvalid = productIdRequiredState.value;
@@ -128,12 +111,7 @@ const formInvalidState = computed(() => {
   }
 
   if (error.value) {
-    isProductIdInvalid = productIdExistsState.value;
-    isProductScheduleDateInvalid = productScheduleDateExistsState.value;
-    isProductScheduleAmountInvalid = productScheduleAmountExistsState.value;
-    isProductScheduleStartedAtInvalid =
-      productScheduleStartedAtExistsState.value;
-    isProductScheduleEndedAtInvalid = productScheduleEndedAtExistsState.value;
+    productScheduleExist = productScheduleExistsState.value;
   }
 
   return {
@@ -142,6 +120,7 @@ const formInvalidState = computed(() => {
     productScheduleAmount: isProductScheduleAmountInvalid,
     productScheduleStartedAt: isProductScheduleStartedAtInvalid,
     productScheduleEndedAt: isProductScheduleEndedAtInvalid,
+    productSchedule: productScheduleExist,
   };
 });
 
@@ -160,6 +139,8 @@ const showValue = computed({
 const actionText = computed(() => (idValue.value ? "อัพเดต" : "เพิ่ม"));
 
 const clearState = () => {
+  console.log("clear state!!!");
+
   resetValidation();
 
   error.value = null;
@@ -169,16 +150,16 @@ const clearState = () => {
   form.productScheduleAmount = null;
   form.productScheduleStartedAt = null;
   form.productScheduleEndedAt = null;
+
+  console.log(form);
 };
 
 const onCancel = () => {
+  showValue.value = false;
+
   if (idValue.value) {
     idValue.value = null;
-  } else {
-    clearState();
   }
-
-  showValue.value = false;
 };
 
 const onSubmit = async () => {
@@ -207,23 +188,27 @@ const onSubmit = async () => {
     };
 
     await productApi().updateProductSchedule(idValue.value, body);
+
     setTimeout(() => {
+      showValue.value = false;
+
       toast.success("นำเข้าข้อมูลแผลการผลิตสำเร็จ", { timeout: 1000 });
+
+      idValue.value = null;
 
       emit("success");
     }, 1000);
-  } catch (errorResponse) {
-    error.value = errorResponse;
+  } catch (e) {
+    error.value = e;
 
     toast.error(
       `ไม่สามารถ${actionText.value}รายการสินค้าได้ กรุณาลองใหม่อีกครั้ง`
     );
 
-    emit("error", errorResponse);
+    emit("error", e);
   } finally {
     setTimeout(() => {
       submitting.value = false;
-      showValue.value = false;
     }, 1000);
   }
 };
@@ -250,7 +235,6 @@ watch(
             : productSchedule.productScheduleEndedAt
         );
       }
-      console.log(productSchedule);
     } else {
       clearState();
     }
@@ -267,6 +251,18 @@ watch(
       <template #default>
         <div class="row row-gap-2">
           <b-col cols="12">
+            <div
+              v-if="formInvalidState.productSchedule"
+              class="alert alert-danger mb-0"
+              role="alert"
+            >
+              ไม่สามารถอัพเดตข้อมูลได้
+              เนื่องจากพบข้อมูลแผนการผลิตของสินค้าในวันและเวลานี้แล้ว
+              กรุณาตรวจสอบข้อมูลอีกครั้ง
+            </div>
+          </b-col>
+
+          <b-col cols="12">
             <b-form-group
               id="fieldset-product-schedule-date"
               label-cols-lg="4"
@@ -282,6 +278,7 @@ watch(
                 locale="th"
                 utc
                 :clearable="false"
+                auto-apply
               />
             </b-form-group>
           </b-col>
