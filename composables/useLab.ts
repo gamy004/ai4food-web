@@ -34,6 +34,7 @@ export interface LoadAllLabSwabAreaHistoryData {
   mainSwabAreaId?: string;
   swabPeriodId?: string;
   swabTestCode?: string;
+  hasBacteria?: boolean;
 }
 
 export interface LoadAllLabSwabProductHistoryData
@@ -401,6 +402,7 @@ export const useLab = () => {
       mainSwabAreaId,
       swabPeriodId,
       swabTestCode,
+      hasBacteria,
     } = loadAllLabSwabAreaHistoryData;
 
     const params: any = {
@@ -429,6 +431,10 @@ export const useLab = () => {
 
     if (swabTestCode) {
       params.swabTestCode = swabTestCode;
+    }
+
+    if (hasBacteria) {
+      params.hasBacteria = true;
     }
 
     return params;

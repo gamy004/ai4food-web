@@ -4,6 +4,7 @@ import { Shift } from "~~/composables/useDate.js";
 import { useHiddenState } from "~~/composables/useHiddenState";
 import { ColState, useColState } from "~~/composables/useColState";
 import { BooleanState } from "~~/composables/useBooleanState";
+import { PaginationState } from "~~/composables/usePagination";
 
 export interface FormData {
   date: string;
@@ -46,6 +47,7 @@ export interface Props {
     | "mainSwabArea"
     | "product"
   >;
+  paginationState?: PaginationState;
   // invalidState?: FormInvalidData
 }
 
@@ -67,15 +69,38 @@ const hiddenState = computed(() => useHiddenState(props.hiddenState));
 const colState = useColState(props.colState);
 const clearableState = useClearableState(props.clearableState);
 
+const getUpdatedQuery = () => {
+  let updatedQuery: any = { ...getCurrentQuery() };
+
+  if (updatedQuery.currentPage && updatedQuery.currentPage !== "1") {
+    updatedQuery = {
+      ...updatedQuery,
+      currentPage: 1,
+    };
+  }
+
+  return updatedQuery;
+};
+
+const updatePaginateState = () => {
+  if (props.paginationState && props.paginationState.currentPage !== 1) {
+    props.paginationState.currentPage = 1;
+  }
+};
+
 const formDate = computed({
   get: () => form.value.date,
   set: (value) => {
+    let updatedQuery: any = getUpdatedQuery();
+
+    updatePaginateState();
+
     const updatedValue = onlyDate(value);
 
     form.value.date = updatedValue;
 
     updateQueryParams({
-      ...getCurrentQuery(),
+      ...updatedQuery,
       date: updatedValue,
     });
   },
@@ -86,7 +111,9 @@ const formFacility = computed({
     return form.value.facilityId ? { id: form.value.facilityId } : null;
   },
   set: (value) => {
-    const updatedQuery = { ...getCurrentQuery() };
+    let updatedQuery: any = getUpdatedQuery();
+
+    updatePaginateState();
 
     if (updatedQuery.mainSwabAreaId) {
       delete updatedQuery.mainSwabAreaId;
@@ -123,9 +150,9 @@ const formSwabPeriod = computed({
   },
 
   set: (value) => {
-    const updatedQuery = {
-      ...getCurrentQuery(),
-    };
+    let updatedQuery: any = getUpdatedQuery();
+
+    updatePaginateState();
 
     if (value && value.id) {
       updatedQuery.swabPeriodId = value.id;
@@ -148,11 +175,11 @@ const formFacilityItemId = computed({
     return form.value.facilityItemId ? { id: form.value.facilityItemId } : null;
   },
   set: (value) => {
-    const { facilityItemId, ...otherQueries } = getCurrentQuery();
+    const { facilityItemId, ...otherQueries } = getUpdatedQuery();
 
-    const updatedQuery = {
-      ...otherQueries,
-    };
+    let updatedQuery: any = { ...otherQueries };
+
+    updatePaginateState();
 
     if (value && value.id) {
       form.value.facilityItemId = value.id;
@@ -176,9 +203,9 @@ const formMainSwabArea = computed({
   },
 
   set: (value) => {
-    const updatedQuery = {
-      ...getCurrentQuery(),
-    };
+    let updatedQuery: any = getUpdatedQuery();
+
+    updatePaginateState();
 
     if (value && value.id) {
       updatedQuery.mainSwabAreaId = value.id;
@@ -202,9 +229,9 @@ const formProduct = computed({
   },
 
   set: (value) => {
-    const updatedQuery = {
-      ...getCurrentQuery(),
-    };
+    let updatedQuery: any = getUpdatedQuery();
+
+    updatePaginateState();
 
     if (value && value.id) {
       updatedQuery.productId = value.id;
@@ -225,13 +252,15 @@ const formProduct = computed({
 watch(
   () => form.value.shift,
   (value) => {
-    const updatedQuery = { ...getCurrentQuery() };
+    let updatedQuery: any = getUpdatedQuery();
 
-    if (value === Shift.ALL) {
-      delete updatedQuery.shift;
-    } else {
-      updatedQuery.shift = value;
-    }
+    updatePaginateState();
+
+    // if (value === Shift.ALL) {
+    //   delete updatedQuery.shift;
+    // } else {
+    updatedQuery.shift = value;
+    // }
 
     updateQueryParams({
       ...updatedQuery,

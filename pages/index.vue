@@ -12,6 +12,10 @@ const pageExportSwabPlan = {
   name: "export-swab-report",
 };
 
+const pageReportSwab = {
+  name: "report-swab-area",
+};
+
 const pageSwabArea = {
   name: "swab-area",
 };
@@ -63,6 +67,7 @@ const pageImportProductSchedule = {
       <div class="col col-md-6 col-lg-4">
         <div v-if="authUser.isInSwabTeam" class="d-grid gap-2 mt-4">
           <h4 class="font-weight-bold">รายการข้อมูลพื้นฐาน</h4>
+
           <nuxt-link v-slot="{ navigate }" :to="pageExportSwabPlan" custom>
             <button-arrow-right
               variant="outline-primary"
@@ -72,6 +77,18 @@ const pageImportProductSchedule = {
               @click="navigate"
             >
               รายการจุดตรวจ swab
+            </button-arrow-right>
+          </nuxt-link>
+
+          <nuxt-link v-slot="{ navigate }" :to="pageReportSwab" custom>
+            <button-arrow-right
+              variant="outline-primary"
+              block
+              size="lg"
+              class="w-100"
+              @click="navigate"
+            >
+              รายการผลตรวจ swab
             </button-arrow-right>
           </nuxt-link>
         </div>

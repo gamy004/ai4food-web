@@ -4,6 +4,7 @@ import CarbonEdit from "~icons/carbon/edit";
 // import CarbonTrashCan from "~icons/carbon/trash-can";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import { Shift } from "~~/composables/useDate";
+import { Pagination } from "~~/composables/usePagination";
 
 export interface Props {
   date: string;
@@ -11,17 +12,14 @@ export interface Props {
   facilityId?: string;
   mainSwabAreaId?: string;
   swabPeriodId?: string;
-  perPage?: number;
-  currentPage?: number;
+  pagination: Pagination;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  perPage: 20,
-  currentPage: 1,
+  pagination: () => usePagination({ perPage: 20, currentPage: 1 }),
 });
 const route = useRoute();
 const router = useRouter();
-const { updateQueryParams, getCurrentQuery } = useQueryParams();
 const { shiftToAbbreviation } = useDate();
 const { isAllRelatedSwabAreaCompleted } = useSwabAreaHistoryStatus();
 const toast = useToast();
@@ -40,10 +38,10 @@ const loading = ref(false);
 const error = ref(false);
 const swapAreaHistoryIds = ref([]);
 
-const pagination = usePagination({
-  perPage: parseInt(route.query.perPage as string) || props.perPage,
-  currentPage: parseInt(route.query.currentPage as string) || props.currentPage,
-});
+// const pagination = usePagination({
+//   perPage: parseInt(route.query.perPage as string) || props.perPage,
+//   currentPage: parseInt(route.query.currentPage as string) || props.currentPage,
+// });
 
 const getRouteUpdateSwabAreaHistory = (id) => {
   const swabAreaHistory = getSwabAreaHistoryById(id);
@@ -78,7 +76,13 @@ const tableFields = [
   // { key: "productName", label: "จุดตรวจ" },
   // { key: "productDate", label: "วันที่ผลิต" },
   // { key: "productLot", label: "SubLot" },
-  { key: "isCompleted", label: "สถานะ", thStyle: { width: "10%" } },
+  {
+    key: "isCompleted",
+    label: "สถานะ",
+    thClass: "text-center",
+    tdClass: "text-center",
+    thStyle: { width: "10%" },
+  },
   { key: "action", label: "", thClass: "text-center", tdClass: "text-center" },
 ];
 
@@ -89,6 +93,9 @@ const tableData = computed(() => {
     const swabPeriod = getSwabPeriodById(swabAreaHistory.swabPeriodId);
     const swabTest = getSwabTestById(swabAreaHistory.swabTestId);
     const facilityItem = getFacilityItemById(swabAreaHistory.facilityItemId);
+
+    const { isCompleted, countComplete, countArea } =
+      isAllRelatedSwabAreaCompleted(swabAreaHistory);
 
     const tableRecord = {
       id: swabAreaHistory.id,
@@ -103,7 +110,9 @@ const tableData = computed(() => {
       // productName: product ? product.productName : "",
       // productDate: swabAreaHistory.readableProductDate,
       // productLot: swabAreaHistory.productLot || "",
-      isCompleted: isAllRelatedSwabAreaCompleted(swabAreaHistory),
+      isCompleted,
+      countComplete,
+      countArea,
     };
 
     // if (swabProductHistory.facilityItemId) {
@@ -143,24 +152,21 @@ const isPropInvalid = (props): boolean => {
 };
 
 const fetch = async function fetch(props) {
-  countTotal.value = 0;
-  hasData.value = true;
-
-  swapAreaHistoryIds.value = [];
-
   if (isPropInvalid(props)) {
     return;
   }
 
-  error.value = false;
-
   loading.value = true;
+  error.value = false;
+  hasData.value = true;
+  countTotal.value = 0;
+  swapAreaHistoryIds.value = [];
 
   try {
     const { total, swabAreaHistories } = await swabApi().loadSwabAreaHistoryV2({
       ...props,
-      skip: pagination.offset.value,
-      take: pagination.$state.perPage,
+      skip: props.pagination.offset.value,
+      take: props.pagination.$state.perPage,
     });
 
     countTotal.value = total;
@@ -188,20 +194,6 @@ const onTableRowClicked = (item): void => {
 };
 
 watch(() => props, fetch, { immediate: true, deep: true });
-
-watch(
-  () => pagination.$state,
-  (paginationState) => {
-    updateQueryParams({
-      ...getCurrentQuery(),
-      perPage: paginationState.perPage,
-      currentPage: paginationState.currentPage,
-    });
-
-    fetch(props);
-  },
-  { deep: true }
-);
 </script>
 
 <template>
@@ -287,11 +279,19 @@ watch(
             <template #cell(isCompleted)="{ item }">
               <badge-complete-status
                 :is-completed="item.isCompleted"
+                complete-text="บันทึกครบเรียบร้อย"
+                :in-complete-text="`บันทึกแล้ว ${item.countComplete}/${item.countArea} จุด`"
               ></badge-complete-status>
             </template>
           </b-table>
 
-          <b-pagination
+          <base-pagination
+            v-model="pagination.$state.currentPage"
+            :per-page="pagination.$state.perPage"
+            :total-rows="countTotal"
+            aria-controls="swabProductHistoryTable"
+          />
+          <!-- <b-pagination
             v-model="pagination.$state.currentPage"
             align="center"
             :total-rows="countTotal"
@@ -299,7 +299,7 @@ watch(
             first-number
             last-number
             aria-controls="swabProductHistoryTable"
-          />
+          /> -->
         </div>
 
         <b-card v-else bg-variant="light">

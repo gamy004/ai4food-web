@@ -199,9 +199,10 @@ const onSubmit = async () => {
       productScheduleStartedAt: timePickerToTimeString(
         form.productScheduleStartedAt
       ),
-      productScheduleEndedAt: timePickerToTimeString(
-        form.productScheduleEndedAt
-      ) === "00:00:00" ? "23:59:59" : timePickerToTimeString(form.productScheduleEndedAt),
+      productScheduleEndedAt:
+        timePickerToTimeString(form.productScheduleEndedAt) === "00:00:00"
+          ? "23:59:59"
+          : timePickerToTimeString(form.productScheduleEndedAt),
       product: { id: form.productId.id },
     };
 
@@ -244,14 +245,15 @@ watch(
           productSchedule.productScheduleStartedAt
         );
         form.productScheduleEndedAt = timeStringToTimePicker(
-          productSchedule.productScheduleEndedAt === "23:59:00" ? "00:00:00" : productSchedule.productScheduleEndedAt
+          productSchedule.productScheduleEndedAt === "23:59:00"
+            ? "00:00:00"
+            : productSchedule.productScheduleEndedAt
         );
       }
       console.log(productSchedule);
     } else {
       clearState();
     }
-    console.log("do something", id);
   },
   { immediate: true }
 );
@@ -265,38 +267,94 @@ watch(
       <template #default>
         <div class="row row-gap-2">
           <b-col cols="12">
-            <b-form-group id="fieldset-product-schedule-date" label-cols-lg="4" label="วันที่ผลิต"
-              label-for="productScheduleDate" :state="formInvalidState.productScheduleDate">
-              <date-picker id="productScheduleDate" v-model="form.productScheduleDate" class="form-control p-0 border-0"
-                :enable-time-picker="false" locale="th" utc :clearable="false" />
+            <b-form-group
+              id="fieldset-product-schedule-date"
+              label-cols-lg="4"
+              label="วันที่ผลิต"
+              label-for="productScheduleDate"
+              :state="formInvalidState.productScheduleDate"
+            >
+              <date-picker
+                id="productScheduleDate"
+                v-model="form.productScheduleDate"
+                class="form-control p-0 border-0"
+                :enable-time-picker="false"
+                locale="th"
+                utc
+                :clearable="false"
+              />
             </b-form-group>
           </b-col>
           <b-col cols="12">
-            <b-form-group id="fieldset-product-schedule-start" label-cols-lg="4" label="เวลาเริ่ม"
-              label-for="productScheduleStartedAt" :state="formInvalidState.productScheduleStartedAt">
-              <date-picker id="productScheduleStartedAt" v-model.number="form.productScheduleStartedAt"
-                class="form-control p-0 border-0" :disabled="submitting" time-picker auto-apply :clearable="false" />
+            <b-form-group
+              id="fieldset-product-schedule-start"
+              label-cols-lg="4"
+              label="เวลาเริ่ม"
+              label-for="productScheduleStartedAt"
+              :state="formInvalidState.productScheduleStartedAt"
+            >
+              <date-picker
+                id="productScheduleStartedAt"
+                v-model.number="form.productScheduleStartedAt"
+                class="form-control p-0 border-0"
+                :disabled="submitting"
+                time-picker
+                auto-apply
+                :clearable="false"
+              />
             </b-form-group>
           </b-col>
           <b-col cols="12">
-            <b-form-group id="fieldset-product-schedule-end" label-cols-lg="4" label="เวลาสิ้นสุด"
-              label-for="productScheduleEndedAt" :state="formInvalidState.productScheduleEndedAt">
-              <date-picker id="productScheduleEndedAt" v-model.number="form.productScheduleEndedAt"
-                class="form-control p-0 border-0" :disabled="submitting" time-picker auto-apply :clearable="false" />
+            <b-form-group
+              id="fieldset-product-schedule-end"
+              label-cols-lg="4"
+              label="เวลาสิ้นสุด"
+              label-for="productScheduleEndedAt"
+              :state="formInvalidState.productScheduleEndedAt"
+            >
+              <date-picker
+                id="productScheduleEndedAt"
+                v-model.number="form.productScheduleEndedAt"
+                class="form-control p-0 border-0"
+                :disabled="submitting"
+                time-picker
+                auto-apply
+                :clearable="false"
+              />
             </b-form-group>
           </b-col>
           <b-col cols="12">
-            <b-form-group id="fieldset-product-schedule-id" label-cols-lg="4" label="รหัสสินค้า" label-for="productId"
-              :state="formInvalidState.productId">
-              <product-select id="productId" v-model="form.productId" :disabled="disabled" :clearable="clearable" />
+            <b-form-group
+              id="fieldset-product-schedule-id"
+              label-cols-lg="4"
+              label="รหัสสินค้า"
+              label-for="productId"
+              :state="formInvalidState.productId"
+            >
+              <product-select
+                id="productId"
+                v-model="form.productId"
+                :disabled="disabled"
+                :clearable="clearable"
+              />
             </b-form-group>
           </b-col>
 
           <b-col cols="12">
-            <b-form-group id="fieldset-product-schedule-amount" label-cols-lg="4" label="จำนวนสินค้า"
-              label-for="productScheduleAmount" :state="formInvalidState.productId">
-              <b-form-input id="productScheduleAmount" v-model="form.productScheduleAmount"
-                :state="formInvalidState.productScheduleAmount" type="number" placeholder="กรอกจำนวนสินค้า">
+            <b-form-group
+              id="fieldset-product-schedule-amount"
+              label-cols-lg="4"
+              label="จำนวนสินค้า"
+              label-for="productScheduleAmount"
+              :state="formInvalidState.productId"
+            >
+              <b-form-input
+                id="productScheduleAmount"
+                v-model="form.productScheduleAmount"
+                :state="formInvalidState.productScheduleAmount"
+                type="number"
+                placeholder="กรอกจำนวนสินค้า"
+              >
               </b-form-input>
             </b-form-group>
           </b-col>
@@ -326,7 +384,10 @@ watch(
         </b-button>
 
         <b-button type="submit" variant="primary" :disabled="submitting">
-          <LineMdLoadingTwotoneLoop v-if="submitting" :style="{ fontSize: '1em' }" />
+          <LineMdLoadingTwotoneLoop
+            v-if="submitting"
+            :style="{ fontSize: '1em' }"
+          />
 
           <span v-else>{{ actionText }}</span>
         </b-button>

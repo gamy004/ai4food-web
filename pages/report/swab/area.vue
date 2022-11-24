@@ -23,5 +23,6 @@ const form = computed({
   <swab-test-table-area
     v-model="form"
     :pagination="pagination"
+    read-only
   ></swab-test-table-area>
 </template>

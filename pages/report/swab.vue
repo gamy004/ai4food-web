@@ -37,7 +37,7 @@ const fetch = async () => {
   loading.value = true;
 
   try {
-    await labApi().loadAllBacteria();
+    await labApi().loadAllBacteriaWithSpecie();
   } catch (e) {
     console.log(e);
 
@@ -66,22 +66,22 @@ onBeforeMount(fetch);
 
 <template>
   <div class="page__update-plan mt-4">
-    <h2 class="font-weight-bold text-center">บันทึกผลตรวจ Lab</h2>
+    <h2 class="font-weight-bold text-center">รายการผลตรวจ swab</h2>
 
     <b-row align-h="center">
       <b-col cols="8" lg="6">
         <b-row>
           <b-button-group size="sm" class="text-center">
             <b-button
-              :pressed="isPage('swab-test-update-area')"
+              :pressed="isPage('report-swab-area')"
               variant="outline-primary"
-              @click="switchPage('swab-test-update-area')"
+              @click="switchPage('report-swab-area')"
               >รายการจุดตรวจ Swab</b-button
             >
             <b-button
-              :pressed="isPage('swab-test-update-product')"
+              :pressed="isPage('report-swab-product')"
               variant="outline-primary"
-              @click="switchPage('swab-test-update-product')"
+              @click="switchPage('report-swab-product')"
               >รายการตรวจสินค้า</b-button
             >
           </b-button-group>
@@ -106,8 +106,8 @@ onBeforeMount(fetch);
             <swab-test-filter
               v-model="form"
               :hidden-state="{
-                mainSwabArea: isPage('swab-test-update-product'),
-                product: isPage('swab-test-update-area'),
+                mainSwabArea: isPage('report-swab-product'),
+                product: isPage('report-swab-area'),
               }"
               :col-state="{
                 date: 'sm-6 md-4',

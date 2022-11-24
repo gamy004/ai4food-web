@@ -141,6 +141,15 @@ const fetch = async (formValue) => {
   }
 };
 
+const onImportedSuccess = ({ fromDate, toDate }) => {
+  console.log(fromDate, toDate);
+
+  form.date = {
+    from: fromDate,
+    to: toDate,
+  };
+};
+
 const promptEdit = (id) => {
   showManageModal.value = true;
   productScheduleId.value = id;
@@ -319,7 +328,7 @@ watch(
 
         <product-schedule-modal-import
           v-model:show-value="showImportModal"
-          @success="onImportSuccess"
+          @success="onImportedSuccess"
         />
 
         <product-schedule-modal-manage

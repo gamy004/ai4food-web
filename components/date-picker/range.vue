@@ -11,7 +11,7 @@ export interface Props {
   selectText?: string;
   locale?: string;
   clearable?: boolean;
-  modelValue?: ModelValue;
+  modelValue?: ModelValue | null;
 }
 
 const { onlyDate, parseDate } = useDate();
@@ -23,13 +23,32 @@ const props = withDefaults(defineProps<Props>(), {
   selectText: "ยืนยัน",
   locale: "en",
   clearable: false,
-  modelValue: () => ({
-    from: null,
-    to: null,
-  }),
+  modelValue: null,
 });
 
-const date = ref(null);
+const date = computed({
+  get: () => {
+    return props.modelValue
+      ? [
+          props.modelValue.from ? parseDate(props.modelValue.from) : null,
+          props.modelValue.to ? parseDate(props.modelValue.to) : null,
+        ]
+      : null;
+  },
+
+  set: (dateValue) => {
+    if (dateValue !== null) {
+      const fromDateString = onlyDate(dateValue[0]);
+
+      emit("update:modelValue", {
+        from: fromDateString,
+        to: dateValue[1] !== null ? onlyDate(dateValue[1]) : fromDateString,
+      });
+    } else {
+      emit("update:modelValue", null);
+    }
+  },
+});
 
 // const fromDateString = computed(() =>
 //   dateRange.from !== null ? onlyDate(dateRange.from) : ""
@@ -38,38 +57,44 @@ const date = ref(null);
 // const toDateString = computed(() =>
 //   dateRange.to !== null ? onlyDate(dateRange.to) : ""
 // );
-const updateDate = (value: ModelValue) => {
-  date.value = value
-    ? [
-        value.from ? parseDate(value.from) : null,
-        value.to ? parseDate(value.to) : null,
-      ]
-    : null;
-};
+// watch(
+//   () => props.modelValue,
+//   (modelValue) => {
+//     console.log(1);
 
-const clearDate = () => {
+//     date.value = modelValue
+//       ? [
+//           modelValue.from ? parseDate(modelValue.from) : null,
+//           modelValue.to ? parseDate(modelValue.to) : null,
+//         ]
+//       : null;
+//   },
+//   { immediate: true }
+// );
+
+// watch(date, (dateValue) => {
+//   console.log(2);
+
+//   if (dateValue !== null) {
+//     const fromDateString = onlyDate(dateValue[0]);
+
+//     emit("update:modelValue", {
+//       from: fromDateString,
+//       to: dateValue[1] !== null ? onlyDate(dateValue[1]) : fromDateString,
+//     });
+//   } else {
+//     emit("update:modelValue", {
+//       from: null,
+//       to: null,
+//     });
+//   }
+// });
+
+function clearDate() {
   date.value = null;
-};
+}
 
-defineExpose({ updateDate, clearDate });
-
-updateDate(props.modelValue);
-
-watch(date, (dateValue) => {
-  if (dateValue !== null) {
-    const fromDateString = onlyDate(dateValue[0]);
-
-    emit("update:modelValue", {
-      from: fromDateString,
-      to: dateValue[1] !== null ? onlyDate(dateValue[1]) : fromDateString,
-    });
-  } else {
-    emit("update:modelValue", {
-      from: null,
-      to: null,
-    });
-  }
-});
+defineExpose({ clearDate });
 </script>
 
 <template>

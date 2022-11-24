@@ -1,5 +1,7 @@
 <script lang="ts" setup>
+import { ColorVariant } from "bootstrap-vue-3/src/types";
 import { ComputedRef } from "vue";
+import { useLab } from "~~/composables/useLab";
 import SwabTest from "~~/models/SwabTest";
 
 export interface Props {
@@ -20,8 +22,8 @@ const hasBacteria: ComputedRef<boolean> = computed(() => {
   return bacteria && bacteria.length > 0;
 });
 
-const badgeVariant: ComputedRef<string> = computed(() => {
-  let variant = "primary";
+const badgeVariant: ComputedRef<ColorVariant> = computed(() => {
+  let variant: ColorVariant = "primary";
 
   if (isRecorded.value) {
     variant = hasBacteria.value ? "danger" : "success";
