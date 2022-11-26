@@ -20,8 +20,9 @@ const form = computed({
 </script>
 
 <template>
-  <swab-test-table-area
+  <swab-test-table-product
     v-model="form"
     :pagination="pagination"
-  ></swab-test-table-area>
+    read-only
+  ></swab-test-table-product>
 </template>

@@ -28,6 +28,7 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   required: false,
   showLabel: false,
+  onlySwab: true,
   modelValue: null,
   defaultValue: null,
 });
@@ -70,8 +71,11 @@ const fetch = async () => {
     loading.value = true;
 
     try {
-      const facilityData: Facility[] =
-        await facilityApi().loadAllSwabFacility();
+      const calledMethod = props.onlySwab
+        ? "loadAllSwabFacility"
+        : "loadAllFacility";
+
+      const facilityData: Facility[] = await facilityApi()[calledMethod]();
 
       if (facilityData.length) {
         facilityIds.value = facilityData.map(({ id }) => id);

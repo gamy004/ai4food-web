@@ -19,8 +19,6 @@ const props = defineProps<Props>();
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
-
-const { formatThLocale, formatTimeThLocale } = useDate();
 const { shiftToAbbreviation } = useDate();
 
 const {

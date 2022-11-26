@@ -3,6 +3,7 @@ import { useToast } from "vue-toastification";
 import UploadIcon from "~icons/carbon/upload";
 import CarbonEdit from "~icons/carbon/edit";
 import CarbonTrashCan from "~icons/carbon/trash-can";
+import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import { LoadProductScheduleParams } from "~~/composables/useProduct";
 
 definePageMeta({
@@ -11,26 +12,34 @@ definePageMeta({
   canGoBack: true,
   fallBackRedirect: "/",
 });
+const route = useRoute();
 const toast = useToast();
 const {
   getProductById,
-  getProductScheduleByIds,
+  getProductScheduleById,
   api: productApi,
 } = useProduct();
+const { updateQueryParams, getCurrentQuery } = useQueryParams();
 const { today, onlyDate, formatThLocale, formatTimeThLocale } = useDate();
 const currentDate = today();
 const form = reactive({
   date: {
-    from: onlyDate(currentDate),
-    to: onlyDate(currentDate),
+    from: (route.query.from as string) || onlyDate(currentDate),
+    to: (route.query.to as string) || onlyDate(currentDate),
   },
 });
 const loading = ref(false);
 const showImportModal = ref(false);
-const currentPage = ref(1);
+const showManageModal = ref(false);
+const showDeleteModal = ref(false);
+const pagination = usePagination({
+  perPage: parseInt(route.query.perPage as string) || 25,
+  currentPage: parseInt(route.query.currentPage as string) || 1,
+});
 const hasResult = ref(false);
-const perPage = ref(100);
 const productScheduleIds = ref([]);
+const productScheduleId = ref(null);
+const deletedProductScheduleId = ref(null);
 
 const tableFields = computed(() => {
   return [
@@ -63,38 +72,35 @@ const tableFields = computed(() => {
 });
 
 const tableData = computed(() => {
-  const data = getProductScheduleByIds(productScheduleIds.value);
+  return productScheduleIds.value
+    .map((productScheduleId) => getProductScheduleById(productScheduleId))
+    .filter(Boolean)
+    .map((record) => {
+      const product = getProductById(record.productId);
 
-  return data.map((record) => {
-    const product = getProductById(record.productId);
-
-    return {
-      date: formatThLocale(record.productScheduleDate, "ddMMyy"),
-      productCode: product.productCode,
-      alternateProductCode: product.alternateProductCode,
-      productName: product.productName,
-      productScheduleAmount: record.productScheduleAmount,
-      startTime: formatTimeThLocale(record.productScheduleStartedAt),
-      endTime: formatTimeThLocale(
-        record.productScheduleEndedAt === "23:59:59"
-          ? "00:00:00"
-          : record.productScheduleEndedAt
-      ),
-    };
-  });
+      return {
+        id: record.id,
+        date: formatThLocale(record.productScheduleDate, "ddMMyy"),
+        productCode: product.productCode,
+        alternateProductCode: product.alternateProductCode,
+        productName: product.productName,
+        productScheduleAmount: record.productScheduleAmount,
+        startTime: formatTimeThLocale(record.productScheduleStartedAt),
+        endTime: formatTimeThLocale(
+          record.productScheduleEndedAt === "23:59:59"
+            ? "00:00:00"
+            : record.productScheduleEndedAt
+        ),
+      };
+    });
 });
 
-const filteredData = computed(() =>
-  tableData.value.filter((_, idx) => {
-    return (
-      idx >= (currentPage.value - 1) * perPage.value &&
-      idx < currentPage.value * perPage.value
-    );
-  })
-);
+const filteredData = computed(() => pagination.paginate(tableData.value));
 
 const fetch = async (formValue) => {
+  loading.value = true;
   hasResult.value = true;
+  productScheduleIds.value = [];
 
   const params: LoadProductScheduleParams = {
     fromDate: null,
@@ -123,26 +129,32 @@ const fetch = async (formValue) => {
     toast.error("ไม่สามรถโหลดข้อมูลแผนการผลิตได้ กรุณาลองใหม่อีกครั้ง", {
       timeout: 1000,
     });
+  } finally {
+    setTimeout(() => {
+      loading.value = false;
+    }, 1000);
   }
 };
 
 const onImportedSuccess = ({ fromDate, toDate }) => {
-  console.log(fromDate, toDate);
-
   form.date = {
     from: fromDate,
     to: toDate,
   };
 };
 
-const promptEdit = (id) => {
-  // do something
-  console.log("edit");
+const onManagedSuccess = async () => {
+  await fetch(form);
 };
 
-const promptDelete = async (id) => {
-  // do something
-  console.log("delete");
+const promptEdit = (id) => {
+  showManageModal.value = true;
+  productScheduleId.value = id;
+};
+
+const promptDelete = (id) => {
+  showDeleteModal.value = true;
+  deletedProductScheduleId.value = id;
 };
 
 watch(
@@ -151,6 +163,27 @@ watch(
     fetch(formValue);
   },
   { immediate: true, deep: true }
+);
+
+watch(
+  () => form.date,
+  (formDateValue) => {
+    const fromDate = formDateValue.from ? onlyDate(formDateValue.from) : null;
+
+    const toDate = formDateValue.to ? onlyDate(formDateValue.to) : null;
+
+    const updatedQuery = { ...getCurrentQuery() };
+
+    if (fromDate) {
+      updatedQuery.from = fromDate;
+      updatedQuery.to = !toDate ? fromDate : toDate;
+    }
+
+    updateQueryParams({
+      ...updatedQuery,
+    });
+  },
+  { deep: true }
 );
 </script>
 
@@ -198,75 +231,87 @@ watch(
             <line-md-loading-twotone-loop :style="{ fontSize: '2em' }" />
           </b-col>
 
-          <b-col v-if="hasResult">
-            <!-- <div class="alert alert-info" role="alert">
+          <b-col v-else>
+            <div v-if="hasResult">
+              <!-- <div class="alert alert-info" role="alert">
               พบข้อมูลแผนการผลิตที่ตรงกับข้อมูลสินค้าในระบบทั้งหมด
               {{ importedData.length }} รายการ
             </div> -->
 
-            <b-table
-              id="result-table"
-              hover
-              small
-              caption-top
-              responsive
-              :fields="tableFields"
-              :items="filteredData"
-            >
-              <template #cell(date)="{ item, index }">
-                <div>
-                  <p>{{ item.date }}</p>
-                  <p id="time">({{ item.startTime }} - {{ item.endTime }})</p>
-                </div>
-              </template>
-              <template #cell(action)="{ item, index }">
-                <b-button
-                  variant="link"
-                  @click="promptEdit(item.id)"
-                  class="p-0"
-                >
-                  <CarbonEdit
-                    style="
-                       {
-                        fontsize: '1em';
-                      }
-                    "
-                  />
-                </b-button>
+              <b-table
+                id="productScheduleTable"
+                hover
+                small
+                caption-top
+                responsive
+                :fields="tableFields"
+                :items="filteredData"
+              >
+                <template #cell(date)="{ item, index }">
+                  <div>
+                    <p>{{ item.date }}</p>
+                    <p id="time">({{ item.startTime }} - {{ item.endTime }})</p>
+                  </div>
+                </template>
+                <template #cell(action)="{ item, index }">
+                  <b-button
+                    variant="link"
+                    @click="promptEdit(item.id)"
+                    class="p-0"
+                  >
+                    <CarbonEdit
+                      style="
+                         {
+                          fontsize: '1em';
+                        }
+                      "
+                    />
+                  </b-button>
 
-                <b-button
-                  variant="link"
-                  @click="promptDelete(item.id)"
-                  class="ms-3 p-0 text-danger"
-                >
-                  <CarbonTrashCan
-                    style="
-                       {
-                        fontsize: '1em';
-                      }
-                    "
-                  />
-                </b-button>
-              </template>
-            </b-table>
+                  <b-button
+                    variant="link"
+                    @click="promptDelete(item.id)"
+                    class="ms-3 p-0 text-danger"
+                  >
+                    <CarbonTrashCan
+                      style="
+                         {
+                          fontsize: '1em';
+                        }
+                      "
+                    />
+                  </b-button>
+                </template>
+              </b-table>
 
-            <b-pagination
-              v-model="currentPage"
-              align="center"
-              :total-rows="tableData.length"
-              :per-page="perPage"
-              aria-controls="result-table"
-            />
+              <base-pagination
+                v-model="pagination.$state.currentPage"
+                :per-page="pagination.$state.perPage"
+                :total-rows="tableData.length"
+                aria-controls="productScheduleTable"
+              />
+            </div>
+
+            <b-card v-else bg-variant="light">
+              <b-card-text class="text-center"> ไม่พบรายการสินค้า </b-card-text>
+            </b-card>
           </b-col>
-
-          <b-card v-else bg-variant="light">
-            <b-card-text class="text-center"> ไม่พบรายการสินค้า </b-card-text>
-          </b-card>
         </b-row>
 
         <product-schedule-modal-import
           v-model:show-value="showImportModal"
           @success="onImportedSuccess"
+        />
+
+        <product-schedule-modal-manage
+          v-model:id-value="productScheduleId"
+          v-model:show-value="showManageModal"
+          @success="onManagedSuccess"
+        />
+
+        <product-schedule-modal-delete
+          v-model:id-value="deletedProductScheduleId"
+          v-model:show-value="showDeleteModal"
         />
       </b-container>
     </div>

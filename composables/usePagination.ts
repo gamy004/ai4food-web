@@ -1,8 +1,15 @@
-import { UnwrapNestedRefs } from "vue";
+import { ComputedRef } from "vue";
+
+export interface Pagination {
+  $state: PaginationState;
+  paginate: Function;
+  offset: ComputedRef<number>;
+  resetPage: Function;
+}
 
 export interface PaginationState {
-  perPage?: number;
-  currentPage?: number;
+  perPage: number;
+  currentPage: number;
 }
 
 export const usePagination = (options: PaginationState) => {
@@ -18,9 +25,14 @@ export const usePagination = (options: PaginationState) => {
     });
   };
 
+  const resetPage = () => {
+    $state.currentPage = 1;
+  };
+
   return {
     $state,
     paginate,
     offset,
+    resetPage,
   };
 };

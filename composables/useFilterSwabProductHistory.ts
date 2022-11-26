@@ -1,4 +1,4 @@
-import { Shift } from "./useDate";
+import { useDate, Shift } from "./useDate";
 import { SearchParams } from "./useRequest";
 
 export interface LoadAllSwabProductHistoryFilter {
@@ -10,6 +10,7 @@ export interface LoadAllSwabProductHistoryFilter {
   swabPeriodId?: string;
   swabTestCode?: string;
   productId?: string;
+  hasBacteria?: boolean;
 }
 
 export const useFilterSwabProductHistory = () => {
@@ -25,6 +26,7 @@ export const useFilterSwabProductHistory = () => {
       swabPeriodId,
       swabTestCode,
       productId,
+      hasBacteria,
     } = data;
 
     const params: any = {
@@ -57,6 +59,10 @@ export const useFilterSwabProductHistory = () => {
 
     if (productId) {
       params.productId = productId;
+    }
+
+    if (hasBacteria) {
+      params.hasBacteria = true;
     }
 
     return params;

@@ -67,7 +67,7 @@ const tableFields = computed(() => {
     { key: "productCode", label: "รหัสสินค้า", thStyle: { width: "20%" } },
     {
       key: "alternateProductCode",
-      label: "รหัสสินค้าลำรอง",
+      label: "รหัสสินค้าสำรอง",
       thStyle: { width: "20%" },
     },
     { key: "productName", label: "ชื่อสินค้า", thStyle: { width: "30%" } },
