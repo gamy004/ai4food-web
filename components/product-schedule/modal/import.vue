@@ -5,6 +5,7 @@ import { useToast } from "vue-toastification";
 import { utils } from "xlsx";
 import { useXlsx } from "~~/composables/useXlsx";
 import { Ref } from "vue";
+import UploadIcon from "~icons/carbon/upload";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import { ResponseErrorT } from "~~/composables/useRequest";
 
@@ -41,6 +42,7 @@ const keys_to_keep = [
   "productScheduleStartedAt",
   "productScheduleEndedAt",
   "product",
+  "shift",
 ];
 
 const redux = (array) =>
@@ -168,11 +170,17 @@ const onWorkbookRead = async (workbook) => {
         range.s.c = 0;
         range.e.c = night_cell - 4;
         let new_range = utils.encode_range(range);
-        const dayResult = utils.sheet_to_json(Sheets[sheetName], {
+        let dayResult: any[] = utils.sheet_to_json(Sheets[sheetName], {
           header,
           raw: true,
           defval: null,
           range: new_range,
+        });
+
+        dayResult = dayResult.map((dayRecord) => {
+          dayRecord.shift = Shift.DAY;
+
+          return dayRecord;
         });
 
         /* night cell */
@@ -181,24 +189,27 @@ const onWorkbookRead = async (workbook) => {
         range.s.c = night_cell;
         range.e.c = night_cell + night_cell - 4;
         new_range = utils.encode_range(range);
-        const nightResult = utils.sheet_to_json(Sheets[sheetName], {
+        let nightResult: any[] = utils.sheet_to_json(Sheets[sheetName], {
           header,
           raw: true,
           defval: null,
           range: new_range,
         });
 
+        nightResult = nightResult.map((dayRecord) => {
+          dayRecord.shift = Shift.NIGHT;
+
+          return dayRecord;
+        });
+
         /* concat json */
-        dayResult.push(...nightResult);
-        jsonResults[time] = dayResult;
+        jsonResults[time] = [...dayResult, ...nightResult];
 
         if (!selectedImportedDate.value) {
           selectedImportedDate.value = time;
         }
       }
 
-      console.log(jsonResults);
-      console.log(productMap);
       const results = [];
       Object.keys(jsonResults).forEach((sheetName) => {
         const arr = jsonResults[sheetName];
@@ -228,6 +239,7 @@ const onWorkbookRead = async (workbook) => {
                   sheetName.split("/")[0];
                 const resultJson = {
                   productCode: key,
+                  shift: obj.shift,
                   alternateProductCode: productMap[key].alt,
                   productName: productMap[key].name,
                   productScheduleAmount: parseInt(obj[key]),
@@ -299,7 +311,7 @@ const onSubmit = async () => {
       for (let index = 0; index < chunkedImportedData.length; index++) {
         const data = chunkedImportedData[index];
 
-        await productApi().createProductSchedule({
+        await productApi().importProductSchedule({
           importTransaction: {
             id: importTransaction.id,
           },
@@ -312,21 +324,21 @@ const onSubmit = async () => {
       setTimeout(() => {
         toast.success("นำเข้าข้อมูลแผลการผลิตสำเร็จ", { timeout: 1000 });
 
-        console.log(
-          importedDate.value[0].value.replaceAll("/", "-"),
-          importedDate.value[importedDate.value.length - 1].value.replaceAll(
-            "/",
-            "-"
-          )
-        );
+        showValue.value = false;
 
-        const splittedFromDate: string = importedDate.value[0].value.split("/");
-        const splittedToDate: string =
-          importedDate.value[importedDate.value.length - 1].value.split("/");
+        const firstImportedDate = importedDate.value[0].value; // dd/MM/yyyy
+        const lastImportedDate =
+          importedDate.value[importedDate.value.length - 1].value; // dd/MM/yyyy
+        const fromDate = firstImportedDate
+          .split("/")
+          .reduceRight((acc, val) => {
+            return acc.length ? `${acc}-${val}` : val;
+          }, "");
+        const toDate = lastImportedDate.split("/").reduceRight((acc, val) => {
+          return acc.length ? `${acc}-${val}` : val;
+        }, "");
 
-        const fromDate: string = `${splittedFromDate[2]}-${splittedFromDate[1]}-${splittedFromDate[0]}`;
-        const toDate: string = `${splittedToDate[2]}-${splittedToDate[1]}-${splittedToDate[0]}`;
-        console.log(fromDate, toDate);
+        clearState();
 
         emit("success", { fromDate, toDate });
       }, 1000);
@@ -342,7 +354,6 @@ const onSubmit = async () => {
   } finally {
     setTimeout(() => {
       submitting.value = false;
-      showValue.value = false;
     }, 1000);
   }
 };
