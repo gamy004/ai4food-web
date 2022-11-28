@@ -47,6 +47,10 @@ const pageManageSwabArea = {
 const pageManageProduct = {
   name: "manage-product",
 };
+
+const pageImportProductSchedule = {
+  name: "import-product-schedule",
+};
 </script>
 
 <template>
@@ -92,7 +96,7 @@ const pageManageProduct = {
         <div class="d-grid gap-2 mt-4">
           <h4 class="font-weight-bold">ระบบบันทึกข้อมูล</h4>
 
-          <!-- <nuxt-link v-slot="{ navigate }" :to="pageManageProduct" custom>
+          <nuxt-link v-slot="{ navigate }" :to="pageManageProduct" custom>
             <button-arrow-right
               v-if="authUser.isInProductionTeam || authUser.isInAdminTeam"
               variant="outline-primary"
@@ -102,9 +106,25 @@ const pageManageProduct = {
             >
               จัดการสินค้าอาหาร
             </button-arrow-right>
-          </nuxt-link> -->
+          </nuxt-link>
 
-          <!-- <nuxt-link v-slot="{ navigate }" :to="pageManageSwabArea" custom>
+          <nuxt-link
+            v-slot="{ navigate }"
+            :to="pageImportProductSchedule"
+            custom
+          >
+            <button-arrow-right
+              v-if="authUser.isInProductionTeam || authUser.isInAdminTeam"
+              variant="outline-primary"
+              size="lg"
+              class="w-100"
+              @click="navigate"
+            >
+              จัดการแผนการผลิต
+            </button-arrow-right>
+          </nuxt-link>
+
+          <nuxt-link v-slot="{ navigate }" :to="pageManageSwabArea" custom>
             <button-arrow-right
               v-if="authUser.isInSwabTeam || authUser.isInAdminTeam"
               variant="outline-primary"
@@ -114,7 +134,7 @@ const pageManageProduct = {
             >
               จัดการจุดตรวจ swab
             </button-arrow-right>
-          </nuxt-link> -->
+          </nuxt-link>
 
           <nuxt-link v-slot="{ navigate }" :to="pageSwabArea" custom>
             <button-arrow-right

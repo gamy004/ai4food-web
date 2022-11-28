@@ -90,9 +90,11 @@ const date = computed({
 //   }
 // });
 
-function onDatepickerCleared() {
+function clearDate() {
   date.value = null;
 }
+
+defineExpose({ clearDate });
 </script>
 
 <template>
@@ -104,6 +106,6 @@ function onDatepickerCleared() {
     :cancel-text="cancelText"
     :select-text="selectText"
     :clearable="clearable"
-    @cleared="onDatepickerCleared"
+    @cleared="clearDate"
   />
 </template>

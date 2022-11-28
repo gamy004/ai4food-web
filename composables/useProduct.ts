@@ -1,6 +1,7 @@
 import { useRepo } from "pinia-orm";
 import Product from "~~/models/Product";
 import ProductSchedule from "~~/models/ProductSchedule";
+import { Shift } from "./useDate";
 
 export type createProductInterface = (
   body: BodyManageProduct
@@ -25,17 +26,28 @@ export type ConnectProduct = {
   id: string;
 };
 
+export type UpdateProductScheduleData = {
+  productScheduleAmount: number;
+  productScheduleDate: string;
+  productScheduleStartedAt: string;
+  productScheduleEndedAt: string;
+  product: ConnectProduct;
+  timezone?: string;
+};
+
 export type ImportProductScheduleData = {
   productScheduleAmount: number;
   productScheduleDate: string;
   productScheduleStartedAt: string;
   productScheduleEndedAt: string;
   product: ConnectProduct;
+  shift: Shift;
 };
 
 export type BodyImportProductSchedule = {
   importTransaction: ConnectImportTransaction;
   records: ImportProductScheduleData[];
+  timezone?: string;
 };
 
 export type ResponseDeletePermission = {
@@ -89,7 +101,13 @@ export const useProduct = () => {
   const getProductScheduleByIds = (ids: string[]): ProductSchedule[] => {
     const query = productScheduleRepo.where("id", ids);
 
-    return query.orderBy("createdAt", "asc").get();
+    return query.get();
+  };
+
+  const getProductScheduleById = (id: string): ProductSchedule => {
+    const query = productScheduleRepo.where("id", id);
+
+    return query.first();
   };
 
   const loadAllProduct = async (): Promise<Product[]> => {
@@ -213,13 +231,54 @@ export const useProduct = () => {
     });
   };
 
-  const createProductSchedule = async (
+  const importProductSchedule = async (
     body: BodyImportProductSchedule
   ): Promise<any> => {
     return new Promise((resolve, reject) => {
-      const { data, error } = post<any>(`/product-schedule/import`, body);
+      const { data, error } = post<any>(`/product-schedule/import`, {
+        ...body,
+        timezone: "Asia/Bangkok", // force sent timezone as "Asia/Bangkok"
+      });
 
       watch(data, resolve);
+
+      watch(error, reject);
+    });
+  };
+
+  const updateProductSchedule = async (
+    id: string,
+    body: UpdateProductScheduleData
+  ): Promise<ProductSchedule> => {
+    return new Promise((resolve, reject) => {
+      const { data, error } = put<ProductSchedule>(`/product-schedule/${id}`, {
+        ...body,
+        timezone: "Asia/Bangkok", // force sent timezone as "Asia/Bangkok"
+      });
+
+      watch(data, (productScheduleData) => {
+        const productSchedule = productScheduleRepo.save(productScheduleData);
+
+        resolve(productSchedule);
+      });
+
+      watch(error, reject);
+    });
+  };
+
+  const deleteProductSchedule = async (
+    id: string
+  ): Promise<ProductSchedule> => {
+    return new Promise((resolve, reject) => {
+      const { data, error } = destroy<ProductSchedule>(
+        `/product-schedule/${id}`
+      );
+
+      watch(data, () => {
+        const productSchedule = productScheduleRepo.destroy(id);
+
+        resolve(productSchedule);
+      });
 
       watch(error, reject);
     });
@@ -235,6 +294,8 @@ export const useProduct = () => {
     getProductByCode,
 
     getProductScheduleByIds,
+
+    getProductScheduleById,
     api() {
       return {
         loadAllProduct,
@@ -243,7 +304,9 @@ export const useProduct = () => {
         createProduct,
         deleteProduct,
         loadProductSchedule,
-        createProductSchedule,
+        importProductSchedule,
+        updateProductSchedule,
+        deleteProductSchedule,
       };
     },
   };
