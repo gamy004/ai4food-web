@@ -15,7 +15,6 @@ export const useImport = () => {
 
   const createTransaction = (body: BodyImportTransaction): Promise<any> => {
     return new Promise((resolve, reject) => {
-      console.log(body);
       const { data, error } = post<any>(`/import-transaction`, {
         ...body,
       });
