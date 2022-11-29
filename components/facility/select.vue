@@ -13,6 +13,7 @@ export interface Props {
   disabled?: boolean;
   required?: boolean;
   showLabel?: boolean;
+  onlySwab?: boolean;
   modelValue?: FacilitySelectData | null;
   defaultValue?: any | null;
 }

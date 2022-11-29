@@ -139,8 +139,6 @@ const showValue = computed({
 const actionText = computed(() => (idValue.value ? "อัพเดต" : "เพิ่ม"));
 
 const clearState = () => {
-  console.log("clear state!!!");
-
   resetValidation();
 
   error.value = null;
@@ -150,8 +148,6 @@ const clearState = () => {
   form.productScheduleAmount = null;
   form.productScheduleStartedAt = null;
   form.productScheduleEndedAt = null;
-
-  console.log(form);
 };
 
 const onCancel = () => {
