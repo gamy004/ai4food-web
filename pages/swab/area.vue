@@ -7,6 +7,7 @@ definePageMeta({
 });
 
 const route = useRoute();
+
 const { today, onlyDate, dateToShift, stringToShift } = useDate();
 
 const currentDate = today();
@@ -17,6 +18,11 @@ const form = reactive({
   facilityId: (route.query.facilityId as string) || null,
   mainSwabAreaId: (route.query.mainSwabAreaId as string) || null,
   swabPeriodId: (route.query.swabPeriodId as string) || null,
+});
+
+const pagination = usePagination({
+  perPage: parseInt(route.query.perPage as string) || 20,
+  currentPage: parseInt(route.query.currentPage as string) || 1,
 });
 </script>
 
@@ -33,6 +39,7 @@ const form = reactive({
           facility: true,
           mainSwabArea: true,
         }"
+        :pagination-state="pagination.$state"
         show-shift-all
       />
 
@@ -44,6 +51,7 @@ const form = reactive({
         :main-swab-area-id="form.mainSwabAreaId"
         :swab-period-id="form.swabPeriodId"
         :shift="form.shift"
+        :pagination="pagination"
       />
     </div>
   </div>

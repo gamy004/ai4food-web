@@ -15,6 +15,7 @@ export interface Props {
   autoFetch?: boolean;
   isStatic?: boolean;
   attachToBody?: boolean;
+  disabled?: boolean;
 }
 
 const toast = useToast();
@@ -31,6 +32,7 @@ const props = withDefaults(defineProps<Props>(), {
   autoFetch: true,
   isStatic: false,
   attachToBody: false,
+  disabled: false,
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -134,6 +136,7 @@ onBeforeMount(async () => {
     label="bacteriaSpecieName"
     :get-option-label="getOptionLabel"
     :loading="loading || submitting"
+    :disabled="disabled"
     :reduce="
       ({ id, bacteriaSpecieName, bacteriaId }) =>
         id ? { id, bacteriaId } : { bacteriaSpecieName }

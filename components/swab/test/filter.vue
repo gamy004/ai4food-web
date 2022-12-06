@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import CarbonClose from "~icons/carbon/close";
 import CarbonSearch from "~icons/carbon/search";
 import { useRoute } from "vue-router";
 import { BooleanState } from "~~/composables/useBooleanState";
 import { ColState } from "~~/composables/useColState";
 import { useHiddenState } from "~~/composables/useHiddenState";
 import { FormData as SwabFilterFormData } from "../filter.vue";
+import { PaginationState } from "~~/composables/usePagination";
 
 export interface FormData extends SwabFilterFormData {
   swabTestCode?: string;
@@ -40,6 +42,7 @@ export interface Props {
     | "mainSwabArea"
     | "swabTestCode"
   >;
+  paginationState?: PaginationState;
   // invalidState?: FormInvalidData
 }
 
@@ -49,7 +52,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(["update:modelValue"]);
 const route = useRoute();
-const { updateQueryParams } = useQueryParams();
+const { updateQueryParams, getCurrentQuery } = useQueryParams();
 const swabTestHiddenState = computed(() => useHiddenState(props.hiddenState));
 const swabTestFilterColState = useColState(props.colState);
 const form = computed({
@@ -58,6 +61,26 @@ const form = computed({
 });
 
 const swabTestCode = ref(form.value.swabTestCode || "");
+
+const getUpdatedQuery = () => {
+  let updatedQuery: any = { ...getCurrentQuery() };
+
+  if (updatedQuery.currentPage && updatedQuery.currentPage !== "1") {
+    updatedQuery = {
+      ...updatedQuery,
+      currentPage: 1,
+    };
+  }
+
+  return updatedQuery;
+};
+
+const updatePaginateState = () => {
+  if (props.paginationState && props.paginationState.currentPage !== 1) {
+    props.paginationState.currentPage = 1;
+  }
+};
+
 const formSwabTestCode = computed({
   get: () => {
     return swabTestCode.value;
@@ -69,17 +92,37 @@ const formSwabTestCode = computed({
 
 const onSearchSwabTestCode = () => {
   const { value } = swabTestCode;
-  const updatedQuery = { ...route.query };
 
   if (value && value.length) {
-    form.value.swabTestCode = value;
-    updatedQuery.swabTestCode = value;
+    onUpdateSwabTestCode(value);
   } else {
-    form.value.swabTestCode = null;
+    onClearSwabTestCode();
+  }
+};
 
-    if (updatedQuery.swabTestCode) {
-      delete updatedQuery.swabTestCode;
-    }
+const onUpdateSwabTestCode = (value) => {
+  let updatedQuery = getUpdatedQuery();
+
+  updatePaginateState();
+
+  form.value.swabTestCode = value;
+
+  updatedQuery.swabTestCode = value;
+
+  updateQueryParams(updatedQuery);
+};
+
+const onClearSwabTestCode = () => {
+  let updatedQuery = getUpdatedQuery();
+
+  updatePaginateState();
+
+  form.value.swabTestCode = null;
+
+  swabTestCode.value = "";
+
+  if (updatedQuery.swabTestCode) {
+    delete updatedQuery.swabTestCode;
   }
 
   updateQueryParams(updatedQuery);
@@ -94,6 +137,7 @@ const onSearchSwabTestCode = () => {
           :hidden-state="hiddenState"
           :clearable-state="clearableState"
           :col-state="colState"
+          :pagination-state="paginationState"
           :disabled="disabled"
           show-shift-all
           v-model="form"
@@ -118,6 +162,16 @@ const onSearchSwabTestCode = () => {
               />
 
               <b-input-group-append>
+                <b-input-group-text v-if="form.swabTestCode" class="bg-light">
+                  <b-button
+                    variant="link"
+                    class="p-0"
+                    @click="onClearSwabTestCode"
+                  >
+                    <CarbonClose class="text-dark" />
+                  </b-button>
+                </b-input-group-text>
+
                 <b-input-group-text class="bg-light">
                   <b-button
                     variant="link"

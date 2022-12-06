@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { required } from "@vuelidate/validators";
+import { maxLength, required } from "@vuelidate/validators";
 import { Ref } from "vue";
 import { useToast } from "vue-toastification";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
@@ -40,8 +40,8 @@ const form = reactive({
 
 const validationRules = {
   productName: { required, $lazy: true },
-  productCode: { required, $lazy: true },
-  alternateProductCode: { required, $lazy: true },
+  productCode: { required, maxLength: maxLength(8), $lazy: true },
+  alternateProductCode: { required, maxLength: maxLength(8), $lazy: true },
 };
 
 const { validate, isInvalid, isFormInvalid, resetValidation } = useValidation(
@@ -55,8 +55,14 @@ const productNameRequiredState = computed(() =>
 const productCodeRequiredState = computed(() =>
   isFormInvalid("productCode", ["required"])
 );
+const productCodeMaxLengthState = computed(() =>
+  isFormInvalid("productCode", ["maxLength"])
+);
 const alternateProductCodeRequiredState = computed(() =>
   isFormInvalid("alternateProductCode", ["required"])
+);
+const alternateProductCodeMaxLengthState = computed(() =>
+  isFormInvalid("alternateProductCode", ["maxLength"])
 );
 
 const productNameExistsState = computed(() =>
@@ -78,8 +84,14 @@ const formInvalidState = computed(() => {
 
   if (isInvalid.value) {
     isProductNameInvalid = productNameRequiredState.value;
-    isProductCodeInvalid = productCodeRequiredState.value;
-    isAlternateProductCodeInvalid = alternateProductCodeRequiredState.value;
+    isProductCodeInvalid = isFormInvalid("productCode", [
+      "required",
+      "maxLength",
+    ]);
+    isAlternateProductCodeInvalid = isFormInvalid("alternateProductCode", [
+      "required",
+      "maxLength",
+    ]);
   }
 
   if (error.value) {
@@ -295,10 +307,17 @@ watch(
               </b-form-invalid-feedback>
 
               <b-form-invalid-feedback
-                v-if="isInvalid"
+                v-if="isInvalid && !productCodeRequiredState"
                 :state="productCodeRequiredState"
               >
                 กรุณากรอกรหัสสินค้า
+              </b-form-invalid-feedback>
+
+              <b-form-invalid-feedback
+                v-if="isInvalid && !productCodeMaxLengthState"
+                :state="productCodeMaxLengthState"
+              >
+                รหัสสินค้ายาวเกินกว่า 8 ตัวอักษร
               </b-form-invalid-feedback>
             </b-form-group>
           </b-col>
@@ -357,10 +376,17 @@ watch(
               </b-form-invalid-feedback>
 
               <b-form-invalid-feedback
-                v-if="isInvalid"
+                v-if="isInvalid && !alternateProductCodeRequiredState"
                 :state="alternateProductCodeRequiredState"
               >
                 กรุณากรอกรหัสสินค้าสำรอง
+              </b-form-invalid-feedback>
+
+              <b-form-invalid-feedback
+                v-if="isInvalid && !alternateProductCodeMaxLengthState"
+                :state="alternateProductCodeMaxLengthState"
+              >
+                รหัสสินค้าสำรองยาวเกินกว่า 8 ตัวอักษร
               </b-form-invalid-feedback>
             </b-form-group>
           </b-col>

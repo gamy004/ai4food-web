@@ -11,7 +11,11 @@ export const useValidation = (validationRules, form) => {
 
   const isFormInvalid = (field, rules = []) => {
     return isInvalid.value
-      ? !rules.some((rule) => v$.value[field][rule].$invalid)
+      ? !rules.some((rule) => {
+          // console.log(field, rule, v$.value[field][rule].$invalid);
+
+          return v$.value[field][rule].$invalid;
+        })
       : undefined;
   };
 

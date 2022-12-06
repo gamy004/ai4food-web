@@ -3,21 +3,22 @@ import { useToast } from "vue-toastification";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import checkLg from "~icons/bi/check-lg";
 import crossIcon from "~icons/akar-icons/cross";
-import { ShiftMapper } from "~~/composables/useDate";
 import SwabAreaHistory from "~~/models/SwabAreaHistory";
 import { FormData as SwabTestFilterFormData } from "~~/components/swab/test/filter.vue";
+import { Pagination } from "~~/composables/usePagination";
+import { LoadAllLabSwabAreaHistoryData } from "~~/composables/useLab";
 
 export interface Props {
   modelValue: SwabTestFilterFormData;
-  perPage?: number;
-  currentPage?: number;
+  pagination: Pagination;
   editSpecie?: boolean;
+  readOnly?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  perPage: 100,
-  currentPage: 1,
+  pagination: () => usePagination({ perPage: 20, currentPage: 1 }),
   editSpecie: false,
+  readOnly: false,
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -36,11 +37,6 @@ const {
   getBacteriaStateBySwabTestId,
   api: labApi,
 } = useLab();
-
-const pagination = usePagination({
-  perPage: props.perPage,
-  currentPage: props.currentPage,
-});
 
 const form = computed({
   get: () => props.modelValue,
@@ -65,10 +61,16 @@ const tableFields = computed(() => {
     },
     {
       key: "action",
-      label: props.editSpecie ? "ผลตรวจสายพันธุ์เชื้อ" : "ผลตรวจเชื้อ",
+      label:
+        props.editSpecie || props.readOnly
+          ? "ผลตรวจสายพันธุ์เชื้อ"
+          : "ผลตรวจเชื้อ",
       thClass: "text-center",
       tdClass: "text-center",
-      thStyle: props.editSpecie ? { width: "40%" } : {},
+      thStyle:
+        props.editSpecie || props.readOnly
+          ? { width: props.readOnly ? "30%" : "40%" }
+          : {},
     },
   ];
 
@@ -124,28 +126,36 @@ const displayData = computed(() => {
   });
 });
 
-const paginatedData = computed(() => pagination.paginate(displayData.value));
+const paginatedData = computed(() =>
+  props.pagination.paginate(displayData.value)
+);
 
 const fetch = async function fetch(form) {
-  hasData.value = true;
-  error.value = false;
   loading.value = true;
+  error.value = false;
+  hasData.value = true;
   swabAreaHistoryIds.value = [];
 
+  const params: LoadAllLabSwabAreaHistoryData = { ...form.value };
+
+  if (props.editSpecie) {
+    params.hasBacteria = true;
+  }
+
   try {
-    let data: SwabAreaHistory[] = await labApi().loadAllLabSwabAreaHistory({
-      ...form.value,
-    });
+    let data: SwabAreaHistory[] = await labApi().loadAllLabSwabAreaHistory(
+      params
+    );
+
+    // if (props.editSpecie) {
+    //   data = data.filter((record) => {
+    //     const stateBacteria = getBacteriaStateBySwabTestId(record.swabTestId);
+
+    //     return stateBacteria;
+    //   });
+    // }
 
     if (data && data.length) {
-      if (props.editSpecie) {
-        data = data.filter((record) => {
-          const stateBacteria = getBacteriaStateBySwabTestId(record.swabTestId);
-
-          return stateBacteria;
-        });
-      }
-
       swabAreaHistoryIds.value = data.map(({ id }) => id);
     } else {
       hasData.value = false;
@@ -170,62 +180,71 @@ watch(() => form, fetch, { immediate: true, deep: true });
       <line-md-loading-twotone-loop :style="{ fontSize: '2em' }" />
     </div>
 
-    <div v-if="hasData">
-      <b-table
-        id="swabTestAreaTable"
-        class="pb-5"
-        hover
-        small
-        responsive
-        :items="paginatedData"
-        :fields="tableFields"
-      >
-        <template #cell(shift)="{ item }">
-          {{ shiftToAbbreviation(item.shift) }}
-        </template>
+    <div v-else>
+      <div v-if="hasData">
+        <b-table
+          id="swabTestAreaTable"
+          class="pb-5"
+          hover
+          small
+          responsive
+          :items="paginatedData"
+          :fields="tableFields"
+        >
+          <template #cell(shift)="{ item }">
+            {{ shiftToAbbreviation(item.shift) }}
+          </template>
 
-        <template #cell(status)="{ item }">
-          <line-md-loading-twotone-loop
-            v-if="submittingSwabTestId === item.swabTestId"
-            :style="{ fontSize: '1.25em' }"
-          />
+          <template #cell(status)="{ item }">
+            <line-md-loading-twotone-loop
+              v-if="submittingSwabTestId === item.swabTestId"
+              :style="{ fontSize: '1.25em' }"
+            />
 
-          <badge-bacteria-status
-            v-else
-            :swab-test="item.swabTest"
-          ></badge-bacteria-status>
-        </template>
+            <badge-bacteria-status
+              v-else
+              :swab-test="item.swabTest"
+            ></badge-bacteria-status>
+          </template>
 
-        <template #cell(action)="{ item }">
-          <swab-test-form-select-bacteria-specie
-            v-if="editSpecie"
-            :swab-test-id="item.swabTestId"
-            :auto-fetch="false"
-            is-static
-            attach-to-body
-          />
+          <template #cell(action)="{ item }">
+            <div v-if="readOnly">
+              <badge-bacteria-specie
+                :swab-test-id="item.swabTestId"
+              ></badge-bacteria-specie>
+            </div>
 
-          <swab-test-form-radio-bacteria
-            v-else
-            :swab-test-id="item.swabTestId"
-            v-model="submittingSwabTestId"
-          ></swab-test-form-radio-bacteria>
-        </template>
-      </b-table>
+            <div v-else>
+              <swab-test-form-select-bacteria-specie
+                v-if="editSpecie"
+                :swab-test-id="item.swabTestId"
+                :auto-fetch="false"
+                is-static
+                attach-to-body
+              />
 
-      <b-pagination
-        v-model="pagination.$state.currentPage"
-        align="center"
-        :total-rows="displayData.length"
-        :per-page="pagination.$state.perPage"
-        aria-controls="result-table"
-      />
+              <swab-test-form-radio-bacteria
+                v-else
+                :swab-test-id="item.swabTestId"
+                v-model="submittingSwabTestId"
+              ></swab-test-form-radio-bacteria>
+            </div>
+          </template>
+        </b-table>
+
+        <base-pagination
+          v-model="pagination.$state.currentPage"
+          :per-page="pagination.$state.perPage"
+          :total-rows="displayData.length"
+          aria-controls="swabTestAreaTable"
+        />
+      </div>
+
+      <b-card v-else bg-variant="light">
+        <b-card-text class="text-center">
+          ไม่พบข้อมูลรายการจุดตรวจ Swab
+        </b-card-text>
+      </b-card>
     </div>
-
-    <b-card v-else bg-variant="light">
-      <b-card-text class="text-center">
-        ไม่พบข้อมูลรายการจุดตรวจ Swab
-      </b-card-text>
-    </b-card>
   </div>
 </template>
