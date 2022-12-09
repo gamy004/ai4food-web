@@ -1,3 +1,4 @@
+
 <script lang="ts" setup>
 import { useToast } from "vue-toastification";
 import UploadIcon from "~icons/carbon/upload";
@@ -17,6 +18,12 @@ const {
   getProductScheduleByIds,
   api: productApi,
 } = useProduct();
+const {
+  api: facilityApi,
+} = useFacility();
+const {
+  api: cleaningApi
+} = useCleaning();
 const { today, onlyDate, formatThLocale, formatTimeThLocale } = useDate();
 const currentDate = today();
 const form = reactive({
@@ -110,7 +117,7 @@ const fetch = async (formValue) => {
   }
 
   try {
-    await productApi().loadAllProduct();
+    await facilityApi().loadAllRoom();
 
     const productSchedules = await productApi().loadProductSchedule(params);
 
@@ -120,7 +127,7 @@ const fetch = async (formValue) => {
       hasResult.value = false;
     }
   } catch (error) {
-    toast.error("ไม่สามรถโหลดข้อมูลแผนการผลิตได้ กรุณาลองใหม่อีกครั้ง", {
+    toast.error("ไม่สามรถโหลดข้อมูลเวลาการล้างไลน์ได้ กรุณาลองใหม่อีกครั้ง", {
       timeout: 1000,
     });
   }

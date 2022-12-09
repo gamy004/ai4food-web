@@ -1,6 +1,7 @@
 import { useRepo } from "pinia-orm";
 import Facility from "~~/models/Facility";
 import FacilityItem from "~~/models/FacilityItem";
+import Room from "~~/models/Room"
 
 export interface ParamLoadAllFacilityItem {
   facilityId?: string;
@@ -10,6 +11,7 @@ export const useFacility = () => {
   const { get } = useRequest();
   const facilityRepo = useRepo(Facility);
   const facilityItemRepo = useRepo(FacilityItem);
+  const roomRepo = useRepo(Room);
 
   const loadAllFacility = async (): Promise<Facility[]> => {
     return new Promise((resolve, reject) => {
@@ -73,6 +75,24 @@ export const useFacility = () => {
     });
   };
 
+  const loadAllRoom = async (): Promise<Room[]> => {
+    return new Promise((resolve, reject) => {
+      const { data, error } = get<Room[]>("/room");
+
+      watch(data, (roomData) => {
+        const rooms = roomRepo.save(roomData);
+
+        resolve(rooms);
+      });
+
+      watch(error, (e) => {
+        console.log(e);
+
+        reject("Load room failed");
+      });
+    });
+  };
+
   const getFacilityByIds = (ids: string[]): Facility[] => {
     const query = facilityRepo.where("id", ids);
 
@@ -110,6 +130,13 @@ export const useFacility = () => {
     return query.first();
   };
 
+  const getRoomByName = (name: string): Room | null => {
+    const query = roomRepo.where("roomName", name);
+    console.debug("getRoomByName: ", name);
+
+    return query.first();
+  };
+
   return {
     getFacilityByIds,
 
@@ -121,11 +148,14 @@ export const useFacility = () => {
 
     getFacilityItemById,
 
+    getRoomByName,
+
     api() {
       return {
         loadAllFacility,
         loadAllSwabFacility,
         loadAllFacilityItem,
+        loadAllRoom,
       };
     },
   };

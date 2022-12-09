@@ -16,7 +16,8 @@ const toast = useToast();
 const { readFile, workbook } = useXlsx();
 const { getAuth } = useAuth();
 const { api: importApi } = useImport();
-const { getProductByCode, api: productApi } = useProduct();
+const { api: cleaningApi } = useCleaning();
+const { getRoomByName } = useFacility();
 
 const props = withDefaults(defineProps<Props>(), {
   showValue: false,
@@ -36,11 +37,11 @@ const importedData = ref(null);
 const user = getAuth();
 
 const keys_to_keep = [
-  "productScheduleAmount",
-  "productScheduleDate",
-  "productScheduleStartedAt",
-  "productScheduleEndedAt",
-  "product",
+  "cleaningRoomDate",
+  "cleaningRoomStartedAt",
+  "cleaningRoomEndedAt",
+  "shift",
+  "room",
 ];
 
 const redux = (array) =>
@@ -59,10 +60,11 @@ const showValue = computed({
 
 const tableFields = computed(() => {
   return [
-    { key: "room_id", label: "ห้อง", thStyle: { width: "30%" } },
-    { key: "cleaning_date", label: "วันที่ล้างไลน์", thStyle: { width: "10%" } },
-    { key: "cleaning_started_at", label: "เวลาเริ่ม", thStyle: { width: "5%" } },
-    { key: "cleaning_end_at", label: "เวลาสิ้นสุด", thStyle: { width: "5%" } },
+    { key: "roomName", label: "ห้อง", thStyle: { width: "30%" } },
+    { key: "cleaningRoomDate", label: "วันที่ล้างไลน์", thStyle: { width: "10%" } },
+    { key: "cleaningRoomStartedAt", label: "เวลาเริ่ม", thStyle: { width: "5%" } },
+    { key: "cleaningRoomEndedAt", label: "เวลาสิ้นสุด", thStyle: { width: "5%" } },
+    { key: "shift", label: "กะ", thStyle: { width: "5%" } },
 
     // { key: "productScheduleStartedAt", label: "เวลาเริ่ม", thStyle: { width: "5%" } },
     // { key: "productScheduleEndedAt", label: "เวลาสิ้นสุด", thStyle: { width: "5%" } },
@@ -167,15 +169,35 @@ const onWorkbookRead = async (workbook) => {
           try {
             if (history[header[5]] !== undefined && history[header[5]] !== null) {
               // for each room
-              console.debug(history[header[5]], history.Room);
+              // console.debug(history[header[5]], history.Room);
+              const room = getRoomByName(history.Room);
               timeHdr.forEach((t) => {
                 const ts = t.split("_");
-                if (["เริ่ม"].includes(ts[2])) {
+                const date =
+                  ts[0].split("/")[2] +
+                  "-" +
+                  (ts[0].split("/")[1].length > 1 ? ts[0].split("/")[1] : "0" + ts[0].split("/")[1]) +
+                  "-" +
+                  (ts[0].split("/")[0].length > 1 ? ts[0].split("/")[0] : "0" + ts[0].split("/")[0]);
+                if (["เริ่ม"].includes(ts[2]) && room) {
+                  console.debug("roomName: ", room.roomName);
                   jsonResults.push({
-                    room_id: history.Room,
-                    cleaning_date: ts[0],
-                    cleaning_started_at: history[t],
-                    cleaning_end_at: history[ts[0] + "_" + ts[1] + "_เสร็จ"]
+                    room: { id: room.id },
+                    roomName: room.roomName,
+                    cleaningRoomDate: date,
+                    cleaningRoomStartedAt: history[t].toFixed(2).split(".")[0] === "24"
+                      ? "00:00:00"
+                      : history[t].toFixed(2).split(".")[0] +
+                        ":" +
+                        history[t].toFixed(2).split(".")[1] +
+                        ":00",
+                    cleaningRoomEndedAt: history[ts[0] + "_" + ts[1] + "_เสร็จ"].toFixed(2).split(".")[0] === "24"
+                      ? "23:59:59"
+                      : history[ts[0] + "_" + ts[1] + "_เสร็จ"].toFixed(2).split(".")[0] +
+                        ":" +
+                        history[ts[0] + "_" + ts[1] + "_เสร็จ"].toFixed(2).split(".")[1] +
+                        ":00",
+                    shift: ts[1],
                   });
                 }
               });
@@ -216,7 +238,7 @@ const onSubmit = async () => {
   try {
     if (importedData.value && importedData.value.length) {
       importTransaction = await importApi().createTransaction({
-        importType: "product_schedule",
+        importType: "cleaning_room_history",
         importSource: "web",
         importedFileUrl: "-",
         importedFileName: "-",
@@ -230,7 +252,7 @@ const onSubmit = async () => {
       for (let index = 0; index < chunkedImportedData.length; index++) {
         const data = chunkedImportedData[index];
 
-        await productApi().createProductSchedule({
+        await cleaningApi().ImportCleaningRoomHistory({
           importTransaction: {
             id: importTransaction.id,
           },
@@ -267,7 +289,9 @@ const onSubmit = async () => {
       importApi().cancelTransaction(importTransaction.id);
     }
 
-    toast.error("นำเข้าข้อมูลแผลการผลิตไม่สำเร็จ", { timeout: 1000 });
+    toast.error("นำเข้าข้อมูลเวลาการล้างไลน์ไม่สำเร็จ", { timeout: 1000 });
+
+    console.debug("error", error);
 
     emit("error", error);
   } finally {

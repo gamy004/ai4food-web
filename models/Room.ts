@@ -1,7 +1,7 @@
 import { Model } from "pinia-orm";
 import { Attr, Uid } from "pinia-orm/dist/decorators";
 
-export default class room extends Model {
+export default class Room extends Model {
     static entity = "room";
 
     @Uid()
