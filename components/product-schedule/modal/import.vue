@@ -202,6 +202,8 @@ const onWorkbookRead = async (workbook) => {
           return dayRecord;
         });
 
+        console.log(dayResult, nightResult);
+
         /* concat json */
         jsonResults[time] = [...dayResult, ...nightResult];
 
@@ -210,14 +212,14 @@ const onWorkbookRead = async (workbook) => {
         }
       }
 
-      const results = [];
+      console.log(jsonResults);
+
+      let results = [];
+
       Object.keys(jsonResults).forEach((sheetName) => {
         const arr = jsonResults[sheetName];
 
-        importedDate.value.push({
-          value: sheetName,
-          text: `${sheetName} (${arr.length} รายการ)`,
-        });
+        const sheetResult = [];
 
         arr.forEach((obj) => {
           Object.keys(obj).forEach((key) => {
@@ -237,12 +239,15 @@ const onWorkbookRead = async (workbook) => {
                   sheetName.split("/")[1] +
                   "-" +
                   sheetName.split("/")[0];
+
+                console.log(obj[key]);
+
                 const resultJson = {
                   productCode: key,
                   shift: obj.shift,
                   alternateProductCode: productMap[key].alt,
                   productName: productMap[key].name,
-                  productScheduleAmount: parseInt(obj[key]),
+                  productScheduleAmount: Math.ceil(parseFloat(obj[key])),
                   date: sheetName,
                   productScheduleDate: date,
                   startTime: startTime,
@@ -265,11 +270,19 @@ const onWorkbookRead = async (workbook) => {
                     id: product.id,
                   },
                 };
-                results.push(resultJson);
+
+                sheetResult.push(resultJson);
               }
             }
           });
         });
+
+        importedDate.value.push({
+          value: sheetName,
+          text: `${sheetName} (${sheetResult.length} รายการ)`,
+        });
+
+        results = [...results, ...sheetResult];
       });
 
       hasImportedData.value = true;
