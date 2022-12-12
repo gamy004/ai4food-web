@@ -9,7 +9,7 @@ const route = useRoute();
 const { isAuthenticated, authUser } = useAuth();
 
 const pageExportSwabPlan = {
-  name: "export-swab-area",
+  name: "export-swab-report-area",
 };
 
 const pageReportSwab = {
