@@ -25,8 +25,12 @@ export const usePagination = (options: PaginationState) => {
     });
   };
 
-  const resetPage = () => {
-    $state.currentPage = 1;
+  const resetPage = (additionalParams = {}) => {
+    const { getCurrentQuery, updateQueryParams } = useQueryParams();
+
+    if ($state.currentPage !== 1) {
+      $state.currentPage = 1;
+    }
   };
 
   return {
