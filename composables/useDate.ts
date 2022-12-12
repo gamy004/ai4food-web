@@ -26,6 +26,11 @@ export interface TimePickerTimeInterface {
   seconds: number;
 }
 
+export interface DateRangeInterface {
+  from: string | null;
+  to: string | null;
+}
+
 export type TimePickerData = {
   hours: number;
   minutes: number;
@@ -139,6 +144,27 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     return format(mockDate, formatType, { locale: th });
   }
 
+  function updateDateRangeQueryParams(
+    dateRangeValue: DateRangeInterface
+  ): void {
+    const { getCurrentQuery, updateQueryParams } = useQueryParams();
+
+    const fromDate = dateRangeValue.from ? onlyDate(dateRangeValue.from) : null;
+
+    const toDate = dateRangeValue.to ? onlyDate(dateRangeValue.to) : null;
+
+    const updatedQuery = { ...getCurrentQuery() };
+
+    if (fromDate) {
+      updatedQuery.from = fromDate;
+      updatedQuery.to = !toDate ? fromDate : toDate;
+    }
+
+    updateQueryParams({
+      ...updatedQuery,
+    });
+  }
+
   return {
     today,
     onlyDate,
@@ -152,5 +178,6 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     shiftToAbbreviation,
     formatThLocale,
     formatTimeThLocale,
+    updateDateRangeQueryParams,
   };
 };
