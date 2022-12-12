@@ -6,7 +6,7 @@ export const useXlsx = () => {
   return {
     workbook,
 
-    async readFile (e) {
+    async readFile(e) {
       const file = e.target.files[0];
 
       const data = await file.arrayBuffer();
@@ -17,7 +17,7 @@ export const useXlsx = () => {
       return workbook;
     },
 
-    readSheetJson (sheetName) {
+    readSheetJson(sheetName) {
       if (workbook && workbook.value) {
         const { Sheets = {} } = workbook.value;
 
@@ -25,6 +25,28 @@ export const useXlsx = () => {
           return utils.sheet_to_json(Sheets[sheetName]);
         }
       }
-    }
+    },
+
+    setWidthColumn(ws, header, data, fixedLengthHeader = {}) {
+      const objectMaxLength = header.map(
+        (h) => fixedLengthHeader[h] || h.length
+      );
+
+      for (let i = 0; i < data.length; i++) {
+        header.forEach((key, j) => {
+          if (!fixedLengthHeader[key]) {
+            const valueString = data[i][key];
+            objectMaxLength[j] =
+              objectMaxLength[j] >= valueString.length
+                ? objectMaxLength[j]
+                : valueString.length;
+          }
+        });
+      }
+
+      ws["!cols"] = objectMaxLength.map((obj) => ({ width: obj }));
+
+      return ws;
+    },
   };
 };

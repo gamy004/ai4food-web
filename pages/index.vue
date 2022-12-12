@@ -10,6 +10,9 @@ const { isAuthenticated, authUser } = useAuth();
 
 const pageExportSwabPlan = {
   name: "export-swab-report",
+  query: {
+    view: "area",
+  },
 };
 
 const pageReportSwab = {
@@ -76,7 +79,7 @@ const pageImportProductSchedule = {
               class="w-100"
               @click="navigate"
             >
-              รายการจุดตรวจ swab
+              ออกรายงานจุด swab
             </button-arrow-right>
           </nuxt-link>
 
