@@ -1,17 +1,15 @@
 <script lang="ts" setup>
 import Datepicker from "@vuepic/vue-datepicker";
-
-export interface ModelValue {
-  from: string | null;
-  to: string | null;
-}
+import { DateRangeInterface } from "~~/composables/useDate";
 
 export interface Props {
   cancelText?: string;
   selectText?: string;
   locale?: string;
+  placeholder?: string;
   clearable?: boolean;
-  modelValue?: ModelValue | null;
+  autoApply?: boolean;
+  modelValue?: DateRangeInterface | null;
 }
 
 const { onlyDate, parseDate } = useDate();
@@ -22,7 +20,9 @@ const props = withDefaults(defineProps<Props>(), {
   cancelText: "ยกเลิก",
   selectText: "ยืนยัน",
   locale: "en",
+  placeholder: "",
   clearable: false,
+  autoApply: false,
   modelValue: null,
 });
 
@@ -101,10 +101,12 @@ defineExpose({ clearDate });
   <Datepicker
     v-model="date"
     range
+    :placeholder="placeholder"
     :enable-time-picker="false"
     :locale="locale"
     :cancel-text="cancelText"
     :select-text="selectText"
+    :auto-apply="autoApply"
     :clearable="clearable"
     @cleared="clearDate"
   />

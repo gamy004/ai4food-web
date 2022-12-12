@@ -5,6 +5,11 @@ import CarbonEdit from "~icons/carbon/edit";
 import CarbonTrashCan from "~icons/carbon/trash-can";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import { LoadProductScheduleParams } from "~~/composables/useProduct";
+import { DateRangeInterface } from "~~/composables/useDate";
+
+export type FormType = {
+  date: DateRangeInterface | null;
+};
 
 definePageMeta({
   title: "Ai4FoodSafety - Manage Product",
@@ -19,10 +24,15 @@ const {
   getProductScheduleById,
   api: productApi,
 } = useProduct();
-const { updateQueryParams, getCurrentQuery } = useQueryParams();
-const { today, onlyDate, formatThLocale, formatTimeThLocale } = useDate();
+const {
+  today,
+  onlyDate,
+  formatThLocale,
+  formatTimeThLocale,
+  updateDateRangeQueryParams,
+} = useDate();
 const currentDate = today();
-const form = reactive({
+const form = reactive<FormType>({
   date: {
     from: (route.query.from as string) || onlyDate(currentDate),
     to: (route.query.to as string) || onlyDate(currentDate),
@@ -168,20 +178,7 @@ watch(
 watch(
   () => form.date,
   (formDateValue) => {
-    const fromDate = formDateValue.from ? onlyDate(formDateValue.from) : null;
-
-    const toDate = formDateValue.to ? onlyDate(formDateValue.to) : null;
-
-    const updatedQuery = { ...getCurrentQuery() };
-
-    if (fromDate) {
-      updatedQuery.from = fromDate;
-      updatedQuery.to = !toDate ? fromDate : toDate;
-    }
-
-    updateQueryParams({
-      ...updatedQuery,
-    });
+    updateDateRangeQueryParams(formDateValue);
   },
   { deep: true }
 );

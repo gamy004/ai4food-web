@@ -2,13 +2,19 @@ import FacilityItem from "./FacilityItem";
 import SwabAreaHistory from "./SwabAreaHistory";
 import SwabArea from "./SwabArea";
 import SwabPeriod from "./SwabPeriod";
+import SwabProductHistory from "./SwabProductHistory";
+import Facility from "./Facility";
 
 export default class SwabPlan {
-  facilityItems!: FacilityItem;
+  facilities!: Facility[];
+
+  facilityItems!: FacilityItem[];
 
   swabAreaHistories!: SwabAreaHistory[];
 
-  swabAreas!: SwabArea;
+  swabAreas!: SwabArea[];
 
-  swabPeriods!: SwabPeriod;
+  swabPeriods!: SwabPeriod[];
+
+  swabProductHistories!: SwabProductHistory[];
 }
