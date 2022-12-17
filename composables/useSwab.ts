@@ -673,7 +673,7 @@ export const useSwab = () => {
     });
   };
 
-  const updateSwabPlabById = (
+  const updateSwabPlanById = (
     swabAreaHistoryId: string,
     body: BodyUpdateSwabPlanByIdData
   ): Promise<any> => {
@@ -904,7 +904,7 @@ export const useSwab = () => {
         loadSwabPlanForUpdateById,
         loadSwabProductHistory,
         loadSwabProductHistoryById,
-        updateSwabPlabById,
+        updateSwabPlanById,
         updateLabTestById,
         createSwabProductHistory,
         updateSwabProductHistory,

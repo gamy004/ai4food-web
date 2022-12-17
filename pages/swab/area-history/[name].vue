@@ -67,8 +67,16 @@ const haveSomeImages = (value) =>
     : true;
 
 const validationRules = {
-  swabAreaSwabedAt: { required, $lazy: true },
-  facilityItem: { required, $lazy: true },
+  swabAreaSwabedAt: {
+    // required,
+    requiredIfMainArea: requiredIf(() => swabArea.value.isMainArea),
+    $lazy: true,
+  },
+  facilityItem: {
+    // required,
+    requiredIfMainArea: requiredIf(() => swabArea.value.isMainArea),
+    $lazy: true,
+  },
   productLot: {
     requiredIfShouldRecordProduct: requiredIf(
       () => swabArea.value.shouldRecordProduct
@@ -316,7 +324,7 @@ const onSubmit = async () => {
       }
     }
 
-    await swabApi().updateSwabPlabById(swabAreaHistoryId.value, form);
+    await swabApi().updateSwabPlanById(swabAreaHistoryId.value, form);
 
     toast.success("อัพเดตข้อมูลจุด swab สำเร็จ", { timeout: 1000 });
 
@@ -393,7 +401,7 @@ onMounted(async () => {
           </div>
         </b-row>
 
-        <b-row class="mt-3">
+        <b-row v-if="swabArea && swabArea.isMainArea" class="mt-3">
           <b-col>
             <h6 class="fw-bold">ข้อมูลจุดตรวจ :</h6>
 
@@ -415,13 +423,21 @@ onMounted(async () => {
                     auto-apply
                     :clearable="false"
                   />
+
+                  <b-form-invalid-feedback
+                    :state="
+                      isFormInvalid('swabAreaSwabedAt', ['requiredIfMainArea'])
+                    "
+                  >
+                    กรุณาเลือกเวลาที่บันทึก
+                  </b-form-invalid-feedback>
                 </div>
               </b-col>
 
               <b-col v-if="swabArea" md="6" class="mt-2">
                 <div class="input-group align-items-baseline">
                   <label
-                    for="swabAreaSwabedAt"
+                    for="facilityItem"
                     class="form-label min-w-125px d-block col-12 col-md-auto"
                     >ไลน์
                   </label>
@@ -435,7 +451,9 @@ onMounted(async () => {
                     />
 
                     <b-form-invalid-feedback
-                      :state="isFormInvalid('facilityItem', ['required'])"
+                      :state="
+                        isFormInvalid('facilityItem', ['requiredIfMainArea'])
+                      "
                     >
                       กรุณาเลือกไลน์
                     </b-form-invalid-feedback>
