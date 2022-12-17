@@ -125,7 +125,7 @@ export default class SwabAreaHistory extends Model {
   }
 
   get isCompleted() {
-    let isCompleted = false;
+    let isCompleted = true;
 
     const swapAreaRepo = useRepo(SwabArea);
 
@@ -139,11 +139,6 @@ export default class SwabAreaHistory extends Model {
         this.productId !== null &&
         this.productLot !== null &&
         this.swabAreaHistoryImageIds.length > 0;
-    }
-
-    if (relatedSwabArea.isSubArea) {
-      isCompleted =
-        this.swabAreaSwabedAt !== null && this.facilityItemId !== null;
     }
 
     if (relatedSwabArea.shouldRecordEnvironment) {
@@ -162,6 +157,8 @@ export default class SwabAreaHistory extends Model {
         this.swabAreaHumidity !== null &&
         relatedSwabEnvironments.length > 0;
     }
+
+    console.log(this.id, isCompleted);
 
     return isCompleted;
   }
