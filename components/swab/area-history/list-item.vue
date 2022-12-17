@@ -23,10 +23,14 @@ const historySwabAreaName: ComputedRef<string> = computed(() => {
   return swabArea.swabAreaName;
 });
 
+const isCompleted: ComputedRef<boolean> = computed(
+  () => props.history.isCompleted
+);
+
 const checkMarkClassName: ComputedRef<Record<string, boolean>> = computed(
   () => ({
-    "text-secondary": !props.history.isCompleted,
-    "text-success": props.history.isCompleted,
+    "text-secondary": !isCompleted.value,
+    "text-success": isCompleted.value,
   })
 );
 
@@ -78,7 +82,7 @@ const pageUpdateSwabAreaHistory: ComputedRef<object> = computed(() => {
       </span>
 
       <badge-complete-status
-        :is-completed="history.isCompleted"
+        :is-completed="isCompleted"
       ></badge-complete-status>
     </b-list-group-item>
   </nuxt-link>
