@@ -1,0 +1,87 @@
+<script lang="ts" setup>
+import { useToast } from "vue-toastification";
+import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
+
+export interface Props {
+  showValue: boolean;
+  loadingValue: boolean;
+  message: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  showValue: false,
+  loadingValue: false,
+  message: "",
+});
+
+const emit = defineEmits([
+  "update:showValue",
+  "update:loadingValue",
+  "confirm",
+  "cancel",
+]);
+
+const modalRef = ref();
+const isConfirmed = ref(false);
+
+const onCancel = () => {
+  showValue.value = false;
+  emit("cancel");
+};
+
+const onConfirm = async () => {
+  isConfirmed.value = true;
+  emit("confirm");
+};
+
+const showValue = computed({
+  get: () => props.showValue,
+
+  set: (value) => emit("update:showValue", value),
+});
+
+watch(
+  () => props.loadingValue,
+  (loadingValue) => {
+    if (isConfirmed.value && !loadingValue) {
+      showValue.value = false;
+    }
+  }
+);
+</script>
+
+<template>
+  <modal
+    ref="modalRef"
+    id="swabAreaHistoryWarningTemperatureModal"
+    v-model="showValue"
+  >
+    <template #title> ตรวจพบความผิดปกติของข้อมูลอุณหภูมิ </template>
+
+    <template #default>
+      <div>
+        <p>{{ message }}</p>
+
+        <p>คุณแน่ใจว่าข้อมูลถูกต้อง และต้องการบันทึกข้อมูลใช่ไหม</p>
+      </div>
+    </template>
+
+    <template #footer>
+      <b-button v-if="!loadingValue" variant="light" @click.prevent="onCancel">
+        ยกเลิก
+      </b-button>
+      <b-button
+        variant="outline-primary"
+        :disabled="loadingValue"
+        @click.prevent="onConfirm"
+      >
+        <LineMdLoadingTwotoneLoop
+          v-if="loadingValue"
+          :style="{ fontSize: '1em' }"
+        />
+
+        <span v-else>ยืนยัน</span>
+      </b-button>
+    </template>
+  </modal>
+</template>

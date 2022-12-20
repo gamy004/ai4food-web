@@ -33,6 +33,7 @@ const swabAreaHistoryId = ref(route.query.id as string);
 const areaTitle: string = route.query.areaTitle as string;
 const areaName = ref(route.params.areaName as string);
 const invalid = ref(false);
+const showTemperatureWarning = ref(false);
 const error = ref(false);
 const loading = ref(false);
 const submitting = ref(false);
@@ -41,9 +42,10 @@ const swabAreaId = ref(null);
 const swabTestId = ref(null);
 const swabPeriodId = ref(null);
 const imageBrowserRef = ref(null);
-
+const TEMPERATURE_THRESHOLD = 50;
 const currentDate = today();
-
+const temperatureWarningMessage = `ระบบตรวจพบว่าอุณหภูมิมีค่ามากกว่า ${TEMPERATURE_THRESHOLD} °C หรือ
+          อุณหภูมิมีค่ามากกว่าความชื้น`;
 const form = reactive({
   swabAreaSwabedAt: {
     hours: currentDate.getHours(),
@@ -302,13 +304,41 @@ const init = async function init() {
   }
 };
 
+const validateTemperature = () => {
+  const isTemperatureHighThanUsual =
+    form.swabAreaTemperature &&
+    form.swabAreaTemperature >= TEMPERATURE_THRESHOLD;
+  const isTemperatureHighThanHumidity =
+    form.swabAreaTemperature &&
+    form.swabAreaHumidity &&
+    form.swabAreaTemperature > form.swabAreaHumidity;
+
+  console.log(
+    isTemperatureHighThanUsual,
+    isTemperatureHighThanHumidity,
+    isTemperatureHighThanUsual || isTemperatureHighThanHumidity
+  );
+
+  return isTemperatureHighThanUsual || isTemperatureHighThanHumidity;
+};
+
 const onSubmit = async () => {
   invalid.value = false;
 
   validate();
 
   if (isInvalid.value) {
-    return toast.error("ไม่สามารถส่งข้อมูลได้ กรุณาเช็คข้อผิดพลาด");
+    toast.error("ไม่สามารถส่งข้อมูลได้ กรุณาเช็คข้อผิดพลาด");
+
+    return;
+  }
+
+  const isTemperatureInvalid = validateTemperature();
+
+  if (isTemperatureInvalid) {
+    showTemperatureWarning.value = true;
+
+    return;
   }
 
   submitting.value = true;
@@ -560,6 +590,13 @@ onMounted(async () => {
           </b-col>
         </b-row>
       </b-form>
+
+      <swab-area-history-modal-warning-temperature
+        v-model:show-value="showTemperatureWarning"
+        v-model:loading-value="submitting"
+        :message="temperatureWarningMessage"
+        @confirm="onSubmit"
+      ></swab-area-history-modal-warning-temperature>
     </div>
 
     <b-col v-if="error" class="text-center mt-3">
