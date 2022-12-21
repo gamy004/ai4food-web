@@ -5,13 +5,13 @@ import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 export interface Props {
   showValue: boolean;
   loadingValue: boolean;
-  message: string;
+  title: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   showValue: false,
   loadingValue: false,
-  message: "",
+  title: "",
 });
 
 const emit = defineEmits([
@@ -22,7 +22,7 @@ const emit = defineEmits([
 ]);
 
 const modalRef = ref();
-const isConfirmed = ref(false);
+// const isConfirmed = ref(false);
 
 const onCancel = () => {
   showValue.value = false;
@@ -30,7 +30,7 @@ const onCancel = () => {
 };
 
 const onConfirm = async () => {
-  isConfirmed.value = true;
+  //   isConfirmed.value = true;
   emit("confirm");
 };
 
@@ -40,30 +40,22 @@ const showValue = computed({
   set: (value) => emit("update:showValue", value),
 });
 
-watch(
-  () => props.loadingValue,
-  (loadingValue) => {
-    if (isConfirmed.value && !loadingValue) {
-      showValue.value = false;
-    }
-  }
-);
+// watch(
+//   () => props.loadingValue,
+//   (loadingValue) => {
+//     if (isConfirmed.value && !loadingValue) {
+//       showValue.value = false;
+//     }
+//   }
+// );
 </script>
 
 <template>
-  <modal
-    ref="modalRef"
-    id="swabAreaHistoryWarningTemperatureModal"
-    v-model="showValue"
-  >
-    <template #title> ตรวจพบความผิดปกติของข้อมูลอุณหภูมิ </template>
+  <modal ref="modalRef" id="warningModal" v-model="showValue">
+    <template #title>{{ title }}</template>
 
     <template #default>
-      <div>
-        <p>{{ message }}</p>
-
-        <p>คุณแน่ใจว่าข้อมูลถูกต้อง และต้องการบันทึกข้อมูลใช่ไหม</p>
-      </div>
+      <slot></slot>
     </template>
 
     <template #footer>

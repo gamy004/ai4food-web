@@ -44,8 +44,6 @@ const swabPeriodId = ref(null);
 const imageBrowserRef = ref(null);
 const TEMPERATURE_THRESHOLD = 50;
 const currentDate = today();
-const temperatureWarningMessage = `ระบบตรวจพบว่าอุณหภูมิมีค่ามากกว่า ${TEMPERATURE_THRESHOLD} °C หรือ
-          อุณหภูมิมีค่ามากกว่าความชื้น`;
 const form = reactive({
   swabAreaSwabedAt: {
     hours: currentDate.getHours(),
@@ -341,6 +339,16 @@ const onSubmit = async () => {
     return;
   }
 
+  await updateSwabPlan();
+};
+
+const onTemeratureWarningComfirm = async () => {
+  await updateSwabPlan();
+
+  showTemperatureWarning.value = false;
+};
+
+const updateSwabPlan = async () => {
   submitting.value = true;
 
   try {
@@ -591,12 +599,21 @@ onMounted(async () => {
         </b-row>
       </b-form>
 
-      <swab-area-history-modal-warning-temperature
+      <modal-warning
+        title="ตรวจพบความผิดปกติของข้อมูลอุณหภูมิ"
         v-model:show-value="showTemperatureWarning"
         v-model:loading-value="submitting"
-        :message="temperatureWarningMessage"
-        @confirm="onSubmit"
-      ></swab-area-history-modal-warning-temperature>
+        @confirm="onTemeratureWarningComfirm"
+      >
+        <div>
+          <p>
+            ระบบพบว่าอุณหภูมิมีค่ามากกว่า {{ TEMPERATURE_THRESHOLD }}°C หรือ
+            อุณหภูมิมีค่ามากกว่าความชื้น
+          </p>
+
+          <p>คุณแน่ใจว่าข้อมูลถูกต้องและต้องการบันทึกข้อมูลใช่ไหม</p>
+        </div>
+      </modal-warning>
     </div>
 
     <b-col v-if="error" class="text-center mt-3">
