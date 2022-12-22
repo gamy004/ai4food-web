@@ -33,6 +33,7 @@ const swabAreaHistoryId = ref(route.query.id as string);
 const areaTitle: string = route.query.areaTitle as string;
 const areaName = ref(route.params.areaName as string);
 const invalid = ref(false);
+const showTemperatureWarning = ref(false);
 const error = ref(false);
 const loading = ref(false);
 const submitting = ref(false);
@@ -41,9 +42,8 @@ const swabAreaId = ref(null);
 const swabTestId = ref(null);
 const swabPeriodId = ref(null);
 const imageBrowserRef = ref(null);
-
+const TEMPERATURE_THRESHOLD = 50;
 const currentDate = today();
-
 const form = reactive({
   swabAreaSwabedAt: {
     hours: currentDate.getHours(),
@@ -302,15 +302,53 @@ const init = async function init() {
   }
 };
 
+const validateTemperature = () => {
+  const isTemperatureHighThanUsual =
+    form.swabAreaTemperature &&
+    form.swabAreaTemperature >= TEMPERATURE_THRESHOLD;
+  const isTemperatureHighThanHumidity =
+    form.swabAreaTemperature &&
+    form.swabAreaHumidity &&
+    form.swabAreaTemperature > form.swabAreaHumidity;
+
+  console.log(
+    isTemperatureHighThanUsual,
+    isTemperatureHighThanHumidity,
+    isTemperatureHighThanUsual || isTemperatureHighThanHumidity
+  );
+
+  return isTemperatureHighThanUsual || isTemperatureHighThanHumidity;
+};
+
 const onSubmit = async () => {
   invalid.value = false;
 
   validate();
 
   if (isInvalid.value) {
-    return toast.error("ไม่สามารถส่งข้อมูลได้ กรุณาเช็คข้อผิดพลาด");
+    toast.error("ไม่สามารถส่งข้อมูลได้ กรุณาเช็คข้อผิดพลาด");
+
+    return;
   }
 
+  const isTemperatureInvalid = validateTemperature();
+
+  if (isTemperatureInvalid) {
+    showTemperatureWarning.value = true;
+
+    return;
+  }
+
+  await updateSwabPlan();
+};
+
+const onTemeratureWarningComfirm = async () => {
+  await updateSwabPlan();
+
+  showTemperatureWarning.value = false;
+};
+
+const updateSwabPlan = async () => {
   submitting.value = true;
 
   try {
@@ -560,6 +598,22 @@ onMounted(async () => {
           </b-col>
         </b-row>
       </b-form>
+
+      <modal-warning
+        title="ตรวจพบความผิดปกติของข้อมูลอุณหภูมิ"
+        v-model:show-value="showTemperatureWarning"
+        v-model:loading-value="submitting"
+        @confirm="onTemeratureWarningComfirm"
+      >
+        <div>
+          <p>
+            ระบบพบว่าอุณหภูมิมีค่ามากกว่า {{ TEMPERATURE_THRESHOLD }}°C หรือ
+            อุณหภูมิมีค่ามากกว่าความชื้น
+          </p>
+
+          <p>คุณแน่ใจว่าข้อมูลถูกต้องและต้องการบันทึกข้อมูลใช่ไหม</p>
+        </div>
+      </modal-warning>
     </div>
 
     <b-col v-if="error" class="text-center mt-3">
