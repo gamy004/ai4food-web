@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { kebabCase } from "lodash";
 import { useToast } from "vue-toastification";
-import { required, requiredIf } from "@vuelidate/validators";
+import { requiredIf } from "@vuelidate/validators";
 import DatePicker from "@vuepic/vue-datepicker";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import CarbonCheckmarkFilled from "~icons/carbon/checkmark-filled";
@@ -96,24 +96,6 @@ const validationRules = {
     $lazy: true,
   },
   swabAreaHistoryImages: { haveSomeImages, $lazy: true },
-  swabAreaTemperature: {
-    requiredIfShouldRecordEnvironment: requiredIf(
-      () => swabArea.value.shouldRecordEnvironment
-    ),
-    $lazy: true,
-  },
-  swabAreaHumidity: {
-    requiredIfShouldRecordEnvironment: requiredIf(
-      () => swabArea.value.shouldRecordEnvironment
-    ),
-    $lazy: true,
-  },
-  swabEnvironments: {
-    requiredIfShouldRecordEnvironment: requiredIf(
-      () => swabArea.value.shouldRecordEnvironment
-    ),
-    $lazy: true,
-  },
 };
 
 const { validate, isInvalid, isFormInvalid } = useValidation(
@@ -126,18 +108,6 @@ const swabProductFormInvalidState = computed(() => ({
   productLot: isFormInvalid("productLot", ["requiredIfShouldRecordProduct"]),
   productDate: isFormInvalid("productDate", ["requiredIfShouldRecordProduct"]),
   product: isFormInvalid("product", ["requiredIfShouldRecordProduct"]),
-}));
-
-const swabEnvironmentFormInvalidState = computed(() => ({
-  swabAreaTemperature: isFormInvalid("swabAreaTemperature", [
-    "requiredIfShouldRecordEnvironment",
-  ]),
-  swabAreaHumidity: isFormInvalid("swabAreaHumidity", [
-    "requiredIfShouldRecordEnvironment",
-  ]),
-  swabEnvironments: isFormInvalid("swabEnvironments", [
-    "requiredIfShouldRecordEnvironment",
-  ]),
 }));
 
 const title = computed(() => {
@@ -522,7 +492,7 @@ onMounted(async () => {
             <swab-environment-form
               v-model="form"
               :disabled="submitting"
-              :invalid-state="swabEnvironmentFormInvalidState"
+              :swab-area="swabArea"
               class="px-3"
             />
           </b-col>
@@ -607,8 +577,8 @@ onMounted(async () => {
       >
         <div>
           <p>
-            ระบบพบว่าอุณหภูมิมีค่ามากกว่า {{ TEMPERATURE_THRESHOLD }}°C หรือ
-            อุณหภูมิมีค่ามากกว่าความชื้น
+            ระบบพบว่าข้อมูลอุณหภูมิสูงกว่าหรือเท่ากับ
+            {{ TEMPERATURE_THRESHOLD }}°C หรือ มีค่ามากกว่าความชื้น
           </p>
 
           <p>คุณแน่ใจว่าข้อมูลถูกต้องและต้องการบันทึกข้อมูลใช่ไหม</p>
