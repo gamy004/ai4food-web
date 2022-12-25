@@ -28,6 +28,7 @@ const form = reactive({
       <swab-filter
         v-model="form"
         :hidden-state="{ facilityItem: true, mainSwabArea: false }"
+        disabled
       />
 
       <hr />
