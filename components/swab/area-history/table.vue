@@ -302,7 +302,11 @@ watch(() => props, fetch, { immediate: true, deep: true });
               :to="getNavigatedPage(item)"
             >
               <carbon-checkmark-filled
-                :style="{ fontSize: '1em', marginRight: '0.5rem' }"
+                :style="{
+                  fontSize: '1em',
+                  minWidth: '25px',
+                  marginRight: '0.5rem',
+                }"
                 :class="{
                   'text-secondary': !item.isCompleted,
                   'text-success': item.isCompleted,

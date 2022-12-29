@@ -268,9 +268,7 @@ watch(
             <b-row>
               <b-col>
                 <b-row>
-                  <h3 class="font-weight-bold text-center">
-                    ออกรายงานจุด swab
-                  </h3>
+                  <h3 class="font-weight-bold">ออกรายงานจุด swab</h3>
                 </b-row>
                 <!-- <b-row>
                       <h6 v-if="report" class="font-weight-normal">รายงานจุดตรวจ | ข้อมูลล่าสุด {{ report }}</h6>
