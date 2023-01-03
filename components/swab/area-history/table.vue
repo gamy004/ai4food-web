@@ -233,7 +233,7 @@ watch(() => props, fetch, { immediate: true, deep: true });
       </b-col>
 
       <b-col v-else>
-        <div v-if="hasData">
+        <div v-if="hasData" class="d-grid gap-3">
           <!-- <b-table
             id="swabProductHistoryTable"
             hover
@@ -331,6 +331,7 @@ watch(() => props, fetch, { immediate: true, deep: true });
               </div>
 
               <badge-complete-status
+                class="position-absolute end-0 me-2"
                 :is-completed="item.isCompleted"
                 complete-text="บันทึกครบเรียบร้อย"
                 :in-complete-text="`บันทึกแล้ว ${item.countComplete}/${item.countArea} จุด`"
