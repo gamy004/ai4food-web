@@ -300,7 +300,7 @@ watch(
             </b-row>
 
             <b-row class="row-gap-2 mt-3">
-              <b-col cols="8" md="6" lg="4">
+              <b-col cols="8" md="6" xl="4">
                 <div class="input-group align-items-baseline">
                   <label for="date" class="form-label d-block min-w-75px"
                     >วันที่</label

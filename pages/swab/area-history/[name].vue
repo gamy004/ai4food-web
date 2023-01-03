@@ -311,12 +311,6 @@ const validateTemperature = () => {
     form.swabAreaHumidity &&
     form.swabAreaTemperature > form.swabAreaHumidity;
 
-  console.log(
-    isTemperatureHighThanUsual,
-    isTemperatureHighThanHumidity,
-    isTemperatureHighThanUsual || isTemperatureHighThanHumidity
-  );
-
   return isTemperatureHighThanUsual || isTemperatureHighThanHumidity;
 };
 
