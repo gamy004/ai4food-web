@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { useToast } from "vue-toastification";
 import CarbonEdit from "~icons/carbon/edit";
+import CarbonCheckmarkFilled from "~icons/carbon/checkmark-filled";
 // import CarbonTrashCan from "~icons/carbon/trash-can";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import { Shift } from "~~/composables/useDate";
@@ -43,8 +44,8 @@ const swapAreaHistoryIds = ref([]);
 //   currentPage: parseInt(route.query.currentPage as string) || props.currentPage,
 // });
 
-const getRouteUpdateSwabAreaHistory = (id) => {
-  const swabAreaHistory = getSwabAreaHistoryById(id);
+const getRouteUpdateSwabAreaHistory = (item) => {
+  const swabAreaHistory = getSwabAreaHistoryById(item.id);
   const swabArea = getSwabAreaById(swabAreaHistory.swabAreaId);
 
   return {
@@ -58,6 +59,28 @@ const getRouteUpdateSwabAreaHistory = (id) => {
       redirect: route.fullPath,
     },
   };
+};
+
+const getRouteUpdateMainSwabAreaHistory = (item) => {
+  const routeParam = {
+    name: "swab-area-history-name",
+    params: {
+      name: item.swabAreaName,
+    },
+    query: {
+      areaTitle: `จุดหลัก (${item.code}): ${item.swabAreaName}`,
+      id: item.id,
+      redirect: route.fullPath,
+    },
+  };
+
+  return routeParam;
+};
+
+const getNavigatedPage = (item) => {
+  return item.countArea === 1
+    ? getRouteUpdateMainSwabAreaHistory(item)
+    : getRouteUpdateSwabAreaHistory(item);
 };
 
 const swabAreaHistories = computed(() => {
@@ -189,9 +212,9 @@ const fetch = async function fetch(props) {
   }
 };
 
-const onTableRowClicked = (item): void => {
-  router.push(getRouteUpdateSwabAreaHistory(item.id));
-};
+// const onTableRowClicked = (item): void => {
+//   router.push(getRouteUpdateSwabAreaHistory(item));
+// };
 
 watch(() => props, fetch, { immediate: true, deep: true });
 </script>
@@ -210,8 +233,8 @@ watch(() => props, fetch, { immediate: true, deep: true });
       </b-col>
 
       <b-col v-else>
-        <div v-if="hasData">
-          <b-table
+        <div v-if="hasData" class="d-grid gap-3">
+          <!-- <b-table
             id="swabProductHistoryTable"
             hover
             small
@@ -228,7 +251,7 @@ watch(() => props, fetch, { immediate: true, deep: true });
               <div class="text-center">
                 <nuxt-link
                   v-slot="{ navigate }"
-                  :to="getRouteUpdateSwabAreaHistory(item.id)"
+                  :to="getRouteUpdateSwabAreaHistory(item)"
                   custom
                 >
                   <CarbonEdit
@@ -247,7 +270,7 @@ watch(() => props, fetch, { immediate: true, deep: true });
               <div class="text-center">
                 <nuxt-link
                   v-slot="{ navigate }"
-                  :to="getRouteUpdateSwabAreaHistory(item.id)"
+                  :to="getRouteUpdateSwabAreaHistory(item)"
                   custom
                 >
                   <CarbonEdit
@@ -259,20 +282,6 @@ watch(() => props, fetch, { immediate: true, deep: true });
                     @click="navigate"
                   />
                 </nuxt-link>
-
-                <!-- <a
-                href="javascript:void(0)"
-                @click="promptRemove(item.id)"
-                class="ms-3 text-danger"
-              >
-                <CarbonTrashCan
-                  style="
-                     {
-                      fontsize: '1em';
-                    }
-                  "
-                />
-              </a> -->
               </div>
             </template>
 
@@ -283,7 +292,52 @@ watch(() => props, fetch, { immediate: true, deep: true });
                 :in-complete-text="`บันทึกแล้ว ${item.countComplete}/${item.countArea} จุด`"
               ></badge-complete-status>
             </template>
-          </b-table>
+          </b-table> -->
+
+          <b-list-group>
+            <b-list-group-item
+              v-for="item in tableData"
+              :key="`swab-area-history-data-${item.id}`"
+              class="d-flex justify-content-between align-items-start"
+              :to="getNavigatedPage(item)"
+            >
+              <carbon-checkmark-filled
+                :style="{
+                  fontSize: '1em',
+                  minWidth: '25px',
+                  marginRight: '0.5rem',
+                }"
+                :class="{
+                  'text-secondary': !item.isCompleted,
+                  'text-success': item.isCompleted,
+                }"
+              />
+              <div class="ms-2 me-auto">
+                <div class="fw-bold mb-1">
+                  {{ item.code }}
+                </div>
+                <div>{{ item.swabAreaName }}</div>
+                <small>
+                  <span>กะ: {{ shiftToAbbreviation(item.shift) }}</span>
+                  <span class="mx-2">|</span>
+                  <span>ช่วงตรวจ: {{ item.swabPeriodName }}</span>
+                  <span class="mx-2">|</span>
+                  <span>เครื่อง: {{ item.facilityName }}</span>
+                  <span v-if="item.facilityItemName" class="mx-2">|</span>
+                  <span v-if="item.facilityItemName"
+                    >ไลน์: {{ item.facilityItemName }}</span
+                  >
+                </small>
+              </div>
+
+              <badge-complete-status
+                class="position-absolute end-0 me-2"
+                :is-completed="item.isCompleted"
+                complete-text="บันทึกครบเรียบร้อย"
+                :in-complete-text="`บันทึกแล้ว ${item.countComplete}/${item.countArea} จุด`"
+              ></badge-complete-status>
+            </b-list-group-item>
+          </b-list-group>
 
           <base-pagination
             v-model="pagination.$state.currentPage"

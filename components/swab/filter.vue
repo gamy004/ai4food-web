@@ -283,10 +283,11 @@ watch(
             v-model="formDate"
             :enable-time-picker="false"
             locale="th"
+            class="col"
             utc
             auto-apply
             :clearable="clearableState.isClearable('date')"
-            class="col"
+            :disabled="disabled"
           />
         </div>
       </div>

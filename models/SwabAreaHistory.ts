@@ -158,8 +158,6 @@ export default class SwabAreaHistory extends Model {
         relatedSwabEnvironments.length > 0;
     }
 
-    console.log(this.id, isCompleted);
-
     return isCompleted;
   }
 }
