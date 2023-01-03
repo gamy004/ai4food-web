@@ -72,6 +72,46 @@ const pageImportProductSchedule = {
           <h4 class="font-weight-bold">รายการข้อมูลพื้นฐาน</h4>
 
           <nuxt-link v-slot="{ navigate }" :to="pageExportSwabPlan" custom>
+            <nuxt-link v-slot="{ navigate }" :to="pageManageProduct" custom>
+              <button-arrow-right
+                v-if="authUser.isInProductionTeam || authUser.isInAdminTeam"
+                variant="outline-primary"
+                size="lg"
+                class="w-100"
+                @click="navigate"
+              >
+                จัดการสินค้าอาหาร
+              </button-arrow-right>
+            </nuxt-link>
+
+            <nuxt-link
+              v-slot="{ navigate }"
+              :to="pageImportProductSchedule"
+              custom
+            >
+              <button-arrow-right
+                v-if="authUser.isInProductionTeam || authUser.isInAdminTeam"
+                variant="outline-primary"
+                size="lg"
+                class="w-100"
+                @click="navigate"
+              >
+                จัดการแผนการผลิต
+              </button-arrow-right>
+            </nuxt-link>
+
+            <nuxt-link v-slot="{ navigate }" :to="pageManageSwabArea" custom>
+              <button-arrow-right
+                v-if="authUser.isInSwabTeam || authUser.isInAdminTeam"
+                variant="outline-primary"
+                size="lg"
+                class="w-100"
+                @click="navigate"
+              >
+                จัดการจุดตรวจ swab
+              </button-arrow-right>
+            </nuxt-link>
+
             <button-arrow-right
               variant="outline-primary"
               block
@@ -98,46 +138,6 @@ const pageImportProductSchedule = {
 
         <div class="d-grid gap-2 mt-4">
           <h4 class="font-weight-bold">ระบบบันทึกข้อมูล</h4>
-
-          <nuxt-link v-slot="{ navigate }" :to="pageManageProduct" custom>
-            <button-arrow-right
-              v-if="authUser.isInProductionTeam || authUser.isInAdminTeam"
-              variant="outline-primary"
-              size="lg"
-              class="w-100"
-              @click="navigate"
-            >
-              จัดการสินค้าอาหาร
-            </button-arrow-right>
-          </nuxt-link>
-
-          <nuxt-link
-            v-slot="{ navigate }"
-            :to="pageImportProductSchedule"
-            custom
-          >
-            <button-arrow-right
-              v-if="authUser.isInProductionTeam || authUser.isInAdminTeam"
-              variant="outline-primary"
-              size="lg"
-              class="w-100"
-              @click="navigate"
-            >
-              จัดการแผนการผลิต
-            </button-arrow-right>
-          </nuxt-link>
-
-          <nuxt-link v-slot="{ navigate }" :to="pageManageSwabArea" custom>
-            <button-arrow-right
-              v-if="authUser.isInSwabTeam || authUser.isInAdminTeam"
-              variant="outline-primary"
-              size="lg"
-              class="w-100"
-              @click="navigate"
-            >
-              จัดการจุดตรวจ swab
-            </button-arrow-right>
-          </nuxt-link>
 
           <nuxt-link v-slot="{ navigate }" :to="pageSwabArea" custom>
             <button-arrow-right
