@@ -5,9 +5,11 @@ import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import DownloadIcon from "~icons/carbon/download";
 import { DateRangeInterface } from "~~/composables/useDate";
 import { GetSwabPlanResponse } from "~~/composables/useSwab";
+import { BacteriaStatus } from "~~/composables/useLab";
 
 export type FormType = {
   date: DateRangeInterface | null;
+  status: BacteriaStatus;
 };
 
 definePageMeta({
@@ -45,6 +47,7 @@ const form = reactive<FormType>({
     from: (route.query.from as string) || onlyDate(currentDate),
     to: (route.query.to as string) || onlyDate(currentDate),
   },
+  status: (route.query.status as BacteriaStatus) || BacteriaStatus.ALL,
 });
 const dateRange = reactive({
   cachedFromDateString: null,
@@ -141,14 +144,15 @@ const resetState = () => {
   swabProductHistories.value = [];
 };
 
-const onFormDateChanged = async (formDate) => {
+const fetch = async (formValue) => {
   resetState();
 
   loading.value = true;
 
   try {
-    const fromDateString = formDate.from;
-    const toDateString = formDate.to;
+    const fromDateString = formValue.date.from;
+    const toDateString = formValue.date.to;
+    const bacteriaStatus = formValue.status;
 
     dateRange.cachedFromDateString = fromDateString;
     dateRange.cachedToDateString = toDateString;
@@ -156,7 +160,8 @@ const onFormDateChanged = async (formDate) => {
     const swabPlanData: GetSwabPlanResponse = await getSwabPlan(
       fromDateString,
       toDateString,
-      includeBacteriaSpecies
+      includeBacteriaSpecies,
+      bacteriaStatus
     );
 
     if (swabPlanData.swabAreaHistories.length) {
@@ -278,22 +283,35 @@ onBeforeMount(async () => {
 watch(
   () => form.date,
   (formDate) => {
-    // console.log("watch form.date value", formDate);
-
-    if (formDate) {
-      onFormDateChanged(formDate);
-      updateDateRangeQueryParams(formDate);
-    } else {
-      resetState();
-    }
+    updateDateRangeQueryParams(formDate);
   },
   { immediate: true }
+);
+
+watch(
+  () => form.status,
+  (formBateriaStatus) => {
+    let query: any = getCurrentQuery();
+
+    updateQueryParams({
+      ...query,
+      status: formBateriaStatus,
+    });
+  }
+);
+
+watch(
+  () => form,
+  (formValue) => {
+    fetch(formValue);
+  },
+  { deep: true, immediate: true }
 );
 </script>
 
 <template>
   <div class="page__swab-report mt-4">
-    <b-row class="mb-3">
+    <b-row class="mb-4">
       <b-col>
         <b-form class="w-100" @submit="onFormSubmitted">
           <b-container>
@@ -331,30 +349,50 @@ watch(
               </b-col> -->
             </b-row>
 
-            <b-row class="row-gap-2 mt-3">
-              <b-col cols="8" md="6" xl="4">
-                <div class="input-group align-items-baseline">
-                  <label for="date" class="form-label d-block min-w-75px"
-                    >วันที่</label
-                  >
+            <b-row class="mt-3">
+              <b-col>
+                <b-row class="row-gap-2">
+                  <b-col md="6" xl="4">
+                    <div class="input-group align-items-baseline">
+                      <label for="date" class="form-label d-block min-w-75px"
+                        >วันที่</label
+                      >
 
-                  <date-picker-range
-                    v-model="form.date"
-                    class="col me-3"
-                    placeholder="เลือกวันที่ต้องการออกรายงาน"
-                  />
-                </div>
-              </b-col>
+                      <date-picker-range
+                        v-model="form.date"
+                        class="col"
+                        placeholder="เลือกวันที่ต้องการออกรายงาน"
+                      />
+                    </div>
+                  </b-col>
+                  <b-col sm="8" md="3" xl="4">
+                    <div class="input-group align-items-baseline">
+                      <label
+                        for="bacteria-status"
+                        class="form-label d-block min-w-75px"
+                        >ผลตรวจ</label
+                      >
 
-              <b-col class="text-end">
-                <b-button
-                  variant="outline-primary"
-                  type="submit"
-                  :disabled="!canExport"
-                >
-                  <download-icon />
-                  <span>นำออกรายงาน</span>
-                </b-button>
+                      <swab-test-form-select-bacteria-status
+                        id="bacteria-status"
+                        class="col"
+                        show-all
+                        v-model="form.status"
+                      ></swab-test-form-select-bacteria-status>
+                    </div>
+                  </b-col>
+
+                  <b-col sm="4" md="3" xl="4" class="text-end">
+                    <b-button
+                      variant="outline-primary"
+                      type="submit"
+                      :disabled="!canExport"
+                    >
+                      <download-icon />
+                      <span>นำออกรายงาน</span>
+                    </b-button>
+                  </b-col>
+                </b-row>
               </b-col>
             </b-row>
           </b-container>

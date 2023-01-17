@@ -19,6 +19,12 @@ import {
 } from "./useFilterSwabProductHistory";
 import { SearchParams } from "./useRequest";
 
+export enum BacteriaStatus {
+  DETECTED = "detected",
+  NORMAL = "normal",
+  ALL = "all",
+}
+
 export type BacteriaSpecieData = {
   bacteriaName?: string;
   bacteriaId?: string;

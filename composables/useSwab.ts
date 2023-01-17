@@ -24,6 +24,7 @@ import {
   LoadAllSwabAreaHistoryFilter,
   useFilterSwabAreaHistory,
 } from "./useFilterSwabAreaHistory";
+import { BacteriaStatus } from "./useLab";
 
 // export interface LoadSwabAreaHistoryData {
 //   date: string;
@@ -527,17 +528,24 @@ export const useSwab = () => {
   const getSwabPlan = (
     fromDate: string,
     toDate: string,
-    bacteriaSpecies: boolean = false
+    bacteriaSpecies: boolean = false,
+    bacteriaStatus?: BacteriaStatus
   ): Promise<GetSwabPlanResponse> => {
+    const params: any = {
+      fromDate,
+      toDate,
+      bacteriaSpecies,
+    };
+
+    if (bacteriaStatus && bacteriaStatus !== BacteriaStatus.ALL) {
+      params.detectedBacteria = bacteriaStatus === BacteriaStatus.DETECTED;
+    }
+
     return new Promise((resolve, reject) => {
       const { data, error } = get<GetSwabPlanResponse>(
         "/swab/area-history/export",
         {
-          params: {
-            fromDate,
-            toDate,
-            bacteriaSpecies,
-          },
+          params,
         }
       );
 
