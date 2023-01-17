@@ -124,6 +124,15 @@ export type ResponseSwabAreaDeletePermission = {
   countSwabAreaHistories: number;
 };
 
+export interface GetSwabPlanResponse {
+  facilities: Facility[];
+  products: Product[];
+  swabAreaHistories: SwabAreaHistory[];
+  swabAreas: SwabArea[];
+  swabPeriods: SwabPeriod[];
+  swabProductHistories: SwabProductHistory[];
+}
+
 export interface BodyUpdateSwabProductHistory
   extends BodyCreateSwabProductHistory {}
 
@@ -515,20 +524,54 @@ export const useSwab = () => {
     return histories;
   };
 
-  const getSwabPlan = (fromDate: string, toDate: string): Promise<SwabPlan> => {
+  const getSwabPlan = (
+    fromDate: string,
+    toDate: string,
+    bacteriaSpecies: boolean = false
+  ): Promise<GetSwabPlanResponse> => {
     return new Promise((resolve, reject) => {
-      const { data, error } = get<SwabAreaHistory[]>(
+      const { data, error } = get<GetSwabPlanResponse>(
         "/swab/area-history/export",
         {
           params: {
             fromDate,
             toDate,
+            bacteriaSpecies,
           },
         }
       );
 
       watch(data, (swabPlanData) => {
-        resolve(swabPlanData);
+        let {
+          facilities = [],
+          swabAreas = [],
+          swabAreaHistories = [],
+          products = [],
+          swabProductHistories = [],
+          swabPeriods = [],
+        } = swabPlanData;
+
+        facilities = facilityRepo.save(facilities);
+
+        swabAreas = swabAreaRepo.save(swabAreas);
+
+        swabAreaHistories = swabAreaHistoryRepo.save(swabAreaHistories);
+
+        products = productRepo.save(products);
+
+        swabProductHistories =
+          swabProductHistoryRepo.save(swabProductHistories);
+
+        swabPeriods = swabPeriodRepo.save(swabPeriods);
+
+        resolve({
+          facilities,
+          swabAreas,
+          swabAreaHistories,
+          products,
+          swabProductHistories,
+          swabPeriods,
+        });
       });
 
       watch(error, (e) => {

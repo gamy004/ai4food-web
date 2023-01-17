@@ -11,7 +11,7 @@ export type FormType = {
 };
 
 definePageMeta({
-  title: "Ai4FoodSafety - Swab report",
+  title: "Ai4FoodSafety - Lab report",
   middleware: ["auth"],
   canGoBack: true,
   fallBackRedirect: "/",
@@ -27,12 +27,15 @@ const {
   updateDateRangeQueryParams,
 } = useDate();
 const { getCurrentQuery, updateQueryParams } = useQueryParams();
-const { getSwabPlan } = useSwab();
+const { getSwabPlan, getSwabAreaById, getSwabPeriodById } = useSwab();
+const { getFacilityById } = useFacility();
+const { getSwabTestById, api: labApi } = useLab();
 const { setWidthColumn } = useXlsx();
 // state
 const loading = ref(false);
 const error = ref(false);
 const loaded = ref(false);
+const includeBacteriaSpecies = true;
 const view = ref((route.query.view as string) || "area");
 const swabAreaHistories = ref([]);
 const swabProductHistories = ref([]);
@@ -79,7 +82,31 @@ const tableFields = computed(() => {
     fields = [
       ...fields,
       { key: "เครื่อง", label: "เครื่อง", thStyle: { width: "10%" } },
-      { key: "จุดตรวจ", label: "จุดตรวจ", thStyle: { width: "50%" } },
+      {
+        key: "จุดตรวจ",
+        label: "จุดตรวจ",
+        thStyle: { width: includeBacteriaSpecies ? "20%" : "50%" },
+      },
+    ];
+  }
+
+  if (includeBacteriaSpecies) {
+    fields = [
+      ...fields,
+      {
+        key: "status",
+        label: "ผลตรวจ",
+        thClass: "text-center",
+        tdClass: "text-center",
+        thStyle: { width: "10%" },
+      },
+      {
+        key: "bacteriaSpecie",
+        label: "สายพันธุ์เชื้อ",
+        thClass: "text-center",
+        tdClass: "text-center",
+        thStyle: { width: "20%" },
+      },
     ];
   }
 
@@ -128,29 +155,26 @@ const onFormDateChanged = async (formDate) => {
 
     const swabPlanData: GetSwabPlanResponse = await getSwabPlan(
       fromDateString,
-      toDateString
+      toDateString,
+      includeBacteriaSpecies
     );
 
     if (swabPlanData.swabAreaHistories.length) {
       swabAreaHistories.value = swabPlanData.swabAreaHistories.map(
         (el, idx) => {
-          const swabArea = swabPlanData.swabAreas.find(
-            (item) => item.id === el.swabAreaId
-          );
-          // console.log(swabArea)
-          const swabPeriodName = swabPlanData.swabPeriods.find(
-            (item) => item.id === el.swabPeriodId
-          );
-          const mainswabArea = swabArea.mainSwabAreaId
-            ? swabPlanData.swabAreas.find(
-                (item) => item.id == swabArea.mainSwabAreaId
-              ).swabAreaName
-            : swabArea.swabAreaName;
-          const facility = swabArea.facilityId
-            ? swabPlanData.facilities.find(
-                (item) => item.id == swabArea.facilityId
-              ).facilityName
-            : "";
+          const swabArea = getSwabAreaById(el.swabAreaId);
+
+          const swabPeriodName = getSwabPeriodById(el.swabPeriodId);
+
+          let facilityName = "";
+
+          if (swabArea) {
+            const facility = getFacilityById(swabArea.facilityId);
+
+            facilityName = facility.facilityName;
+          }
+
+          const swabTest = getSwabTestById(el.swabTest.id);
 
           return {
             ลำดับ: idx + 1,
@@ -158,8 +182,10 @@ const onFormDateChanged = async (formDate) => {
             รหัส: el.swabTest.swabTestCode,
             กะ: el.shift ? shiftToAbbreviation(el.shift) : "",
             ช่วงตรวจ: swabPeriodName ? swabPeriodName.swabPeriodName : "",
-            เครื่อง: facility,
-            จุดตรวจ: mainswabArea,
+            เครื่อง: facilityName,
+            จุดตรวจ: swabArea.swabAreaName,
+            swabTest,
+            swabTestId: swabTest.id,
           };
         }
       );
@@ -242,6 +268,12 @@ const onFormSubmitted = () => {
     );
   }
 };
+
+onBeforeMount(async () => {
+  if (includeBacteriaSpecies) {
+    await labApi().loadAllBacteriaWithSpecie();
+  }
+});
 
 watch(
   () => form.date,
@@ -368,7 +400,19 @@ watch(
             responsive
             :fields="tableFields"
             :items="paginatedData"
-          />
+          >
+            <template #cell(status)="{ item }">
+              <badge-bacteria-status
+                :swab-test="item.swabTest"
+              ></badge-bacteria-status>
+            </template>
+
+            <template #cell(bacteriaSpecie)="{ item }">
+              <badge-bacteria-specie
+                :swab-test-id="item.swabTestId"
+              ></badge-bacteria-specie>
+            </template>
+          </b-table>
 
           <base-pagination
             v-model="pagination.$state.currentPage"
