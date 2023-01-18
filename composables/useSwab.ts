@@ -538,7 +538,7 @@ export const useSwab = () => {
     };
 
     if (bacteriaStatus && bacteriaStatus !== BacteriaStatus.ALL) {
-      params.detectedBacteria = bacteriaStatus === BacteriaStatus.DETECTED;
+      params.hasBacteria = bacteriaStatus === BacteriaStatus.DETECTED;
     }
 
     return new Promise((resolve, reject) => {

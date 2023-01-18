@@ -74,10 +74,32 @@ const displayData = computed(() => {
 
 const tableFields = computed(() => {
   let fields = [
-    { key: "ลำดับ", label: "ลำดับ", thStyle: { width: "5%" } },
-    { key: "วันที่ตรวจ", label: "วันที่ตรวจ", thStyle: { width: "10%" } },
-    { key: "รหัส", label: "รหัส", thStyle: { width: "10%" } },
-    { key: "กะ", label: "กะ", thStyle: { width: "5%" } },
+    {
+      key: "ลำดับ",
+      label: "ลำดับ",
+      thClass: "text-end",
+      tdClass: "text-end",
+      thStyle: { width: "5%" },
+    },
+    {
+      key: "วันที่ตรวจ",
+      label: "วันที่ตรวจ",
+      thClass: "text-end",
+      tdClass: "text-end",
+      thStyle: { width: "10%" },
+    },
+    {
+      key: "รหัส",
+      label: "รหัส",
+      thClass: "text-center",
+      tdClass: "text-center",
+      thStyle: { width: "10%" },
+    },
+    {
+      key: "กะ",
+      label: "กะ",
+      thStyle: { width: "5%" },
+    },
     { key: "ช่วงตรวจ", label: "ช่วงตรวจ", thStyle: { width: "10%" } },
   ];
 
