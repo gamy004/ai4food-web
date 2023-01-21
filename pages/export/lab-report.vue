@@ -21,6 +21,7 @@ definePageMeta({
 
 const toast = useToast();
 const route = useRoute();
+const { percentOf } = useMath();
 const {
   today,
   onlyDate,
@@ -31,7 +32,12 @@ const {
 const { getCurrentQuery, updateQueryParams } = useQueryParams();
 const { getSwabPlan, getSwabAreaById, getSwabPeriodById } = useSwab();
 const { getFacilityById } = useFacility();
-const { getSwabTestById, api: labApi } = useLab();
+const {
+  getBacteriaBySwabTestId,
+  getBacteriaSpecieBySwabTestId,
+  getSwabTestById,
+  api: labApi,
+} = useLab();
 const { setWidthColumn } = useXlsx();
 // state
 const loading = ref(false);
@@ -70,6 +76,62 @@ const displayData = computed(() => {
   }
 
   return data;
+});
+
+const countPendingRecord = computed(() => {
+  return displayData.value.reduce((acc, data) => {
+    if (data["ผลตรวจ"] === "รอผล") {
+      acc += 1;
+    }
+
+    return acc;
+  }, 0);
+});
+
+const countNormalRecord = computed(() => {
+  return displayData.value.reduce((acc, data) => {
+    if (data["ผลตรวจ"] === "ปกติ") {
+      acc += 1;
+    }
+
+    return acc;
+  }, 0);
+});
+
+const countDetectedBacteriaRecord = computed(() => {
+  return displayData.value.reduce((acc, data) => {
+    if (data["ผลตรวจ"] === "พบเชื้อ") {
+      acc += 1;
+    }
+
+    return acc;
+  }, 0);
+});
+
+const percentDetectedBacteria = computed(() => {
+  let percent = 0;
+
+  if (displayData.value.length > 0) {
+    const countRecordedData =
+      displayData.value.length - countPendingRecord.value;
+
+    percent = percentOf(countDetectedBacteriaRecord.value, countRecordedData);
+  }
+
+  return percent;
+});
+
+const percentNormal = computed(() => {
+  let percent = 0;
+
+  if (displayData.value.length > 0) {
+    const countRecordedData =
+      displayData.value.length - countPendingRecord.value;
+
+    percent = percentOf(countNormalRecord.value, countRecordedData);
+  }
+
+  return percent;
 });
 
 const tableFields = computed(() => {
@@ -144,7 +206,10 @@ const canExport = computed(
   () => swabAreaHistories.value.length || swabProductHistories.value.length
 );
 
-const isView = (name: string) => view.value === name;
+const isView = (name: string) => {
+  return view.value === name;
+};
+
 const setView = (name: string) => {
   let query: any = getCurrentQuery();
 
@@ -191,7 +256,7 @@ const fetch = async (formValue) => {
         (el, idx) => {
           const swabArea = getSwabAreaById(el.swabAreaId);
 
-          const swabPeriodName = getSwabPeriodById(el.swabPeriodId);
+          const swabPeriod = getSwabPeriodById(el.swabPeriodId);
 
           let facilityName = "";
 
@@ -203,14 +268,38 @@ const fetch = async (formValue) => {
 
           const swabTest = getSwabTestById(el.swabTest.id);
 
+          const isRecorded = swabTest.swabTestRecordedAt !== null;
+          const bacteria = getBacteriaBySwabTestId(swabTest.id);
+
+          const hasBacteria = bacteria && bacteria.length > 0;
+
+          const bacteriaSpecies = getBacteriaSpecieBySwabTestId(swabTest.id);
+
+          const hasBacteriaSpecie =
+            hasBacteria && bacteriaSpecies && bacteriaSpecies.length > 0;
+
+          let bacteriaSpecieName = hasBacteriaSpecie
+            ? bacteriaSpecies
+                .map(({ bacteriaSpecieName }) => bacteriaSpecieName)
+                .join(",")
+            : "";
+
+          let status = "รอผล";
+
+          if (isRecorded) {
+            status = hasBacteria ? "พบเชื้อ" : "ปกติ";
+          }
+
           return {
             ลำดับ: idx + 1,
             วันที่ตรวจ: formatThLocale(new Date(el.swabAreaDate), "ddMMyy"),
             รหัส: el.swabTest.swabTestCode,
             กะ: el.shift ? shiftToAbbreviation(el.shift) : "",
-            ช่วงตรวจ: swabPeriodName ? swabPeriodName.swabPeriodName : "",
+            ช่วงตรวจ: swabPeriod ? swabPeriod.swabPeriodName : "",
             เครื่อง: facilityName,
             จุดตรวจ: swabArea.swabAreaName,
+            ผลตรวจ: status,
+            สายพันธุ์เชื้อ: bacteriaSpecieName,
             swabTest,
             swabTestId: swabTest.id,
           };
@@ -221,16 +310,42 @@ const fetch = async (formValue) => {
     if (swabPlanData.swabProductHistories.length) {
       swabProductHistories.value = swabPlanData.swabProductHistories.map(
         (el, idx) => {
-          const swabPeriodName = swabPlanData.swabPeriods.find(
-            (item) => item.id === el.swabPeriodId
-          );
+          const swabPeriod = getSwabPeriodById(el.swabPeriodId);
+
+          const swabTest = getSwabTestById(el.swabTest.id);
+
+          const isRecorded = swabTest.swabTestRecordedAt !== null;
+          const bacteria = getBacteriaBySwabTestId(swabTest.id);
+
+          const hasBacteria = bacteria && bacteria.length > 0;
+
+          let status = "รอผล";
+
+          if (isRecorded) {
+            status = hasBacteria ? "พบเชื้อ" : "ปกติ";
+          }
+
+          const bacteriaSpecies = getBacteriaSpecieBySwabTestId(swabTest.id);
+
+          const hasBacteriaSpecie =
+            hasBacteria && bacteriaSpecies && bacteriaSpecies.length > 0;
+
+          let bacteriaSpecieName = hasBacteriaSpecie
+            ? bacteriaSpecies
+                .map(({ bacteriaSpecieName }) => bacteriaSpecieName)
+                .join(",")
+            : "";
 
           return {
             ลำดับ: idx + 1,
             วันที่ตรวจ: formatThLocale(new Date(el.swabProductDate), "ddMMyy"),
             รหัส: el.swabTest.swabTestCode,
             กะ: el.shift ? shiftToAbbreviation(el.shift) : "",
-            ช่วงตรวจ: swabPeriodName ? swabPeriodName.swabPeriodName : "",
+            ช่วงตรวจ: swabPeriod ? swabPeriod.swabPeriodName : "",
+            ผลตรวจ: status,
+            สายพันธุ์เชื้อ: bacteriaSpecieName,
+            swabTest,
+            swabTestId: swabTest.id,
           };
         }
       );
@@ -257,12 +372,35 @@ const onFormSubmitted = () => {
     const fromDateString = dateRange.cachedFromDateString;
     const toDateString = dateRange.cachedToDateString;
 
+    const additionalHeaders = includeBacteriaSpecies
+      ? ["ผลตรวจ", "สายพันธุ์เชื้อ"]
+      : [];
+
     if (swabAreaHistories.value.length) {
-      let wsSwabAreaHistory = utils.json_to_sheet(swabAreaHistories.value);
+      const wsSwabAreaHistoryHeaders = [
+        "ลำดับ",
+        "วันที่ตรวจ",
+        "รหัส",
+        "กะ",
+        "ช่วงตรวจ",
+        "เครื่อง",
+        "จุดตรวจ",
+        ...additionalHeaders,
+      ];
+
+      let wsSwabAreaHistory = utils.json_to_sheet(
+        swabAreaHistories.value.map((swabAreaHistory) => {
+          return wsSwabAreaHistoryHeaders.reduce((acc, header) => {
+            acc[header] = swabAreaHistory[header];
+
+            return acc;
+          }, {});
+        })
+      );
 
       wsSwabAreaHistory = setWidthColumn(
         wsSwabAreaHistory,
-        ["ลำดับ", "วันที่ตรวจ", "รหัส", "กะ", "ช่วงตรวจ", "เครื่อง", "จุดตรวจ"],
+        wsSwabAreaHistoryHeaders,
         swabAreaHistories.value,
         { ลำดับ: 10, กะ: 10 }
       );
@@ -271,13 +409,28 @@ const onFormSubmitted = () => {
     }
 
     if (swabProductHistories.value.length) {
+      const wsSwabProductHistoryHeaders = [
+        "ลำดับ",
+        "วันที่ตรวจ",
+        "รหัส",
+        "กะ",
+        "ช่วงตรวจ",
+        ...additionalHeaders,
+      ];
+
       let wsSwabProductHistory = utils.json_to_sheet(
-        swabProductHistories.value
+        swabProductHistories.value.map((swabProductHistory) => {
+          return wsSwabProductHistoryHeaders.reduce((acc, header) => {
+            acc[header] = swabProductHistory[header];
+
+            return acc;
+          }, {});
+        })
       );
 
       wsSwabProductHistory = setWidthColumn(
         wsSwabProductHistory,
-        ["ลำดับ", "วันที่ตรวจ", "รหัส", "กะ", "ช่วงตรวจ"],
+        wsSwabProductHistoryHeaders,
         swabProductHistories.value,
         { ลำดับ: 10, กะ: 10 }
       );
@@ -430,7 +583,7 @@ watch(
 
     <b-row v-else align-h="center">
       <b-col v-if="loaded" cols="12">
-        <b-row>
+        <b-row class="my-2">
           <b-button-group size="sm" class="text-center">
             <b-button
               :pressed="isView('area')"
@@ -452,8 +605,66 @@ watch(
     <b-row v-show="loaded" class="mt-4">
       <b-col>
         <div v-if="displayData.length > 0">
+          <b-card-group deck>
+            <b-card align="center">
+              <b-card-text><h4>ทั้งหมด</h4></b-card-text>
+              <b-card-text>{{ displayData.length }} รายการ</b-card-text>
+            </b-card>
+
+            <b-card
+              v-if="form.status === BacteriaStatus.ALL"
+              border-variant="primary"
+              body-bg-variant="primary"
+              body-text-variant="white"
+              align="center"
+            >
+              <b-card-text><h4>รอผล</h4></b-card-text>
+              <b-card-text>{{ countPendingRecord }} รายการ</b-card-text>
+            </b-card>
+
+            <b-card
+              v-if="form.status === BacteriaStatus.ALL"
+              border-variant="success"
+              body-bg-variant="success"
+              body-text-variant="white"
+              align="center"
+            >
+              <b-card-text><h4>ปกติ</h4></b-card-text>
+              <b-card-text>
+                {{ countNormalRecord }} รายการ ({{ percentNormal }}%)
+              </b-card-text>
+            </b-card>
+
+            <b-card
+              v-if="form.status === BacteriaStatus.ALL"
+              border-variant="danger"
+              body-bg-variant="danger"
+              body-text-variant="white"
+              align="center"
+            >
+              <b-card-text><h4>พบเชื้อ</h4></b-card-text>
+              <b-card-text>
+                {{ countDetectedBacteriaRecord }} รายการ ({{
+                  percentDetectedBacteria
+                }}%)
+              </b-card-text>
+            </b-card>
+
+            <!-- <b-card
+              border-variant="danger"
+              header-border-variant="danger"
+              align="center"
+            >
+              <b-card-text><h3>เปอร์เซ็นต์พบเชื้อ</h3></b-card-text>
+              <b-card-text
+                ><h5>{{ percentDetectedBacteria }}%</h5></b-card-text
+              >
+            </b-card> -->
+          </b-card-group>
+
           <b-table
-            id="exportedSwabProductTable"
+            class="mt-4"
+            id="exportedSwabReportTable"
             hover
             small
             caption-top

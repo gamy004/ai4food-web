@@ -19,6 +19,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(["update:modelValue"]);
 
 const bacteriaStatusOptions = ref([
+  { value: BacteriaStatus.PENDING, text: "รอผล" },
   { value: BacteriaStatus.DETECTED, text: "พบเชื้อ" },
   { value: BacteriaStatus.NORMAL, text: "ปกติ" },
 ]);

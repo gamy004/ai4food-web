@@ -538,6 +538,7 @@ export const useSwab = () => {
     };
 
     if (bacteriaStatus && bacteriaStatus !== BacteriaStatus.ALL) {
+      params.pending = bacteriaStatus === BacteriaStatus.PENDING;
       params.hasBacteria = bacteriaStatus === BacteriaStatus.DETECTED;
     }
 

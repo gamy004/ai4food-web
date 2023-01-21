@@ -20,6 +20,7 @@ import {
 import { SearchParams } from "./useRequest";
 
 export enum BacteriaStatus {
+  PENDING = "pending",
   DETECTED = "detected",
   NORMAL = "normal",
   ALL = "all",
