@@ -529,18 +529,14 @@ export const useSwab = () => {
     fromDate: string,
     toDate: string,
     bacteriaSpecies: boolean = false,
-    bacteriaStatus?: BacteriaStatus
+    status?: BacteriaStatus
   ): Promise<GetSwabPlanResponse> => {
     const params: any = {
       fromDate,
       toDate,
       bacteriaSpecies,
+      status,
     };
-
-    if (bacteriaStatus && bacteriaStatus !== BacteriaStatus.ALL) {
-      params.pending = bacteriaStatus === BacteriaStatus.PENDING;
-      params.hasBacteria = bacteriaStatus === BacteriaStatus.DETECTED;
-    }
 
     return new Promise((resolve, reject) => {
       const { data, error } = get<GetSwabPlanResponse>(
