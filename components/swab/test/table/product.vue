@@ -5,6 +5,7 @@ import SwabProductHistory from "~~/models/SwabProductHistory";
 import { FormData as SwabTestFilterFormData } from "~~/components/swab/test/filter.vue";
 import { Pagination } from "~~/composables/usePagination";
 import { LoadAllSwabProductHistoryFilter } from "~~/composables/useFilterSwabProductHistory";
+import { BacteriaStatus } from "~~/composables/useLab";
 
 export interface Props {
   modelValue: SwabTestFilterFormData;
@@ -102,6 +103,10 @@ const displayData = computed(() => {
   });
 });
 
+const swabTestData = computed(() =>
+  displayData.value.map(({ swabTest }) => swabTest)
+);
+
 const paginatedData = computed(() =>
   props.pagination.paginate(displayData.value)
 );
@@ -157,8 +162,16 @@ watch(() => form, fetch, { immediate: true, deep: true });
 
     <div v-else>
       <div v-if="hasData">
+        <swab-test-card-summary-status
+          :data="swabTestData"
+          :status="BacteriaStatus.ALL"
+          class="mt-2"
+        >
+        </swab-test-card-summary-status>
+
         <b-table
           id="swabTestProductTable"
+          class="mt-4"
           hover
           small
           responsive

@@ -26,6 +26,13 @@ export enum BacteriaStatus {
   ALL = "all",
 }
 
+export enum BacteriaStatusMapper {
+  pending = "รอผล",
+  detected = "พบเชื้อ",
+  normal = "ปกติ",
+  all = "ทั้งหมด",
+}
+
 export type BacteriaSpecieData = {
   bacteriaName?: string;
   bacteriaId?: string;

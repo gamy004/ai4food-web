@@ -7,7 +7,7 @@ import { BooleanState } from "~~/composables/useBooleanState";
 import { PaginationState } from "~~/composables/usePagination";
 
 export interface FormData {
-  date: string;
+  date?: string;
   shift?: Shift;
   swabPeriodId?: string;
   facilityId?: string;

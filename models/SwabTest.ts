@@ -4,6 +4,7 @@ import Bacteria from "./Bacteria";
 import BacteriaSpecie from "./BacteriaSpecie";
 import SwabTestBacteria from "./SwabTestBacteria";
 import SwabTestBacteriaSpecie from "./SwabTestBacteriaSpecie";
+
 export default class SwabTest extends Model {
   static entity = "swab_test";
 
@@ -35,6 +36,51 @@ export default class SwabTest extends Model {
   )
   declare bacteriaSpecies: BacteriaSpecie[];
 
+  get isRecorded() {
+    return this.swabTestRecordedAt !== null;
+  }
+
+  get hasBacteria() {
+    const { getBacteriaBySwabTestId } = useLab();
+
+    const bacteria = getBacteriaBySwabTestId(this.id);
+
+    return bacteria && bacteria.length > 0;
+  }
+
+  get hasBacteriaSpecies() {
+    const { getBacteriaSpecieBySwabTestId } = useLab();
+
+    const bacteriaSpecies = getBacteriaSpecieBySwabTestId(this.id);
+
+    return bacteriaSpecies && bacteriaSpecies.length > 0;
+  }
+
+  get status() {
+    let status = BacteriaStatusMapper.pending;
+
+    if (this.isRecorded) {
+      status = this.hasBacteria
+        ? BacteriaStatusMapper.detected
+        : BacteriaStatusMapper.normal;
+    }
+
+    return status;
+  }
+
+  get bacteriaNames() {
+    const { getBacteriaSpecieBySwabTestId } = useLab();
+
+    const bacteriaSpecies = getBacteriaSpecieBySwabTestId(this.id);
+
+    const hasBacteriaSpecies = bacteriaSpecies && bacteriaSpecies.length > 0;
+
+    return this.hasBacteria && hasBacteriaSpecies
+      ? bacteriaSpecies
+          .map(({ bacteriaSpecieName }) => bacteriaSpecieName)
+          .join(",")
+      : "";
+  }
   // @Attr([])
   // swabAreaHistoryIds!: string[];
 
