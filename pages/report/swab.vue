@@ -19,7 +19,11 @@ const currentDate = today();
 const loading = ref(false);
 const error = ref(false);
 const form = reactive({
-  date: (route.query.date as string) || onlyDate(currentDate),
+  // date: (route.query.date as string) || onlyDate(currentDate),
+  dateRange: {
+    from: (route.query.from as string) || onlyDate(currentDate),
+    to: (route.query.to as string) || onlyDate(currentDate),
+  },
   shift: stringToShift(route.query.shift as string) || Shift.ALL,
   swabPeriodId: (route.query.swabPeriodId as string) || null,
   facilityId: (route.query.facilityId as string) || null,
@@ -106,11 +110,13 @@ onBeforeMount(fetch);
             <swab-test-filter
               v-model="form"
               :hidden-state="{
+                date: true,
+                dateRange: false,
                 mainSwabArea: isPage('report-swab-product'),
                 product: isPage('report-swab-area'),
               }"
               :col-state="{
-                date: 'sm-6 md-4',
+                dateRange: 'sm-6 md-4',
                 shift: 'sm-6 md-3',
                 swabPeriod: 'sm-12 md-5',
                 facility: 'sm-12 md-6',

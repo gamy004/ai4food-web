@@ -1,14 +1,21 @@
 <script lang="ts" setup>
 import { utils, writeFile } from "xlsx";
-import { useToast } from "vue-toastification";
+// import { useToast } from "vue-toastification";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import DownloadIcon from "~icons/carbon/download";
-import { DateRangeInterface } from "~~/composables/useDate";
-import { GetSwabPlanResponse } from "~~/composables/useSwab";
+import { Shift, DateRangeInterface } from "~~/composables/useDate";
+// import { GetSwabPlanResponse } from "~~/composables/useSwab";
 import { BacteriaStatus, BacteriaStatusMapper } from "~~/composables/useLab";
 
 export type FormType = {
-  date: DateRangeInterface | null;
+  dateRange: DateRangeInterface | null;
+  shift: Shift;
+  swabPeriodId: string | null;
+  facilityId: string | null;
+  facilityItemId: string | null;
+  mainSwabAreaId: string | null;
+  productId: string | null;
+  swabTestCode: string | null;
   status: BacteriaStatus;
 };
 
@@ -18,137 +25,149 @@ definePageMeta({
   canGoBack: true,
   fallBackRedirect: "/",
 });
-
-const toast = useToast();
+// const { isPage, goTo } = useNavigation();
+// const toast = useToast();
 const route = useRoute();
-const { percentOf } = useMath();
 const {
   today,
   onlyDate,
-  formatThLocale,
-  shiftToAbbreviation,
-  updateDateRangeQueryParams,
+  // formatThLocale,
+  // shiftToAbbreviation,
+  stringToShift,
+  // updateDateRangeQueryParams,
 } = useDate();
 const { getCurrentQuery, updateQueryParams } = useQueryParams();
-const { getSwabPlan, getSwabAreaById, getSwabPeriodById } = useSwab();
-const { getFacilityById } = useFacility();
+// const { getSwabPlan, getSwabAreaById, getSwabPeriodById } = useSwab();
+// const { getFacilityById } = useFacility();
 const {
-  getBacteriaBySwabTestId,
-  getBacteriaSpecieBySwabTestId,
-  getSwabTestById,
+  // getBacteriaBySwabTestId,
+  // getBacteriaSpecieBySwabTestId,
+  // getSwabTestById,
   api: labApi,
 } = useLab();
 const { setWidthColumn } = useXlsx();
 // state
 const loading = ref(false);
-const error = ref(false);
-const loaded = ref(false);
+// const error = ref(false);
+// const loaded = ref(false);
 const includeBacteriaSpecies = true;
 const view = ref((route.query.view as string) || "area");
 const swabAreaHistories = ref([]);
 const swabProductHistories = ref([]);
 const currentDate = today();
 const form = reactive<FormType>({
-  date: {
-    from: (route.query.from as string) || onlyDate(currentDate),
-    to: (route.query.to as string) || onlyDate(currentDate),
-  },
+  dateRange:
+    route.query.from || route.query.to
+      ? {
+          from: (route.query.from as string) || onlyDate(currentDate),
+          to: (route.query.to as string) || onlyDate(currentDate),
+        }
+      : null,
+  shift: stringToShift(route.query.shift as string) || Shift.ALL,
+  swabPeriodId: (route.query.swabPeriodId as string) || null,
+  facilityId: (route.query.facilityId as string) || null,
+  facilityItemId: (route.query.facilityItemId as string) || null,
+  mainSwabAreaId: (route.query.mainSwabAreaId as string) || null,
+  productId: (route.query.productId as string) || null,
+  swabTestCode: (route.query.swabTestCode as string) || null,
   status: (route.query.status as BacteriaStatus) || BacteriaStatus.ALL,
 });
-const dateRange = reactive({
-  cachedFromDateString: null,
-  cachedToDateString: null,
-});
+
+// const dateRange = reactive({
+//   cachedFromDateString: null,
+//   cachedToDateString: null,
+// });
+
 const pagination = usePagination({
   perPage: parseInt(route.query.perPage as string) || 20,
   currentPage: parseInt(route.query.currentPage as string) || 1,
 });
 
-const displayData = computed(() => {
-  let data = [];
+// const displayData = computed(() => {
+//   let data = [];
 
-  if (view.value === "area") {
-    data = swabAreaHistories.value;
-  }
+//   if (view.value === "area") {
+//     data = swabAreaHistories.value;
+//   }
 
-  if (view.value === "product") {
-    data = swabProductHistories.value;
-  }
+//   if (view.value === "product") {
+//     data = swabProductHistories.value;
+//   }
 
-  return data;
-});
+//   return data;
+// });
 
-const swabTestData = computed(() =>
-  displayData.value.map(({ swabTest }) => swabTest)
-);
+// const swabTestData = computed(() =>
+//   displayData.value.map(({ swabTest }) => swabTest)
+// );
 
-const tableFields = computed(() => {
-  let fields = [
-    {
-      key: "ลำดับ",
-      label: "ลำดับ",
-      thClass: "text-end",
-      tdClass: "text-end",
-      thStyle: { width: "5%" },
-    },
-    {
-      key: "วันที่ตรวจ",
-      label: "วันที่ตรวจ",
-      thClass: "text-end",
-      tdClass: "text-end",
-      thStyle: { width: "10%" },
-    },
-    {
-      key: "รหัส",
-      label: "รหัส",
-      thClass: "text-center",
-      tdClass: "text-center",
-      thStyle: { width: "10%" },
-    },
-    {
-      key: "กะ",
-      label: "กะ",
-      thStyle: { width: "5%" },
-    },
-    { key: "ช่วงตรวจ", label: "ช่วงตรวจ", thStyle: { width: "10%" } },
-  ];
+// const tableFields = computed(() => {
+//   let fields = [
+//     {
+//       key: "ลำดับ",
+//       label: "ลำดับ",
+//       thClass: "text-end",
+//       tdClass: "text-end",
+//       thStyle: { width: "5%" },
+//     },
+//     {
+//       key: "วันที่ตรวจ",
+//       label: "วันที่ตรวจ",
+//       thClass: "text-end",
+//       tdClass: "text-end",
+//       thStyle: { width: "10%" },
+//     },
+//     {
+//       key: "รหัส",
+//       label: "รหัส",
+//       thClass: "text-center",
+//       tdClass: "text-center",
+//       thStyle: { width: "10%" },
+//     },
+//     {
+//       key: "กะ",
+//       label: "กะ",
+//       thStyle: { width: "5%" },
+//     },
+//     { key: "ช่วงตรวจ", label: "ช่วงตรวจ", thStyle: { width: "10%" } },
+//   ];
 
-  if (isView("area")) {
-    fields = [
-      ...fields,
-      { key: "เครื่อง", label: "เครื่อง", thStyle: { width: "10%" } },
-      {
-        key: "จุดตรวจ",
-        label: "จุดตรวจ",
-        thStyle: { width: includeBacteriaSpecies ? "20%" : "50%" },
-      },
-    ];
-  }
+//   if (isView("area")) {
+//     fields = [
+//       ...fields,
+//       { key: "เครื่อง", label: "เครื่อง", thStyle: { width: "10%" } },
+//       {
+//         key: "จุดตรวจ",
+//         label: "จุดตรวจ",
+//         thStyle: { width: includeBacteriaSpecies ? "20%" : "50%" },
+//       },
+//     ];
+//   }
 
-  if (includeBacteriaSpecies) {
-    fields = [
-      ...fields,
-      {
-        key: "status",
-        label: "ผลตรวจ",
-        thClass: "text-center",
-        tdClass: "text-center",
-        thStyle: { width: "10%" },
-      },
-      {
-        key: "bacteriaSpecie",
-        label: "สายพันธุ์เชื้อ",
-        thClass: "text-center",
-        tdClass: "text-center",
-        thStyle: { width: "20%" },
-      },
-    ];
-  }
+//   if (includeBacteriaSpecies) {
+//     fields = [
+//       ...fields,
+//       {
+//         key: "status",
+//         label: "ผลตรวจ",
+//         thClass: "text-center",
+//         tdClass: "text-center",
+//         thStyle: { width: "10%" },
+//       },
+//       {
+//         key: "bacteriaSpecie",
+//         label: "สายพันธุ์เชื้อ",
+//         thClass: "text-center",
+//         tdClass: "text-center",
+//         thStyle: { width: "20%" },
+//       },
+//     ];
+//   }
 
-  return fields;
-});
+//   return fields;
+// });
 
-const paginatedData = computed(() => pagination.paginate(displayData.value));
+// const paginatedData = computed(() => pagination.paginate(displayData.value));
 
 const canExport = computed(
   () => swabAreaHistories.value.length || swabProductHistories.value.length
@@ -172,102 +191,102 @@ const setView = (name: string) => {
   updateQueryParams({ ...query, view: name });
 };
 
-const resetState = () => {
-  loaded.value = false;
-  error.value = false;
-  swabAreaHistories.value = [];
-  swabProductHistories.value = [];
-};
+// const resetState = () => {
+//   loaded.value = false;
+//   error.value = false;
+//   swabAreaHistories.value = [];
+//   swabProductHistories.value = [];
+// };
 
-const fetch = async (formValue) => {
-  resetState();
+// const fetch = async (formValue) => {
+//   resetState();
 
-  loading.value = true;
+//   loading.value = true;
 
-  try {
-    const fromDateString = formValue.date.from;
-    const toDateString = formValue.date.to;
-    const bacteriaStatus = formValue.status;
+//   try {
+//     const fromDateString = formValue.dateRange.from;
+//     const toDateString = formValue.dateRange.to;
+//     const bacteriaStatus = formValue.status;
 
-    dateRange.cachedFromDateString = fromDateString;
-    dateRange.cachedToDateString = toDateString;
+//     dateRange.cachedFromDateString = fromDateString;
+//     dateRange.cachedToDateString = toDateString;
 
-    const swabPlanData: GetSwabPlanResponse = await getSwabPlan(
-      fromDateString,
-      toDateString,
-      includeBacteriaSpecies,
-      bacteriaStatus
-    );
+//     const swabPlanData: GetSwabPlanResponse = await getSwabPlan(
+//       fromDateString,
+//       toDateString,
+//       includeBacteriaSpecies,
+//       bacteriaStatus
+//     );
 
-    if (swabPlanData.swabAreaHistories.length) {
-      swabAreaHistories.value = swabPlanData.swabAreaHistories.map(
-        (el, idx) => {
-          const swabArea = getSwabAreaById(el.swabAreaId);
+//     if (swabPlanData.swabAreaHistories.length) {
+//       swabAreaHistories.value = swabPlanData.swabAreaHistories.map(
+//         (el, idx) => {
+//           const swabArea = getSwabAreaById(el.swabAreaId);
 
-          const swabPeriod = getSwabPeriodById(el.swabPeriodId);
+//           const swabPeriod = getSwabPeriodById(el.swabPeriodId);
 
-          let facilityName = "";
+//           let facilityName = "";
 
-          if (swabArea) {
-            const facility = getFacilityById(swabArea.facilityId);
+//           if (swabArea) {
+//             const facility = getFacilityById(swabArea.facilityId);
 
-            facilityName = facility.facilityName;
-          }
+//             facilityName = facility.facilityName;
+//           }
 
-          const swabTest = getSwabTestById(el.swabTest.id);
+//           const swabTest = getSwabTestById(el.swabTest.id);
 
-          return {
-            ลำดับ: idx + 1,
-            วันที่ตรวจ: formatThLocale(new Date(el.swabAreaDate), "ddMMyy"),
-            รหัส: el.swabTest.swabTestCode,
-            กะ: el.shift ? shiftToAbbreviation(el.shift) : "",
-            ช่วงตรวจ: swabPeriod ? swabPeriod.swabPeriodName : "",
-            เครื่อง: facilityName,
-            จุดตรวจ: swabArea.swabAreaName,
-            ผลตรวจ: swabTest.status,
-            สายพันธุ์เชื้อ: swabTest.bacteriaNames,
-            swabTest,
-            swabTestId: swabTest.id,
-          };
-        }
-      );
-    }
+//           return {
+//             ลำดับ: idx + 1,
+//             วันที่ตรวจ: formatThLocale(new Date(el.swabAreaDate), "ddMMyy"),
+//             รหัส: el.swabTest.swabTestCode,
+//             กะ: el.shift ? shiftToAbbreviation(el.shift) : "",
+//             ช่วงตรวจ: swabPeriod ? swabPeriod.swabPeriodName : "",
+//             เครื่อง: facilityName,
+//             จุดตรวจ: swabArea.swabAreaName,
+//             ผลตรวจ: swabTest.status,
+//             สายพันธุ์เชื้อ: swabTest.bacteriaNames,
+//             swabTest,
+//             swabTestId: swabTest.id,
+//           };
+//         }
+//       );
+//     }
 
-    if (swabPlanData.swabProductHistories.length) {
-      swabProductHistories.value = swabPlanData.swabProductHistories.map(
-        (el, idx) => {
-          const swabPeriod = getSwabPeriodById(el.swabPeriodId);
+//     if (swabPlanData.swabProductHistories.length) {
+//       swabProductHistories.value = swabPlanData.swabProductHistories.map(
+//         (el, idx) => {
+//           const swabPeriod = getSwabPeriodById(el.swabPeriodId);
 
-          const swabTest = getSwabTestById(el.swabTest.id);
+//           const swabTest = getSwabTestById(el.swabTest.id);
 
-          return {
-            ลำดับ: idx + 1,
-            วันที่ตรวจ: formatThLocale(new Date(el.swabProductDate), "ddMMyy"),
-            รหัส: el.swabTest.swabTestCode,
-            กะ: el.shift ? shiftToAbbreviation(el.shift) : "",
-            ช่วงตรวจ: swabPeriod ? swabPeriod.swabPeriodName : "",
-            ผลตรวจ: swabTest.status,
-            สายพันธุ์เชื้อ: swabTest.bacteriaNames,
-            swabTest,
-            swabTestId: swabTest.id,
-          };
-        }
-      );
-    }
+//           return {
+//             ลำดับ: idx + 1,
+//             วันที่ตรวจ: formatThLocale(new Date(el.swabProductDate), "ddMMyy"),
+//             รหัส: el.swabTest.swabTestCode,
+//             กะ: el.shift ? shiftToAbbreviation(el.shift) : "",
+//             ช่วงตรวจ: swabPeriod ? swabPeriod.swabPeriodName : "",
+//             ผลตรวจ: swabTest.status,
+//             สายพันธุ์เชื้อ: swabTest.bacteriaNames,
+//             swabTest,
+//             swabTestId: swabTest.id,
+//           };
+//         }
+//       );
+//     }
 
-    loaded.value = true;
-  } catch (e) {
-    console.log(e);
+//     loaded.value = true;
+//   } catch (e) {
+//     console.log(e);
 
-    error.value = true;
+//     error.value = true;
 
-    toast.error("โหลดข้อมูลรายงานจุด swab ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", {
-      timeout: 1000,
-    });
-  } finally {
-    loading.value = false;
-  }
-};
+//     toast.error("โหลดข้อมูลรายงานจุด swab ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", {
+//       timeout: 1000,
+//     });
+//   } finally {
+//     loading.value = false;
+//   }
+// };
 
 const onFormSubmitted = () => {
   if (canExport.value) {
@@ -365,13 +384,13 @@ onBeforeMount(async () => {
   }
 });
 
-watch(
-  () => form.date,
-  (formDate) => {
-    updateDateRangeQueryParams(formDate);
-  },
-  { immediate: true }
-);
+// watch(
+//   () => form.date,
+//   (formDate) => {
+//     updateDateRangeQueryParams(formDate);
+//   },
+//   { immediate: true }
+// );
 
 watch(
   () => form.status,
@@ -385,18 +404,18 @@ watch(
   }
 );
 
-watch(
-  () => form,
-  (formValue) => {
-    fetch(formValue);
-  },
-  { deep: true, immediate: true }
-);
+// watch(
+//   () => form,
+//   (formValue) => {
+//     fetch(formValue);
+//   },
+//   { deep: true, immediate: true }
+// );
 </script>
 
 <template>
   <div class="page__swab-report mt-4">
-    <b-row class="mb-4">
+    <b-row>
       <b-col>
         <b-form class="w-100" @submit="onFormSubmitted">
           <b-container>
@@ -437,19 +456,52 @@ watch(
             <b-row class="mt-3">
               <b-col>
                 <b-row class="row-gap-2">
-                  <b-col md="6" xl="4">
+                  <b-col>
+                    <swab-test-filter
+                      v-model="form"
+                      :hidden-state="{
+                        date: true,
+                        dateRange: false,
+                        mainSwabArea: false,
+                        product: false,
+                      }"
+                      :col-state="{
+                        dateRange: 'sm-6 md-4',
+                        shift: 'sm-6 md-3',
+                        swabPeriod: 'sm-12 md-5',
+                        facility: 'sm-12 md-6',
+                        facilityItem: 'sm-12 md-6',
+                        mainSwabArea: '6',
+                        product: '6',
+                        swabTestCode: '12',
+                      }"
+                      :clearable-state="{
+                        swabPeriod: true,
+                        facility: true,
+                        facilityItem: true,
+                        mainSwabArea: true,
+                        product: true,
+                      }"
+                      :pagination-state="pagination.$state"
+                      placeholder-date="เลือกวันที่ต้องการออกรายงาน"
+                    />
+                  </b-col>
+                </b-row>
+                <b-row class="row-gap-2 mt-3">
+                  <!-- <b-col md="6" xl="4">
                     <div class="input-group align-items-baseline">
                       <label for="date" class="form-label d-block min-w-75px"
                         >วันที่</label
                       >
 
                       <date-picker-range
-                        v-model="form.date"
+                        v-model="form.dateRange"
                         class="col"
                         placeholder="เลือกวันที่ต้องการออกรายงาน"
                       />
                     </div>
-                  </b-col>
+                  </b-col> -->
+
                   <b-col sm="8" md="3" xl="4">
                     <div class="input-group align-items-baseline">
                       <label
@@ -482,6 +534,8 @@ watch(
             </b-row>
           </b-container>
         </b-form>
+
+        <hr />
       </b-col>
     </b-row>
 
@@ -492,7 +546,7 @@ watch(
     </b-row>
 
     <b-row v-else align-h="center">
-      <b-col v-if="loaded" cols="12">
+      <b-col cols="12">
         <b-row class="my-2">
           <b-button-group size="sm" class="text-center">
             <b-button
@@ -512,9 +566,22 @@ watch(
       </b-col>
     </b-row>
 
-    <b-row v-show="loaded" class="mt-4">
+    <b-row>
       <b-col>
-        <div v-if="displayData.length > 0">
+        <swab-test-table-area
+          v-if="isView('area')"
+          v-model="form"
+          :pagination="pagination"
+          read-only
+        ></swab-test-table-area>
+
+        <swab-test-table-product
+          v-if="isView('product')"
+          v-model="form"
+          :pagination="pagination"
+          read-only
+        ></swab-test-table-product>
+        <!-- <div v-if="displayData.length > 0">
           <swab-test-card-summary-status
             :data="swabTestData"
             :status="form.status"
@@ -550,9 +617,9 @@ watch(
             :total-rows="displayData.length"
             aria-controls="exportedSwabProductTable"
           />
-        </div>
+        </div> -->
 
-        <b-card v-else bg-variant="light">
+        <!-- <b-card v-else bg-variant="light">
           <b-card-text class="text-center">
             ไม่พบข้อมูลรายการตรวจสินค้า
             <span
@@ -568,7 +635,7 @@ watch(
               }}
             </span>
           </b-card-text>
-        </b-card>
+        </b-card> -->
       </b-col>
     </b-row>
   </div>

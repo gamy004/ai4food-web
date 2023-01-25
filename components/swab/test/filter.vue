@@ -43,11 +43,13 @@ export interface Props {
     | "swabTestCode"
   >;
   paginationState?: PaginationState;
+  placeholderDate?: string;
   // invalidState?: FormInvalidData
 }
 
 const props = withDefaults(defineProps<Props>(), {
   disabled: false,
+  placeholderDate: "",
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -139,6 +141,7 @@ const onClearSwabTestCode = () => {
           :col-state="colState"
           :pagination-state="paginationState"
           :disabled="disabled"
+          :placeholder-date="placeholderDate"
           show-shift-all
           v-model="form"
         >

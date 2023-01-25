@@ -23,19 +23,20 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(["update:modelValue"]);
 
 const toast = useToast();
-const { formatTimeThLocale, shiftToAbbreviation } = useDate();
+const { formatThLocale, formatTimeThLocale, shiftToAbbreviation } = useDate();
 const { getProductById } = useProduct();
 const { getFacilityById, getFacilityItemById } = useFacility();
 const { getSwabPeriodById, getSwabProductHistoryById } = useSwab();
 const { getSwabTestById, getBacteriaStateBySwabTestId, api: labApi } = useLab();
 
-const form = computed({
-  get: () => props.modelValue,
-  set: (value) => emit("update:modelValue", value),
-});
+// const form = computed({
+//   get: () => props.modelValue,
+//   set: (value) => emit("update:modelValue", value),
+// });
 
 const tableFields = [
   { key: "order", label: "ลำดับ" },
+  { key: "date", label: "วัน" },
   { key: "time", label: "เวลา" },
   { key: "shift", label: "กะ" },
   { key: "swabTestCode", label: "รหัส" },
@@ -59,6 +60,7 @@ const tableFields = [
     thStyle: props.editSpecie ? { width: "40%" } : {},
   },
 ];
+const countTotal = ref(0);
 const swabProductHistoryIds = ref([]);
 const submittingSwabTestId = ref(null);
 const hasData = ref(true);
@@ -86,6 +88,10 @@ const displayData = computed(() => {
     return {
       index: idx,
       order: idx + 1,
+      date: formatThLocale(
+        new Date(swabProductHistory.swabProductDate),
+        "ddMMyy"
+      ),
       time: formatTimeThLocale(swabProductHistory.swabProductSwabedAt),
       shift: swabProductHistory.shift,
       swabTestCode: swabTest ? swabTest.swabTestCode : "",
@@ -103,28 +109,33 @@ const displayData = computed(() => {
   });
 });
 
-const swabTestData = computed(() =>
-  displayData.value.map(({ swabTest }) => swabTest)
-);
+// const swabTestData = computed(() =>
+//   displayData.value.map(({ swabTest }) => swabTest)
+// );
 
-const paginatedData = computed(() =>
-  props.pagination.paginate(displayData.value)
-);
+// const paginatedData = computed(() =>
+//   props.pagination.paginate(displayData.value)
+// );
 
-const fetch = async () => {
+const fetch = async (props) => {
   loading.value = true;
   error.value = false;
   hasData.value = true;
+  countTotal.value = 0;
   swabProductHistoryIds.value = [];
 
   try {
-    const params: LoadAllSwabProductHistoryFilter = { ...form.value };
+    const params: LoadAllSwabProductHistoryFilter = {
+      ...props.modelValue,
+      skip: props.pagination.offset.value,
+      take: props.pagination.$state.perPage,
+    };
 
     if (props.editSpecie) {
       params.hasBacteria = true;
     }
 
-    let data: SwabProductHistory[] =
+    let [data, total = 0]: [SwabProductHistory[], number] =
       await labApi().loadAllLabSwabProductHistory(params);
 
     // if (props.editSpecie) {
@@ -135,12 +146,16 @@ const fetch = async () => {
     //   });
     // }
 
+    countTotal.value = total;
+
     if (data && data.length) {
       swabProductHistoryIds.value = data.map(({ id }) => id);
     } else {
       hasData.value = false;
     }
   } catch (e) {
+    console.log(e);
+
     error.value = true;
 
     toast.error("ดึงรายการตรวจสินค้าไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", {
@@ -151,7 +166,7 @@ const fetch = async () => {
   }
 };
 
-watch(() => form, fetch, { immediate: true, deep: true });
+watch(() => props, fetch, { immediate: true, deep: true });
 </script>
 
 <template>
@@ -162,12 +177,12 @@ watch(() => form, fetch, { immediate: true, deep: true });
 
     <div v-else>
       <div v-if="hasData">
-        <swab-test-card-summary-status
+        <!-- <swab-test-card-summary-status
           :data="swabTestData"
           :status="BacteriaStatus.ALL"
           class="mt-2"
         >
-        </swab-test-card-summary-status>
+        </swab-test-card-summary-status> -->
 
         <b-table
           id="swabTestProductTable"
@@ -175,7 +190,7 @@ watch(() => form, fetch, { immediate: true, deep: true });
           hover
           small
           responsive
-          :items="paginatedData"
+          :items="displayData"
           :fields="tableFields"
         >
           <template #cell(shift)="{ item }">
@@ -222,7 +237,7 @@ watch(() => form, fetch, { immediate: true, deep: true });
         <base-pagination
           v-model="pagination.$state.currentPage"
           :per-page="pagination.$state.perPage"
-          :total-rows="displayData.length"
+          :total-rows="countTotal"
           aria-controls="swabTestProductTable"
         />
       </div>

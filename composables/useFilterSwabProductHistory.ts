@@ -1,8 +1,9 @@
-import { useDate, Shift } from "./useDate";
+import { useDate, Shift, DateRangeInterface } from "./useDate";
 import { SearchParams } from "./useRequest";
 
 export interface LoadAllSwabProductHistoryFilter {
-  date: string;
+  date?: string;
+  dateRange?: DateRangeInterface;
   shift?: Shift;
   facilityId?: string;
   facilityItemId?: string;
@@ -11,6 +12,8 @@ export interface LoadAllSwabProductHistoryFilter {
   swabTestCode?: string;
   productId?: string;
   hasBacteria?: boolean;
+  skip?: number;
+  take?: number;
 }
 
 export const useFilterSwabProductHistory = () => {
@@ -19,6 +22,7 @@ export const useFilterSwabProductHistory = () => {
   const toDto = (data: LoadAllSwabProductHistoryFilter): SearchParams => {
     const {
       date,
+      dateRange,
       shift,
       facilityId,
       facilityItemId,
@@ -27,11 +31,20 @@ export const useFilterSwabProductHistory = () => {
       swabTestCode,
       productId,
       hasBacteria,
+      skip,
+      take,
     } = data;
 
-    const params: any = {
-      swabProductDate: onlyDate(new Date(date)),
-    };
+    const params: any = {};
+
+    if (date) {
+      params.swabProductDate = onlyDate(new Date(date));
+    }
+
+    if (dateRange) {
+      params.fromDate = onlyDate(new Date(dateRange.from));
+      params.toDate = onlyDate(new Date(dateRange.to));
+    }
 
     if (shift && shift !== Shift.ALL) {
       params.shift = shift;
@@ -63,6 +76,13 @@ export const useFilterSwabProductHistory = () => {
 
     if (hasBacteria) {
       params.hasBacteria = true;
+    }
+
+    if (skip !== undefined) {
+      params.skip = skip;
+    }
+    if (take !== undefined) {
+      params.take = take;
     }
 
     return params;

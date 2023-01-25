@@ -12,7 +12,8 @@ import SwabProductHistory from "~~/models/SwabProductHistory";
 import SwabTest from "~~/models/SwabTest";
 import SwabTestBacteria from "~~/models/SwabTestBacteria";
 import SwabTestBacteriaSpecie from "~~/models/SwabTestBacteriaSpecie";
-import { Shift } from "./useDate";
+import { DateRangeInterface, Shift } from "./useDate";
+import { LoadAllSwabAreaHistoryFilter } from "./useFilterSwabAreaHistory";
 import {
   LoadAllSwabProductHistoryFilter,
   useFilterSwabProductHistory,
@@ -40,19 +41,22 @@ export type BacteriaSpecieData = {
   bacteriaSpecieId?: string;
 };
 
-export interface LoadAllLabSwabAreaHistoryData {
-  date: string;
-  shift?: Shift;
-  facilityId?: string;
-  facilityItemId?: string;
-  mainSwabAreaId?: string;
-  swabPeriodId?: string;
-  swabTestCode?: string;
-  hasBacteria?: boolean;
-}
+// export interface LoadAllLabSwabAreaHistoryData {
+//   date?: string;
+//   dateRange?: DateRangeInterface;
+//   shift?: Shift;
+//   facilityId?: string;
+//   facilityItemId?: string;
+//   mainSwabAreaId?: string;
+//   swabPeriodId?: string;
+//   swabTestCode?: string;
+//   hasBacteria?: boolean;
+//   skip?: number;
+//   take?: number;
+// }
 
 export interface LoadAllLabSwabProductHistoryData
-  extends LoadAllLabSwabAreaHistoryData {
+  extends LoadAllSwabAreaHistoryFilter {
   productId?: string;
 }
 
@@ -68,6 +72,8 @@ export interface LoadAllLabSwabAreaHistoryResponse {
   facilities: Facility[];
 
   facilityitems: FacilityItem[];
+
+  total: number;
 }
 
 export interface LoadAllLabSwabProductHistoryResponse
@@ -405,62 +411,79 @@ export const useLab = () => {
     }
   };
 
-  const transformLoadAllLabSwabAreaHistoryData = (
-    loadAllLabSwabAreaHistoryData: LoadAllLabSwabAreaHistoryData
-  ): SearchParams => {
-    const {
-      date,
-      shift,
-      facilityId,
-      facilityItemId,
-      mainSwabAreaId,
-      swabPeriodId,
-      swabTestCode,
-      hasBacteria,
-    } = loadAllLabSwabAreaHistoryData;
+  // const transformLoadAllLabSwabAreaHistoryData = (
+  //   loadAllLabSwabAreaHistoryData: LoadAllLabSwabAreaHistoryData
+  // ): SearchParams => {
+  //   const {
+  //     date,
+  //     dateRange,
+  //     shift,
+  //     facilityId,
+  //     facilityItemId,
+  //     mainSwabAreaId,
+  //     swabPeriodId,
+  //     swabTestCode,
+  //     hasBacteria,
+  //     skip,
+  //     take,
+  //   } = loadAllLabSwabAreaHistoryData;
 
-    const params: any = {
-      swabAreaDate: onlyDate(new Date(date)),
-    };
+  //   const params: any = {};
 
-    if (shift && shift !== Shift.ALL) {
-      params.shift = shift;
-    }
+  //   if (date) {
+  //     params.swabAreaDate = onlyDate(new Date(date));
+  //   }
 
-    if (facilityId) {
-      params.facilityId = facilityId;
-    }
+  //   if (dateRange) {
+  //     params.fromDate = onlyDate(new Date(dateRange.from));
+  //     params.toDate = onlyDate(new Date(dateRange.to));
+  //   }
 
-    if (facilityItemId) {
-      params.facilityItemId = facilityItemId;
-    }
+  //   if (shift && shift !== Shift.ALL) {
+  //     params.shift = shift;
+  //   }
 
-    if (mainSwabAreaId) {
-      params.swabAreaId = mainSwabAreaId;
-    }
+  //   if (facilityId) {
+  //     params.facilityId = facilityId;
+  //   }
 
-    if (swabPeriodId) {
-      params.swabPeriodId = swabPeriodId;
-    }
+  //   if (facilityItemId) {
+  //     params.facilityItemId = facilityItemId;
+  //   }
 
-    if (swabTestCode) {
-      params.swabTestCode = swabTestCode;
-    }
+  //   if (mainSwabAreaId) {
+  //     params.swabAreaId = mainSwabAreaId;
+  //   }
 
-    if (hasBacteria) {
-      params.hasBacteria = true;
-    }
+  //   if (swabPeriodId) {
+  //     params.swabPeriodId = swabPeriodId;
+  //   }
 
-    return params;
-  };
+  //   if (swabTestCode) {
+  //     params.swabTestCode = swabTestCode;
+  //   }
+
+  //   if (hasBacteria) {
+  //     params.hasBacteria = true;
+  //   }
+
+  //   if (skip !== undefined) {
+  //     params.skip = skip;
+  //   }
+  //   if (take !== undefined) {
+  //     params.take = take;
+  //   }
+
+  //   return params;
+  // };
 
   const loadAllLabSwabAreaHistory = async (
-    loadAllLabSwabAreaHistoryData: LoadAllLabSwabAreaHistoryData
-  ): Promise<SwabAreaHistory[]> => {
+    loadAllLabSwabAreaHistoryData: LoadAllSwabAreaHistoryFilter
+  ): Promise<[SwabAreaHistory[], number]> => {
     return new Promise((resolve, reject) => {
-      const params = transformLoadAllLabSwabAreaHistoryData(
-        loadAllLabSwabAreaHistoryData
-      );
+      const { toDto } = useFilterSwabAreaHistory();
+
+      const params: SearchParams = toDto(loadAllLabSwabAreaHistoryData);
 
       const { data, error } = get<LoadAllLabSwabAreaHistoryResponse>(
         "/swab/area-history/lab",
@@ -470,14 +493,14 @@ export const useLab = () => {
       );
 
       watch(data, (response) => {
-        const { swabAreaHistories = [] } = response;
+        const { swabAreaHistories = [], total } = response;
 
         saveRelatedLoadAllLabSwabAreaHistoryResponse(response);
 
         const updatedSwabAreaHistoryData =
           swabAreaHistoryRepo.save(swabAreaHistories);
 
-        resolve(updatedSwabAreaHistoryData);
+        resolve([updatedSwabAreaHistoryData, total]);
       });
 
       watch(error, (e) => {
@@ -502,7 +525,7 @@ export const useLab = () => {
 
   const loadAllLabSwabProductHistory = async (
     filter: LoadAllSwabProductHistoryFilter
-  ): Promise<SwabProductHistory[]> => {
+  ): Promise<[SwabProductHistory[], number]> => {
     return new Promise((resolve, reject) => {
       const { toDto } = useFilterSwabProductHistory();
 
@@ -518,12 +541,12 @@ export const useLab = () => {
       watch(data, (response) => {
         saveRelatedLoadAllLabSwabProductHistoryResponse(response);
 
-        const { swabProductHistories = [] } = response;
+        const { swabProductHistories = [], total } = response;
 
         const updatedSwabProductHistoryData =
           swabProductHistoryRepo.save(swabProductHistories);
 
-        resolve(updatedSwabProductHistoryData);
+        resolve([updatedSwabProductHistoryData, total]);
       });
 
       watch(error, (e) => {
