@@ -6,7 +6,6 @@ import crossIcon from "~icons/akar-icons/cross";
 import SwabAreaHistory from "~~/models/SwabAreaHistory";
 import { FormData as SwabTestFilterFormData } from "~~/components/swab/test/filter.vue";
 import { Pagination } from "~~/composables/usePagination";
-import { BacteriaStatus } from "~~/composables/useLab";
 import { LoadAllSwabAreaHistoryFilter } from "~~/composables/useFilterSwabAreaHistory";
 
 export interface Props {

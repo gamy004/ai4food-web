@@ -31,6 +31,7 @@ const form = reactive({
   mainSwabAreaId: (route.query.mainSwabAreaId as string) || null,
   productId: (route.query.productId as string) || null,
   swabTestCode: (route.query.swabTestCode as string) || null,
+  swabStatus: (route.query.swabStatus as string) || null,
 });
 const pagination = usePagination({
   perPage: parseInt(route.query.perPage as string) || 20,

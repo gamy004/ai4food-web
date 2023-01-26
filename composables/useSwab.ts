@@ -9,7 +9,6 @@ import SwabAreaHistoryEnvironment from "~~/models/SwabAreaHistoryEnvironment";
 import SwabAreaHistoryImage from "~~/models/SwabAreaHistoryImage";
 import SwabEnvironment from "~~/models/SwabEnvironment";
 import SwabPeriod from "~~/models/SwabPeriod";
-import SwabPlan from "~~/models/SwabPlan";
 import SwabTest from "~~/models/SwabTest";
 import SwabProductHistory from "~~/models/SwabProductHistory";
 import FacilityItem from "~~/models/FacilityItem";
@@ -24,7 +23,6 @@ import {
   LoadAllSwabAreaHistoryFilter,
   useFilterSwabAreaHistory,
 } from "./useFilterSwabAreaHistory";
-import { BacteriaStatus } from "./useLab";
 
 // export interface LoadSwabAreaHistoryData {
 //   date: string;
@@ -41,6 +39,19 @@ import { BacteriaStatus } from "./useLab";
 //   facilityItemId: string;
 //   swabPeriodId: string;
 // }
+export enum SwabStatus {
+  PENDING = "pending",
+  DETECTED = "detected",
+  NORMAL = "normal",
+  ALL = "all",
+}
+
+export enum SwabStatusMapper {
+  pending = "รอผล",
+  detected = "พบเชื้อ",
+  normal = "ปกติ",
+  all = "ทั้งหมด",
+}
 
 export interface LoadSwabProductHistoryResponse {
   facilities: Facility[];
@@ -529,7 +540,7 @@ export const useSwab = () => {
     fromDate: string,
     toDate: string,
     bacteriaSpecies: boolean = false,
-    status?: BacteriaStatus
+    status?: SwabStatus
   ): Promise<GetSwabPlanResponse> => {
     const params: any = {
       fromDate,

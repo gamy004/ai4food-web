@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import vSelect from "vue-select";
-import { BacteriaStatus } from "~~/composables/useLab";
+import { SwabStatus, SwabStatusMapper } from "~~/composables/useSwab";
 
 export interface Props {
   clearable?: boolean;
   disabled?: boolean;
   showAll?: boolean;
-  modelValue?: BacteriaStatus | null;
+  modelValue?: SwabStatus | null;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -18,16 +18,16 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(["update:modelValue"]);
 
-const bacteriaStatusOptions = ref([
-  { value: BacteriaStatus.PENDING, text: "รอผล" },
-  { value: BacteriaStatus.DETECTED, text: "พบเชื้อ" },
-  { value: BacteriaStatus.NORMAL, text: "ปกติ" },
+const SwabStatusOptions = ref([
+  { value: SwabStatus.PENDING, text: SwabStatusMapper.pending },
+  { value: SwabStatus.DETECTED, text: SwabStatusMapper.detected },
+  { value: SwabStatus.NORMAL, text: SwabStatusMapper.normal },
 ]);
 
 if (props.showAll) {
-  bacteriaStatusOptions.value.unshift({
-    value: BacteriaStatus.ALL,
-    text: "ทั้งหมด",
+  SwabStatusOptions.value.unshift({
+    value: SwabStatus.ALL,
+    text: SwabStatusMapper.all,
   });
 }
 
@@ -41,7 +41,7 @@ const modelValue = computed({
 <template>
   <v-select
     v-model="modelValue"
-    :options="bacteriaStatusOptions"
+    :options="SwabStatusOptions"
     label="text"
     :clearable="clearable"
     :disabled="disabled"

@@ -20,20 +20,6 @@ import {
 } from "./useFilterSwabProductHistory";
 import { SearchParams } from "./useRequest";
 
-export enum BacteriaStatus {
-  PENDING = "pending",
-  DETECTED = "detected",
-  NORMAL = "normal",
-  ALL = "all",
-}
-
-export enum BacteriaStatusMapper {
-  pending = "รอผล",
-  detected = "พบเชื้อ",
-  normal = "ปกติ",
-  all = "ทั้งหมด",
-}
-
 export type BacteriaSpecieData = {
   bacteriaName?: string;
   bacteriaId?: string;

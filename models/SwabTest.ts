@@ -4,6 +4,7 @@ import Bacteria from "./Bacteria";
 import BacteriaSpecie from "./BacteriaSpecie";
 import SwabTestBacteria from "./SwabTestBacteria";
 import SwabTestBacteriaSpecie from "./SwabTestBacteriaSpecie";
+import { SwabStatusMapper } from "@/composables/useSwab";
 
 export default class SwabTest extends Model {
   static entity = "swab_test";
@@ -57,12 +58,12 @@ export default class SwabTest extends Model {
   }
 
   get status() {
-    let status = BacteriaStatusMapper.pending;
+    let status = SwabStatusMapper.pending;
 
     if (this.isRecorded) {
       status = this.hasBacteria
-        ? BacteriaStatusMapper.detected
-        : BacteriaStatusMapper.normal;
+        ? SwabStatusMapper.detected
+        : SwabStatusMapper.normal;
     }
 
     return status;

@@ -5,7 +5,7 @@ import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import DownloadIcon from "~icons/carbon/download";
 import { Shift, DateRangeInterface } from "~~/composables/useDate";
 // import { GetSwabPlanResponse } from "~~/composables/useSwab";
-import { BacteriaStatus, BacteriaStatusMapper } from "~~/composables/useLab";
+import { SwabStatus, SwabStatusMapper } from "~~/composables/useSwab";
 
 export type FormType = {
   dateRange: DateRangeInterface | null;
@@ -16,7 +16,7 @@ export type FormType = {
   mainSwabAreaId: string | null;
   productId: string | null;
   swabTestCode: string | null;
-  status: BacteriaStatus;
+  status: SwabStatus;
 };
 
 definePageMeta({
@@ -70,7 +70,7 @@ const form = reactive<FormType>({
   mainSwabAreaId: (route.query.mainSwabAreaId as string) || null,
   productId: (route.query.productId as string) || null,
   swabTestCode: (route.query.swabTestCode as string) || null,
-  status: (route.query.status as BacteriaStatus) || BacteriaStatus.ALL,
+  status: (route.query.status as SwabStatus) || SwabStatus.ALL,
 });
 
 // const dateRange = reactive({
@@ -206,7 +206,7 @@ const setView = (name: string) => {
 //   try {
 //     const fromDateString = formValue.dateRange.from;
 //     const toDateString = formValue.dateRange.to;
-//     const bacteriaStatus = formValue.status;
+//     const SwabStatus = formValue.status;
 
 //     dateRange.cachedFromDateString = fromDateString;
 //     dateRange.cachedToDateString = toDateString;
@@ -215,7 +215,7 @@ const setView = (name: string) => {
 //       fromDateString,
 //       toDateString,
 //       includeBacteriaSpecies,
-//       bacteriaStatus
+//       SwabStatus
 //     );
 
 //     if (swabPlanData.swabAreaHistories.length) {
@@ -368,8 +368,8 @@ const onFormSubmitted = () => {
         : `${fromDateString}-${toDateString}`,
     ];
 
-    if (form.status !== BacteriaStatus.ALL) {
-      fileNames.push(BacteriaStatusMapper[form.status]);
+    if (form.status !== SwabStatus.ALL) {
+      fileNames.push(SwabStatusMapper[form.status]);
     }
 
     console.log(fileNames);
@@ -505,17 +505,17 @@ watch(
                   <b-col sm="8" md="3" xl="4">
                     <div class="input-group align-items-baseline">
                       <label
-                        for="bacteria-status"
+                        for="swab-status"
                         class="form-label d-block min-w-75px"
                         >ผลตรวจ</label
                       >
 
-                      <swab-test-form-select-bacteria-status
-                        id="bacteria-status"
+                      <swab-status-select
+                        id="swab-status"
                         class="col"
                         show-all
                         v-model="form.status"
-                      ></swab-test-form-select-bacteria-status>
+                      ></swab-status-select>
                     </div>
                   </b-col>
 
@@ -599,9 +599,9 @@ watch(
             :items="paginatedData"
           >
             <template #cell(status)="{ item }">
-              <badge-bacteria-status
+              <badge-swab-status
                 :swab-test="item.swabTest"
-              ></badge-bacteria-status>
+              ></badge-swab-status>
             </template>
 
             <template #cell(bacteriaSpecie)="{ item }">
