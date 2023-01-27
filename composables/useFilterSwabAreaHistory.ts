@@ -1,5 +1,6 @@
 import { useDate, Shift, DateRangeInterface } from "./useDate";
 import { SearchParams } from "./useRequest";
+import { SwabStatus } from "./useSwab";
 
 export interface LoadAllSwabAreaHistoryFilter {
   date?: string;
@@ -13,6 +14,7 @@ export interface LoadAllSwabAreaHistoryFilter {
   hasBacteria?: boolean;
   skip?: number;
   take?: number;
+  swabStatus?: SwabStatus;
 }
 
 export const useFilterSwabAreaHistory = () => {
@@ -31,6 +33,7 @@ export const useFilterSwabAreaHistory = () => {
       hasBacteria,
       skip,
       take,
+      swabStatus,
     } = data;
 
     const params: any = {};
@@ -66,6 +69,10 @@ export const useFilterSwabAreaHistory = () => {
 
     if (swabTestCode) {
       params.swabTestCode = swabTestCode;
+    }
+
+    if (swabStatus && swabStatus !== SwabStatus.ALL) {
+      params.swabStatus = swabStatus;
     }
 
     if (hasBacteria) {

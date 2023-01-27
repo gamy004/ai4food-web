@@ -8,9 +8,11 @@ import { ColState } from "~~/composables/useColState";
 import { useHiddenState } from "~~/composables/useHiddenState";
 import { FormData as SwabFilterFormData } from "../filter.vue";
 import { PaginationState } from "~~/composables/usePagination";
+import { SwabStatus } from "~~/composables/useSwab";
 
 export interface FormData extends SwabFilterFormData {
   swabTestCode?: string;
+  swabStatus?: SwabStatus;
 }
 
 export interface Props {
@@ -24,6 +26,7 @@ export interface Props {
     | "facilityItem"
     | "mainSwabArea"
     | "swabTestCode"
+    | "swabStatus"
   >;
   clearableState?: BooleanState<
     | "date"
@@ -41,6 +44,7 @@ export interface Props {
     | "facilityItem"
     | "mainSwabArea"
     | "swabTestCode"
+    | "swabStatus"
   >;
   paginationState?: PaginationState;
   placeholderDate?: string;
@@ -50,10 +54,11 @@ export interface Props {
 const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   placeholderDate: "",
+  swabTestCode: "",
+  swabStatus: SwabStatus.ALL,
 });
 
 const emit = defineEmits(["update:modelValue"]);
-const route = useRoute();
 const { updateQueryParams, getCurrentQuery } = useQueryParams();
 const swabTestHiddenState = computed(() => useHiddenState(props.hiddenState));
 const swabTestFilterColState = useColState(props.colState);
@@ -62,7 +67,8 @@ const form = computed({
   set: (value) => emit("update:modelValue", value),
 });
 
-const swabTestCode = ref(form.value.swabTestCode || "");
+const swabTestCode = ref(form.value.swabTestCode);
+const swabStatus = ref(form.value.swabStatus);
 
 const getUpdatedQuery = () => {
   let updatedQuery: any = { ...getCurrentQuery() };
@@ -88,7 +94,25 @@ const formSwabTestCode = computed({
     return swabTestCode.value;
   },
   set: (value) => {
+    console.log(value);
+
     swabTestCode.value = value;
+  },
+});
+
+const formSwabStatus = computed({
+  get: () => {
+    return form.value.swabStatus;
+  },
+  set: (value) => {
+    let query: any = getCurrentQuery();
+
+    form.value.swabStatus = value;
+
+    updateQueryParams({
+      ...query,
+      swabStatus: value,
+    });
   },
 });
 
@@ -146,8 +170,26 @@ const onClearSwabTestCode = () => {
           v-model="form"
         >
           <div
+            v-if="!swabTestHiddenState.isHidden('swabStatus')"
+            :class="[swabTestFilterColState.colClass('swabStatus', 4)]"
+          >
+            <div class="input-group align-items-baseline">
+              <label for="swabStatus" class="form-label d-block min-w-75px"
+                >สถานะ</label
+              >
+
+              <swab-status-select
+                id="swabStatus"
+                class="col"
+                show-all
+                v-model="formSwabStatus"
+              ></swab-status-select>
+            </div>
+          </div>
+
+          <div
             v-if="!swabTestHiddenState.isHidden('swabTestCode')"
-            :class="[swabTestFilterColState.colClass('swabTestCode', 12)]"
+            :class="[swabTestFilterColState.colClass('swabTestCode', 8)]"
           >
             <b-input-group>
               <label

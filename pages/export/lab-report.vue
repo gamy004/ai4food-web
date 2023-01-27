@@ -16,7 +16,7 @@ export type FormType = {
   mainSwabAreaId: string | null;
   productId: string | null;
   swabTestCode: string | null;
-  status: SwabStatus;
+  swabStatus: SwabStatus;
 };
 
 definePageMeta({
@@ -56,13 +56,10 @@ const swabAreaHistories = ref([]);
 const swabProductHistories = ref([]);
 const currentDate = today();
 const form = reactive<FormType>({
-  dateRange:
-    route.query.from || route.query.to
-      ? {
-          from: (route.query.from as string) || onlyDate(currentDate),
-          to: (route.query.to as string) || onlyDate(currentDate),
-        }
-      : null,
+  dateRange: {
+    from: (route.query.from as string) || onlyDate(currentDate),
+    to: (route.query.to as string) || onlyDate(currentDate),
+  },
   shift: stringToShift(route.query.shift as string) || Shift.ALL,
   swabPeriodId: (route.query.swabPeriodId as string) || null,
   facilityId: (route.query.facilityId as string) || null,
@@ -70,7 +67,7 @@ const form = reactive<FormType>({
   mainSwabAreaId: (route.query.mainSwabAreaId as string) || null,
   productId: (route.query.productId as string) || null,
   swabTestCode: (route.query.swabTestCode as string) || null,
-  status: (route.query.status as SwabStatus) || SwabStatus.ALL,
+  swabStatus: (route.query.swabStatus as SwabStatus) || SwabStatus.ALL,
 });
 
 // const dateRange = reactive({
@@ -206,7 +203,7 @@ const setView = (name: string) => {
 //   try {
 //     const fromDateString = formValue.dateRange.from;
 //     const toDateString = formValue.dateRange.to;
-//     const SwabStatus = formValue.status;
+//     const swabStatus = formValue.status;
 
 //     dateRange.cachedFromDateString = fromDateString;
 //     dateRange.cachedToDateString = toDateString;
@@ -215,7 +212,7 @@ const setView = (name: string) => {
 //       fromDateString,
 //       toDateString,
 //       includeBacteriaSpecies,
-//       SwabStatus
+//       swabStatus
 //     );
 
 //     if (swabPlanData.swabAreaHistories.length) {
@@ -368,8 +365,8 @@ const onFormSubmitted = () => {
         : `${fromDateString}-${toDateString}`,
     ];
 
-    if (form.status !== SwabStatus.ALL) {
-      fileNames.push(SwabStatusMapper[form.status]);
+    if (form.swabStatus !== SwabStatus.ALL) {
+      fileNames.push(SwabStatusMapper[form.swabStatus]);
     }
 
     console.log(fileNames);
@@ -391,18 +388,6 @@ onBeforeMount(async () => {
 //   },
 //   { immediate: true }
 // );
-
-watch(
-  () => form.status,
-  (formBateriaStatus) => {
-    let query: any = getCurrentQuery();
-
-    updateQueryParams({
-      ...query,
-      status: formBateriaStatus,
-    });
-  }
-);
 
 // watch(
 //   () => form,
@@ -471,9 +456,10 @@ watch(
                         swabPeriod: 'sm-12 md-5',
                         facility: 'sm-12 md-6',
                         facilityItem: 'sm-12 md-6',
-                        mainSwabArea: '6',
-                        product: '6',
-                        swabTestCode: '12',
+                        mainSwabArea: 'sm-12 md-6',
+                        product: 'sm-12 md-6',
+                        swabStatus: 'sm-12 md-6',
+                        swabTestCode: 'sm-12 md-6',
                       }"
                       :clearable-state="{
                         swabPeriod: true,
@@ -502,7 +488,7 @@ watch(
                     </div>
                   </b-col> -->
 
-                  <b-col sm="8" md="3" xl="4">
+                  <!-- <b-col sm="8" md="3" xl="4">
                     <div class="input-group align-items-baseline">
                       <label
                         for="swab-status"
@@ -517,7 +503,7 @@ watch(
                         v-model="form.status"
                       ></swab-status-select>
                     </div>
-                  </b-col>
+                  </b-col> -->
 
                   <b-col sm="4" md="3" xl="4" class="text-end">
                     <b-button
@@ -567,20 +553,12 @@ watch(
     </b-row>
 
     <b-row>
-      <b-col>
+      <b-col v-if="isView('area')">
         <swab-test-table-area
-          v-if="isView('area')"
           v-model="form"
           :pagination="pagination"
           read-only
         ></swab-test-table-area>
-
-        <swab-test-table-product
-          v-if="isView('product')"
-          v-model="form"
-          :pagination="pagination"
-          read-only
-        ></swab-test-table-product>
         <!-- <div v-if="displayData.length > 0">
           <swab-test-card-summary-status
             :data="swabTestData"
@@ -636,6 +614,14 @@ watch(
             </span>
           </b-card-text>
         </b-card> -->
+      </b-col>
+
+      <b-col v-if="isView('product')">
+        <swab-test-table-product
+          v-model="form"
+          :pagination="pagination"
+          read-only
+        ></swab-test-table-product>
       </b-col>
     </b-row>
   </div>
