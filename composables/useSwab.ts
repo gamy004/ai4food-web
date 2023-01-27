@@ -40,6 +40,7 @@ import {
 //   swabPeriodId: string;
 // }
 export enum SwabStatus {
+  NOT_RECORDED = "notRecorded",
   PENDING = "pending",
   DETECTED = "detected",
   NORMAL = "normal",
@@ -47,6 +48,7 @@ export enum SwabStatus {
 }
 
 export enum SwabStatusMapper {
+  notRecorded = "ยังไม่ได้ตรวจ",
   pending = "รอผล",
   detected = "พบเชื้อ",
   normal = "ปกติ",
@@ -537,17 +539,11 @@ export const useSwab = () => {
   };
 
   const getSwabPlan = (
-    fromDate: string,
-    toDate: string,
-    bacteriaSpecies: boolean = false,
-    status?: SwabStatus
+    filter: LoadAllSwabAreaHistoryFilter
   ): Promise<GetSwabPlanResponse> => {
-    const params: any = {
-      fromDate,
-      toDate,
-      bacteriaSpecies,
-      status,
-    };
+    const { toDto } = useFilterSwabAreaHistory();
+
+    const params: SearchParams = toDto(filter);
 
     return new Promise((resolve, reject) => {
       const { data, error } = get<GetSwabPlanResponse>(

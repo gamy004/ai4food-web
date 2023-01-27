@@ -104,7 +104,9 @@ const displayData = computed(() => {
       index: idx,
       order: idx + 1,
       date: formatThLocale(new Date(swabAreaHistory.swabAreaDate), "ddMMyy"),
-      time: formatTimeThLocale(swabAreaHistory.swabAreaSwabedAt),
+      time: swabAreaHistory.swabAreaSwabedAt
+        ? formatTimeThLocale(swabAreaHistory.swabAreaSwabedAt)
+        : "",
       shift: swabAreaHistory.shift,
       swabTestCode: swabTest ? swabTest.swabTestCode : "",
       swabPeriodName: swabPeriod ? swabPeriod.swabPeriodName : "",

@@ -19,6 +19,9 @@ export default class SwabTest extends Model {
   declare swabTestRecordedAt: string | null;
 
   @Attr(null)
+  declare bacteriaRecordedAt: string | null;
+
+  @Attr(null)
   declare swabTestNote: string | null;
 
   @BelongsToMany(
@@ -41,6 +44,10 @@ export default class SwabTest extends Model {
     return this.swabTestRecordedAt !== null;
   }
 
+  get isBacteriaRecorded() {
+    return this.bacteriaRecordedAt !== null;
+  }
+
   get hasBacteria() {
     const { getBacteriaBySwabTestId } = useLab();
 
@@ -58,9 +65,11 @@ export default class SwabTest extends Model {
   }
 
   get status() {
-    let status = SwabStatusMapper.pending;
+    let status = this.isRecorded
+      ? SwabStatusMapper.pending
+      : SwabStatusMapper.notRecorded;
 
-    if (this.isRecorded) {
+    if (this.isBacteriaRecorded) {
       status = this.hasBacteria
         ? SwabStatusMapper.detected
         : SwabStatusMapper.normal;

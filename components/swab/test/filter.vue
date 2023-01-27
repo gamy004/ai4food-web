@@ -175,7 +175,7 @@ const onClearSwabTestCode = () => {
           >
             <div class="input-group align-items-baseline">
               <label for="swabStatus" class="form-label d-block min-w-75px"
-                >สถานะ</label
+                >ผลตรวจ</label
               >
 
               <swab-status-select
@@ -203,7 +203,7 @@ const onClearSwabTestCode = () => {
                 v-model="formSwabTestCode"
                 type="text"
                 :disabled="disabled"
-                @keyup.enter="onSearchSwabTestCode"
+                @keyup.enter.prevent="onSearchSwabTestCode"
               />
 
               <b-input-group-append>
