@@ -114,7 +114,7 @@ const displayData = computed(() => {
       facilityItemName: facilityItem ? facilityItem.facilityItemName : "",
       swabAreaName: swabArea ? swabArea.swabAreaName : "",
       id: swabAreaHistory.id,
-      SwabStatus: swabAreaHistory.swabStatus,
+      swabStatus: swabAreaHistory.swabStatus,
       swabTestId: swabAreaHistory.swabTestId,
       swabTest,
       stateBacteria,
