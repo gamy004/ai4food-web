@@ -101,6 +101,7 @@ const displayData = computed(() => {
       productDate: swabProductHistory.shortProductDate,
       productLot: swabProductHistory.productLot,
       id: swabProductHistory.id,
+      swabStatus: swabProductHistory.swabStatus,
       swabTestId: swabProductHistory.swabTestId,
       swabTest,
       stateBacteria,
@@ -195,10 +196,10 @@ watch(() => props, fetch, { immediate: true, deep: true });
               :style="{ fontSize: '1.25em' }"
             />
 
-            <badge-bacteria-status
+            <badge-swab-status
               v-else
-              :swab-test="item.swabTest"
-            ></badge-bacteria-status>
+              :swab-status="item.swabStatus"
+            ></badge-swab-status>
           </template>
 
           <template #cell(action)="{ item }">

@@ -1,6 +1,7 @@
-import { Model } from "pinia-orm";
+import { Model, useRepo } from "pinia-orm";
 import { Attr, Str, Uid, BelongsTo } from "pinia-orm/dist/decorators";
 import { useDate, Shift } from "~~/composables/useDate";
+import { SwabStatus, SwabStatusMapper } from "~~/composables/useSwab";
 import FacilityItem from "./FacilityItem";
 import Product from "./Product";
 import SwabPeriod from "./SwabPeriod";
@@ -76,6 +77,28 @@ export default class SwabProductHistory extends Model {
 
   get readableProductDate() {
     return this.productDate ? formatThLocale(new Date(this.productDate)) : "";
+  }
+
+  get swabStatus(): SwabStatus {
+    let status = SwabStatus.NOT_RECORDED;
+
+    if (this.isRecorded) {
+      const swapTestRepo = useRepo(SwabTest);
+
+      const relatedSwabTest = swapTestRepo.find(this.swabTestId);
+
+      status = relatedSwabTest.swabStatus;
+    }
+
+    return status;
+  }
+
+  get status(): SwabStatusMapper {
+    return SwabStatusMapper[this.swabStatus];
+  }
+
+  get isRecorded() {
+    return this.swabProductSwabedAt !== null;
   }
 
   get isCompleted() {

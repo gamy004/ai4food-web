@@ -1,3 +1,4 @@
+<!-- deprecated -->
 <script lang="ts" setup>
 import { ColorVariant } from "bootstrap-vue-3/src/types";
 import { ComputedRef } from "vue";

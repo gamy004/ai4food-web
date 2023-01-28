@@ -64,18 +64,18 @@ export default class SwabTest extends Model {
     return bacteriaSpecies && bacteriaSpecies.length > 0;
   }
 
-  get status() {
-    let status = this.isRecorded
-      ? SwabStatusMapper.pending
-      : SwabStatusMapper.notRecorded;
+  get swabStatus() {
+    let swabStatus = SwabStatus.PENDING;
 
-    if (this.isBacteriaRecorded) {
-      status = this.hasBacteria
-        ? SwabStatusMapper.detected
-        : SwabStatusMapper.normal;
+    if (this.swabTestRecordedAt) {
+      swabStatus = this.hasBacteria ? SwabStatus.DETECTED : SwabStatus.NORMAL;
     }
 
-    return status;
+    return swabStatus;
+  }
+
+  get status() {
+    return SwabStatusMapper[this.swabStatus];
   }
 
   get bacteriaNames() {

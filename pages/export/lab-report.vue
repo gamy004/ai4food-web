@@ -38,7 +38,12 @@ const {
   // updateDateRangeQueryParams,
 } = useDate();
 const { getCurrentQuery, updateQueryParams } = useQueryParams();
-const { getSwabPlan, getSwabAreaById, getSwabPeriodById } = useSwab();
+const {
+  getSwabPlan,
+  getSwabAreaById,
+  getSwabPeriodById,
+  // api: swabApi,
+} = useSwab();
 const { getFacilityById, getFacilityItemById } = useFacility();
 const {
   // getBacteriaBySwabTestId,
@@ -54,6 +59,8 @@ const loaded = ref(false);
 const view = ref((route.query.view as string) || "area");
 const swabAreaHistories = ref([]);
 const swabProductHistories = ref([]);
+const totalSwabAreaHistories = ref(0);
+const totalSwabProductHistories = ref(0);
 const currentDate = today();
 const form = reactive<FormType>({
   dateRange: {
@@ -92,6 +99,20 @@ const displayData = computed(() => {
   }
 
   return data;
+});
+
+const totalDisplayData = computed(() => {
+  let total = 0;
+
+  if (view.value === "area") {
+    total = totalSwabAreaHistories.value;
+  }
+
+  if (view.value === "product") {
+    total = totalSwabProductHistories.value;
+  }
+
+  return total;
 });
 
 // const swabTestData = computed(() =>
@@ -172,10 +193,10 @@ const tableFields = computed(() => {
   return fields;
 });
 
-const paginatedData = computed(() => pagination.paginate(displayData.value));
+// const paginatedData = computed(() => pagination.paginate(displayData.value));
 
 const canExport = computed(
-  () => swabAreaHistories.value.length || swabProductHistories.value.length
+  () => totalSwabAreaHistories.value > 0 || totalSwabProductHistories.value > 0
 );
 
 const isView = (name: string) => {
@@ -201,9 +222,19 @@ const resetState = () => {
   error.value = false;
   swabAreaHistories.value = [];
   swabProductHistories.value = [];
+  totalSwabAreaHistories.value = 0;
+  totalSwabProductHistories.value = 0;
 };
 
-const fetch = async (formValue) => {
+const fetchBaseData = async () => {
+  await Promise.allSettled([
+    labApi().loadAllBacteriaWithSpecie(),
+    // swabApi().loadAllSwabPeriod(),
+    // swabApi().loadAllMainSwabArea(),
+  ]);
+};
+
+const fetchHistory = async (formValue) => {
   resetState();
 
   loading.value = true;
@@ -215,7 +246,16 @@ const fetch = async (formValue) => {
     dateRange.cachedFromDateString = fromDateString;
     dateRange.cachedToDateString = toDateString;
 
-    const swabPlanData: GetSwabPlanResponse = await getSwabPlan(formValue);
+    const swabPlanData: GetSwabPlanResponse = await getSwabPlan({
+      ...formValue,
+      skip: pagination.offset.value,
+      take: pagination.$state.perPage,
+    });
+
+    totalSwabAreaHistories.value = swabPlanData.totalSwabAreaHistories;
+    totalSwabProductHistories.value = swabPlanData.totalSwabProductHistories;
+
+    const startIdx = pagination.offset.value;
 
     if (swabPlanData.swabAreaHistories.length) {
       swabAreaHistories.value = swabPlanData.swabAreaHistories.map(
@@ -237,7 +277,7 @@ const fetch = async (formValue) => {
           const swabTest = getSwabTestById(el.swabTest.id);
 
           return {
-            ลำดับ: idx + 1,
+            ลำดับ: startIdx + idx + 1,
             วันที่ตรวจ: formatThLocale(new Date(el.swabAreaDate), "ddMMyy"),
             เวลาที่ตรวจ: el.swabAreaSwabedAt
               ? formatTimeThLocale(el.swabAreaSwabedAt)
@@ -248,7 +288,8 @@ const fetch = async (formValue) => {
             ช่วงตรวจ: swabPeriod ? swabPeriod.swabPeriodName : "",
             เครื่อง: facilityName,
             จุดตรวจ: swabArea.swabAreaName,
-            ผลตรวจ: swabTest.status,
+            ผลตรวจ: el.status,
+            status: el.swabStatus,
             สายพันธุ์เชื้อ: swabTest.bacteriaNames,
             swabTest,
             swabTestId: swabTest.id,
@@ -267,16 +308,17 @@ const fetch = async (formValue) => {
           const swabTest = getSwabTestById(el.swabTest.id);
 
           return {
-            ลำดับ: idx + 1,
+            ลำดับ: startIdx + idx + 1,
             วันที่ตรวจ: formatThLocale(new Date(el.swabProductDate), "ddMMyy"),
             รหัส: el.swabTest.swabTestCode,
-            เวลาที่ตรวจ: el.swabAreaSwabedAt
-              ? formatTimeThLocale(el.swabAreaSwabedAt)
+            เวลาที่ตรวจ: el.swabProductSwabedAt
+              ? formatTimeThLocale(el.swabProductSwabedAt)
               : "",
             ไลน์ที่ตรวจ: facilityItem ? facilityItem.facilityItemName : "",
             กะ: el.shift ? shiftToAbbreviation(el.shift) : "",
             ช่วงตรวจ: swabPeriod ? swabPeriod.swabPeriodName : "",
-            ผลตรวจ: swabTest.status,
+            ผลตรวจ: el.status,
+            status: el.swabStatus,
             สายพันธุ์เชื้อ: swabTest.bacteriaNames,
             swabTest,
             swabTestId: swabTest.id,
@@ -392,7 +434,9 @@ const onFormSubmitted = () => {
 };
 
 onBeforeMount(async () => {
-  await labApi().loadAllBacteriaWithSpecie();
+  await fetchBaseData();
+
+  await fetchHistory(form);
 });
 
 // watch(
@@ -406,9 +450,17 @@ onBeforeMount(async () => {
 watch(
   () => form,
   (formValue) => {
-    fetch(formValue);
+    fetchHistory(formValue);
   },
-  { deep: true, immediate: true }
+  { deep: true }
+);
+
+watch(
+  () => pagination,
+  () => {
+    fetchHistory(form);
+  },
+  { deep: true }
 );
 </script>
 
@@ -582,12 +634,10 @@ watch(
           caption-top
           responsive
           :fields="tableFields"
-          :items="paginatedData"
+          :items="displayData"
         >
           <template #cell(status)="{ item }">
-            <badge-bacteria-status
-              :swab-test="item.swabTest"
-            ></badge-bacteria-status>
+            <badge-swab-status :swab-status="item.status"></badge-swab-status>
           </template>
 
           <template #cell(bacteriaSpecie)="{ item }">
@@ -600,7 +650,7 @@ watch(
         <base-pagination
           v-model="pagination.$state.currentPage"
           :per-page="pagination.$state.perPage"
-          :total-rows="displayData.length"
+          :total-rows="totalDisplayData"
           aria-controls="exportedSwabProductTable"
         />
       </b-col>

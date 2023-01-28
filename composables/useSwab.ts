@@ -139,12 +139,14 @@ export type ResponseSwabAreaDeletePermission = {
 };
 
 export interface GetSwabPlanResponse {
-  facilities: Facility[];
-  products: Product[];
+  // swabPeriods: SwabPeriod[];
+  // facilities: Facility[];
+  // products: Product[];
+  // swabAreas: SwabArea[];
   swabAreaHistories: SwabAreaHistory[];
-  swabAreas: SwabArea[];
-  swabPeriods: SwabPeriod[];
   swabProductHistories: SwabProductHistory[];
+  totalSwabAreaHistories: number;
+  totalSwabProductHistories: number;
 }
 
 export interface BodyUpdateSwabProductHistory
@@ -555,34 +557,38 @@ export const useSwab = () => {
 
       watch(data, (swabPlanData) => {
         let {
-          facilities = [],
-          swabAreas = [],
+          // facilities = [],
+          // swabAreas = [],
           swabAreaHistories = [],
-          products = [],
+          // products = [],
           swabProductHistories = [],
-          swabPeriods = [],
+          // swabPeriods = [],
+          totalSwabAreaHistories = 0,
+          totalSwabProductHistories = 0,
         } = swabPlanData;
 
-        facilities = facilityRepo.save(facilities);
+        // facilities = facilityRepo.save(facilities);
 
-        swabAreas = swabAreaRepo.save(swabAreas);
+        // swabAreas = swabAreaRepo.save(swabAreas);
 
         swabAreaHistories = swabAreaHistoryRepo.save(swabAreaHistories);
 
-        products = productRepo.save(products);
+        // products = productRepo.save(products);
 
         swabProductHistories =
           swabProductHistoryRepo.save(swabProductHistories);
 
-        swabPeriods = swabPeriodRepo.save(swabPeriods);
+        // swabPeriods = swabPeriodRepo.save(swabPeriods);
 
         resolve({
-          facilities,
-          swabAreas,
+          // swabPeriods,
+          // facilities,
+          // swabAreas,
+          // products,
           swabAreaHistories,
-          products,
           swabProductHistories,
-          swabPeriods,
+          totalSwabAreaHistories,
+          totalSwabProductHistories,
         });
       });
 

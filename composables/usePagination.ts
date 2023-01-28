@@ -10,6 +10,7 @@ export interface Pagination {
 export interface PaginationState {
   perPage: number;
   currentPage: number;
+  total?: number;
 }
 
 export const usePagination = (options: PaginationState) => {
@@ -25,9 +26,16 @@ export const usePagination = (options: PaginationState) => {
     });
   };
 
-  const resetPage = (additionalParams = {}) => {
-    const { getCurrentQuery, updateQueryParams } = useQueryParams();
+  const total = computed({
+    get() {
+      return $state.total;
+    },
+    set(value) {
+      $state.total = value;
+    },
+  });
 
+  const resetPage = (additionalParams = {}) => {
     if ($state.currentPage !== 1) {
       $state.currentPage = 1;
     }
@@ -38,5 +46,6 @@ export const usePagination = (options: PaginationState) => {
     paginate,
     offset,
     resetPage,
+    total,
   };
 };
