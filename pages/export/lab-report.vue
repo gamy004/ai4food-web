@@ -6,6 +6,8 @@ import DownloadIcon from "~icons/carbon/download";
 import { Shift, DateRangeInterface } from "~~/composables/useDate";
 import { GetSwabPlanResponse } from "~~/composables/useSwab";
 import { SwabStatus, SwabStatusMapper } from "~~/composables/useSwab";
+import SwabAreaHistory from "~~/models/SwabAreaHistory";
+import SwabProductHistory from "~~/models/SwabProductHistory";
 
 export type FormType = {
   dateRange: DateRangeInterface | null;
@@ -44,6 +46,7 @@ const {
   getSwabPeriodById,
   // api: swabApi,
 } = useSwab();
+const { getProductById } = useProduct();
 const { getFacilityById, getFacilityItemById } = useFacility();
 const {
   // getBacteriaBySwabTestId,
@@ -152,19 +155,30 @@ const tableFields = computed(() => {
       label: "ช่วงตรวจ",
       thStyle: { width: "10%" },
     },
+    {
+      key: "เครื่อง",
+      label: "เครื่อง",
+      thStyle: { width: "10%" },
+    },
   ];
 
   if (isView("area")) {
     fields = [
       ...fields,
       {
-        key: "เครื่อง",
-        label: "เครื่อง",
-        // thStyle: { width: "10%" },
-      },
-      {
         key: "จุดตรวจ",
         label: "จุดตรวจ",
+        thStyle: { width: "20%" },
+      },
+    ];
+  }
+
+  if (isView("product")) {
+    fields = [
+      ...fields,
+      {
+        key: "สินค้า",
+        label: "สินค้า",
         thStyle: { width: "20%" },
       },
     ];
@@ -227,11 +241,87 @@ const resetState = () => {
 };
 
 const fetchBaseData = async () => {
-  await Promise.allSettled([
-    labApi().loadAllBacteriaWithSpecie(),
-    // swabApi().loadAllSwabPeriod(),
-    // swabApi().loadAllMainSwabArea(),
-  ]);
+  await labApi().loadAllBacteriaWithSpecie();
+};
+
+const tranformRecordSwabAreaHistory = (swabAreaHistory: SwabAreaHistory) => {
+  const swabArea = getSwabAreaById(swabAreaHistory.swabAreaId);
+
+  const swabPeriod = getSwabPeriodById(swabAreaHistory.swabPeriodId);
+
+  let facilityName = "";
+
+  if (swabArea) {
+    const facility = getFacilityById(swabArea.facilityId);
+
+    facilityName = facility.facilityName;
+  }
+
+  const facilityItem = getFacilityItemById(swabAreaHistory.facilityItemId);
+
+  const swabTest = getSwabTestById(swabAreaHistory.swabTest.id);
+
+  return {
+    วันที่ตรวจ: formatThLocale(
+      new Date(swabAreaHistory.swabAreaDate),
+      "ddMMyy"
+    ),
+    รหัส: swabAreaHistory.swabTest.swabTestCode,
+    กะ: swabAreaHistory.shift ? shiftToAbbreviation(swabAreaHistory.shift) : "",
+    ช่วงตรวจ: swabPeriod ? swabPeriod.swabPeriodName : "",
+    เครื่อง: facilityName,
+    จุดตรวจ: swabArea.swabAreaName,
+    ผลตรวจ: swabAreaHistory.status,
+    status: swabAreaHistory.swabStatus,
+    เวลาที่ตรวจ: swabAreaHistory.swabAreaSwabedAt
+      ? formatTimeThLocale(swabAreaHistory.swabAreaSwabedAt)
+      : "",
+    ไลน์ที่ตรวจ: facilityItem ? facilityItem.facilityItemName : "",
+    สายพันธุ์เชื้อ: swabTest.bacteriaNames,
+    swabTestId: swabTest.id,
+  };
+};
+
+const tranformRecordSwabProductHistory = (
+  swabProductHistory: SwabProductHistory
+) => {
+  const product = getProductById(swabProductHistory.productId);
+
+  const swabPeriod = getSwabPeriodById(swabProductHistory.swabPeriodId);
+
+  const facilityItem = getFacilityItemById(swabProductHistory.facilityItemId);
+
+  let facilityName = "";
+
+  if (facilityItem) {
+    const facility = getFacilityById(facilityItem.facilityId);
+
+    facilityName = facility.facilityName;
+  }
+
+  const swabTest = getSwabTestById(swabProductHistory.swabTest.id);
+
+  return {
+    วันที่ตรวจ: formatThLocale(
+      new Date(swabProductHistory.swabProductDate),
+      "ddMMyy"
+    ),
+    รหัส: swabProductHistory.swabTest.swabTestCode,
+    กะ: swabProductHistory.shift
+      ? shiftToAbbreviation(swabProductHistory.shift)
+      : "",
+    ช่วงตรวจ: swabPeriod ? swabPeriod.swabPeriodName : "",
+    เครื่อง: facilityName,
+    สินค้า: product.productName,
+    ผลตรวจ: swabProductHistory.status,
+    status: swabProductHistory.swabStatus,
+    เวลาที่ตรวจ: swabProductHistory.swabProductSwabedAt
+      ? formatTimeThLocale(swabProductHistory.swabProductSwabedAt)
+      : "",
+    ไลน์ที่ตรวจ: facilityItem ? facilityItem.facilityItemName : "",
+    สายพันธุ์เชื้อ: swabTest.bacteriaNames,
+    swabTestId: swabTest.id,
+  };
 };
 
 const fetchHistory = async (formValue) => {
@@ -259,40 +349,12 @@ const fetchHistory = async (formValue) => {
 
     if (swabPlanData.swabAreaHistories.length) {
       swabAreaHistories.value = swabPlanData.swabAreaHistories.map(
-        (el, idx) => {
-          const swabArea = getSwabAreaById(el.swabAreaId);
-
-          const swabPeriod = getSwabPeriodById(el.swabPeriodId);
-
-          let facilityName = "";
-
-          if (swabArea) {
-            const facility = getFacilityById(swabArea.facilityId);
-
-            facilityName = facility.facilityName;
-          }
-
-          const facilityItem = getFacilityItemById(el.facilityItemId);
-
-          const swabTest = getSwabTestById(el.swabTest.id);
+        (swabAreaHistory, idx) => {
+          const record = tranformRecordSwabAreaHistory(swabAreaHistory);
 
           return {
             ลำดับ: startIdx + idx + 1,
-            วันที่ตรวจ: formatThLocale(new Date(el.swabAreaDate), "ddMMyy"),
-            เวลาที่ตรวจ: el.swabAreaSwabedAt
-              ? formatTimeThLocale(el.swabAreaSwabedAt)
-              : "",
-            ไลน์ที่ตรวจ: facilityItem ? facilityItem.facilityItemName : "",
-            รหัส: el.swabTest.swabTestCode,
-            กะ: el.shift ? shiftToAbbreviation(el.shift) : "",
-            ช่วงตรวจ: swabPeriod ? swabPeriod.swabPeriodName : "",
-            เครื่อง: facilityName,
-            จุดตรวจ: swabArea.swabAreaName,
-            ผลตรวจ: el.status,
-            status: el.swabStatus,
-            สายพันธุ์เชื้อ: swabTest.bacteriaNames,
-            swabTest,
-            swabTestId: swabTest.id,
+            ...record,
           };
         }
       );
@@ -300,28 +362,12 @@ const fetchHistory = async (formValue) => {
 
     if (swabPlanData.swabProductHistories.length) {
       swabProductHistories.value = swabPlanData.swabProductHistories.map(
-        (el, idx) => {
-          const swabPeriod = getSwabPeriodById(el.swabPeriodId);
-
-          const facilityItem = getFacilityItemById(el.facilityItemId);
-
-          const swabTest = getSwabTestById(el.swabTest.id);
+        (swabProductHistory, idx) => {
+          const record = tranformRecordSwabProductHistory(swabProductHistory);
 
           return {
             ลำดับ: startIdx + idx + 1,
-            วันที่ตรวจ: formatThLocale(new Date(el.swabProductDate), "ddMMyy"),
-            รหัส: el.swabTest.swabTestCode,
-            เวลาที่ตรวจ: el.swabProductSwabedAt
-              ? formatTimeThLocale(el.swabProductSwabedAt)
-              : "",
-            ไลน์ที่ตรวจ: facilityItem ? facilityItem.facilityItemName : "",
-            กะ: el.shift ? shiftToAbbreviation(el.shift) : "",
-            ช่วงตรวจ: swabPeriod ? swabPeriod.swabPeriodName : "",
-            ผลตรวจ: el.status,
-            status: el.swabStatus,
-            สายพันธุ์เชื้อ: swabTest.bacteriaNames,
-            swabTest,
-            swabTestId: swabTest.id,
+            ...record,
           };
         }
       );
@@ -642,7 +688,7 @@ watch(
 
           <template #cell(bacteriaSpecie)="{ item }">
             <badge-bacteria-specie
-              :swab-test-id="item.swabTestId"
+              :swab-test-id="(item.swabTestId as string)"
             ></badge-bacteria-specie>
           </template>
         </b-table>
