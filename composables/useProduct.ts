@@ -81,9 +81,7 @@ export const useProduct = () => {
   };
 
   const getProductById = (id: string): Product => {
-    const query = productRepo.where("id", id);
-
-    return query.first();
+    return productRepo.find(id);
   };
 
   const getProductByCodes = (codes: string[]): Product[] => {
@@ -105,9 +103,7 @@ export const useProduct = () => {
   };
 
   const getProductScheduleById = (id: string): ProductSchedule => {
-    const query = productScheduleRepo.where("id", id);
-
-    return query.first();
+    return productScheduleRepo.find(id);
   };
 
   const loadAllProduct = async (): Promise<Product[]> => {

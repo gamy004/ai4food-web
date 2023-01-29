@@ -103,9 +103,7 @@ export const useFacility = () => {
   };
 
   const getFacilityById = (id: string): Facility | null => {
-    const query = facilityRepo.where("id", id);
-
-    return query.first();
+    return facilityRepo.find(id);
   };
 
   const getFacilityByName = (name: string): Facility | null => {
@@ -125,9 +123,7 @@ export const useFacility = () => {
   };
 
   const getFacilityItemById = (id: string) => {
-    const query = facilityItemRepo.where("id", id);
-
-    return query.first();
+    return facilityItemRepo.find(id);
   };
 
   const getRoomByName = (name: string): Room | null => {

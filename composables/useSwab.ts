@@ -366,9 +366,7 @@ export const useSwab = () => {
   };
 
   const getSwabPeriodById = (id: string) => {
-    const query = swabPeriodRepo.where("id", id);
-
-    return query.first();
+    return swabPeriodRepo.find(id);
   };
 
   const getSwabPeriodByNames = (names: string[]) => {
@@ -396,9 +394,7 @@ export const useSwab = () => {
   };
 
   const getSwabAreaById = (id: string): SwabArea => {
-    const query = swabAreaRepo.where("id", id);
-
-    return query.first();
+    return swabAreaRepo.find(id);
   };
 
   const getSwabAreaHistoriesByIds = (
@@ -411,9 +407,7 @@ export const useSwab = () => {
   };
 
   const getSwabAreaHistoryById = (id: string): SwabAreaHistory | null => {
-    const query = swabAreaHistoryRepo.where("id", id);
-
-    return query.first();
+    return swabAreaHistoryRepo.find(id);
   };
 
   const getSubSwabAreaHistoriesOfSamePeriodShift = (
@@ -452,9 +446,7 @@ export const useSwab = () => {
   };
 
   const getSwabProductHistoryById = (id: string): SwabProductHistory | null => {
-    const query = swabProductHistoryRepo.where("id", id);
-
-    return query.first();
+    return swabProductHistoryRepo.find(id);
   };
 
   const getSwabAreaHistoryImagesByIds = (
@@ -511,9 +503,7 @@ export const useSwab = () => {
   };
 
   const getSwabTestById = (id: string): SwabTest | null => {
-    const query = swabTestRepo.where("id", id);
-
-    return query.first();
+    return swabTestRepo.find(id);
   };
 
   const loadSwabAreaToSwabAreaHistory = (
@@ -541,7 +531,8 @@ export const useSwab = () => {
   };
 
   const getSwabPlan = (
-    filter: LoadAllSwabAreaHistoryFilter
+    filter: LoadAllSwabAreaHistoryFilter,
+    options = { save: true }
   ): Promise<GetSwabPlanResponse> => {
     const { toDto } = useFilterSwabAreaHistory();
 
@@ -571,12 +562,14 @@ export const useSwab = () => {
 
         // swabAreas = swabAreaRepo.save(swabAreas);
 
-        swabAreaHistories = swabAreaHistoryRepo.save(swabAreaHistories);
+        if (options.save) {
+          swabAreaHistories = swabAreaHistoryRepo.save(swabAreaHistories);
+
+          swabProductHistories =
+            swabProductHistoryRepo.save(swabProductHistories);
+        }
 
         // products = productRepo.save(products);
-
-        swabProductHistories =
-          swabProductHistoryRepo.save(swabProductHistories);
 
         // swabPeriods = swabPeriodRepo.save(swabPeriods);
 

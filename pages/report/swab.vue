@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Shift } from "~~/composables/useDate";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
+import { SwabStatus } from "~~/composables/useSwab";
 
 definePageMeta({
   title: "Ai4FoodSafety - Update Test Page",

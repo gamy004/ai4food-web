@@ -100,9 +100,7 @@ export const useLab = () => {
   };
 
   const getBacteriaById = (id: string) => {
-    const query = bacteriaRepo.where("id", id);
-
-    return query.first();
+    return bacteriaRepo.find(id);
   };
 
   const getBacteriaByNames = (names: string[]) => {
@@ -152,9 +150,7 @@ export const useLab = () => {
   };
 
   const getBacteriaSpecieById = (id: string) => {
-    const query = bacteriaSpecieRepo.where("id", id);
-
-    return query.first();
+    return bacteriaSpecieRepo.find(id);
   };
 
   const getBacteriaSpecieByNames = (names: string[]) => {
@@ -188,9 +184,7 @@ export const useLab = () => {
   };
 
   const getSwabTestById = (id: string): SwabTest | null => {
-    const query = swabTestRepo.where("id", id);
-
-    return query.first();
+    return swabTestRepo.find(id);
   };
 
   const getBacteriaStateBySwabTestId = (swabTestId: string | null) => {
