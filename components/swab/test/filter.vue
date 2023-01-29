@@ -48,6 +48,7 @@ export interface Props {
   >;
   paginationState?: PaginationState;
   placeholderDate?: string;
+  swabStatusOptions?: SwabStatus[];
   // invalidState?: FormInvalidData
 }
 
@@ -56,6 +57,11 @@ const props = withDefaults(defineProps<Props>(), {
   placeholderDate: "",
   swabTestCode: "",
   swabStatus: SwabStatus.ALL,
+  swabStatusOptions: () => [
+    SwabStatus.PENDING,
+    SwabStatus.NORMAL,
+    SwabStatus.DETECTED,
+  ],
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -170,7 +176,7 @@ const onClearSwabTestCode = () => {
           v-model="form"
         >
           <div
-            v-if="!swabTestHiddenState.isHidden('swabStatus')"
+            v-if="!swabTestHiddenState.isHidden('swabStatus', true)"
             :class="[swabTestFilterColState.colClass('swabStatus', 4)]"
           >
             <div class="input-group align-items-baseline">
@@ -182,6 +188,7 @@ const onClearSwabTestCode = () => {
                 id="swabStatus"
                 class="col"
                 show-all
+                :options="swabStatusOptions"
                 v-model="formSwabStatus"
               ></swab-status-select>
             </div>

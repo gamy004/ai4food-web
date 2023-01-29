@@ -31,7 +31,7 @@ const form = reactive({
   mainSwabAreaId: (route.query.mainSwabAreaId as string) || null,
   productId: (route.query.productId as string) || null,
   swabTestCode: (route.query.swabTestCode as string) || null,
-  swabStatus: (route.query.swabStatus as string) || null,
+  swabStatus: (route.query.swabStatus as SwabStatus) || null,
 });
 const pagination = usePagination({
   perPage: parseInt(route.query.perPage as string) || 20,
@@ -115,6 +115,7 @@ onBeforeMount(fetch);
                 dateRange: false,
                 mainSwabArea: isPage('report-swab-product'),
                 product: isPage('report-swab-area'),
+                swabStatus: false,
               }"
               :col-state="{
                 dateRange: 'sm-6 md-4',

@@ -28,7 +28,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(["update:modelValue"]);
 
-const isFetched = ref(false);
+// const isFetched = ref(false);
 const loading = ref(false);
 const swabAreaIds = ref([]);
 
@@ -51,26 +51,26 @@ const modelValue = computed({
 });
 
 const fetch = async () => {
-  if (!isFetched.value) {
-    loading.value = true;
+  // if (!isFetched.value) {
+  loading.value = true;
 
-    try {
-      const swabAreaData: SwabArea[] = await swabApi().loadAllMainSwabArea();
+  try {
+    const swabAreaData: SwabArea[] = await swabApi().loadAllMainSwabArea();
 
-      if (swabAreaData.length) {
-        swabAreaIds.value = swabAreaData.map(({ id }) => id);
-      }
-    } catch (error) {
-      toast.error("ไม่สามารถโหลดข้อมูลจุดตรวจตรวจได้", { timeout: 1000 });
-    } finally {
-      loading.value = false;
-      isFetched.value = true;
+    if (swabAreaData.length) {
+      swabAreaIds.value = swabAreaData.map(({ id }) => id);
     }
+  } catch (error) {
+    toast.error("ไม่สามารถโหลดข้อมูลจุดตรวจตรวจได้", { timeout: 1000 });
+  } finally {
+    loading.value = false;
+    // isFetched.value = true;
   }
+  // }
 };
 
 onBeforeMount(async () => {
-  isFetched.value = false;
+  // isFetched.value = false;
 
   await fetch();
 });

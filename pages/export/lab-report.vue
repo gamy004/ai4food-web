@@ -249,12 +249,10 @@ const tranformRecordSwabAreaHistory = (swabAreaHistory: SwabAreaHistory) => {
 
   const swabPeriod = getSwabPeriodById(swabAreaHistory.swabPeriodId);
 
-  let facilityName = "";
+  let facility = null;
 
   if (swabArea) {
-    const facility = getFacilityById(swabArea.facilityId);
-
-    facilityName = facility.facilityName;
+    facility = getFacilityById(swabArea.facilityId);
   }
 
   const facilityItem = getFacilityItemById(swabAreaHistory.facilityItemId);
@@ -266,19 +264,19 @@ const tranformRecordSwabAreaHistory = (swabAreaHistory: SwabAreaHistory) => {
       new Date(swabAreaHistory.swabAreaDate),
       "ddMMyy"
     ),
-    รหัส: swabAreaHistory.swabTest.swabTestCode,
+    รหัส: swabTest ? swabTest.swabTestCode : "",
     กะ: swabAreaHistory.shift ? shiftToAbbreviation(swabAreaHistory.shift) : "",
     ช่วงตรวจ: swabPeriod ? swabPeriod.swabPeriodName : "",
-    เครื่อง: facilityName,
-    จุดตรวจ: swabArea.swabAreaName,
+    เครื่อง: facility ? facility.facilityName : "",
+    จุดตรวจ: swabArea ? swabArea.swabAreaName : "",
     ผลตรวจ: swabAreaHistory.status,
     status: swabAreaHistory.swabStatus,
     เวลาที่ตรวจ: swabAreaHistory.swabAreaSwabedAt
       ? formatTimeThLocale(swabAreaHistory.swabAreaSwabedAt)
       : "",
     ไลน์ที่ตรวจ: facilityItem ? facilityItem.facilityItemName : "",
-    สายพันธุ์เชื้อ: swabTest.bacteriaNames,
-    swabTestId: swabTest.id,
+    สายพันธุ์เชื้อ: swabTest ? swabTest.bacteriaNames : "",
+    swabTestId: swabTest ? swabTest.id : null,
   };
 };
 
@@ -291,12 +289,10 @@ const tranformRecordSwabProductHistory = (
 
   const facilityItem = getFacilityItemById(swabProductHistory.facilityItemId);
 
-  let facilityName = "";
+  let facility = null;
 
   if (facilityItem) {
-    const facility = getFacilityById(facilityItem.facilityId);
-
-    facilityName = facility.facilityName;
+    facility = getFacilityById(facilityItem.facilityId);
   }
 
   const swabTest = getSwabTestById(swabProductHistory.swabTest.id);
@@ -311,16 +307,16 @@ const tranformRecordSwabProductHistory = (
       ? shiftToAbbreviation(swabProductHistory.shift)
       : "",
     ช่วงตรวจ: swabPeriod ? swabPeriod.swabPeriodName : "",
-    เครื่อง: facilityName,
-    สินค้า: product.productName,
+    เครื่อง: facility ? facility.facilityName : "",
+    สินค้า: product ? product.productName : "",
     ผลตรวจ: swabProductHistory.status,
     status: swabProductHistory.swabStatus,
     เวลาที่ตรวจ: swabProductHistory.swabProductSwabedAt
       ? formatTimeThLocale(swabProductHistory.swabProductSwabedAt)
       : "",
     ไลน์ที่ตรวจ: facilityItem ? facilityItem.facilityItemName : "",
-    สายพันธุ์เชื้อ: swabTest.bacteriaNames,
-    swabTestId: swabTest.id,
+    สายพันธุ์เชื้อ: swabTest ? swabTest.bacteriaNames : "",
+    swabTestId: swabTest ? swabTest.id : null,
   };
 };
 
@@ -559,8 +555,9 @@ watch(
                       :hidden-state="{
                         date: true,
                         dateRange: false,
-                        mainSwabArea: false,
-                        product: false,
+                        mainSwabArea: isView('product'),
+                        product: isView('area'),
+                        swabStatus: false,
                       }"
                       :col-state="{
                         dateRange: 'sm-6 md-4',

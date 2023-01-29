@@ -1,7 +1,7 @@
 import { useRepo } from "pinia-orm";
 import Facility from "~~/models/Facility";
 import FacilityItem from "~~/models/FacilityItem";
-import Room from "~~/models/Room"
+import Room from "~~/models/Room";
 
 export interface ParamLoadAllFacilityItem {
   facilityId?: string;

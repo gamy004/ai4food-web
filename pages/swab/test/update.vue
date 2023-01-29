@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Shift } from "~~/composables/useDate";
-import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
+import { SwabStatus } from "~~/composables/useSwab";
 
 definePageMeta({
   title: "Ai4FoodSafety - Update Test Page",
@@ -14,10 +14,7 @@ const route = useRoute();
 const { today, onlyDate, stringToShift } = useDate();
 const { isPage, goTo } = useNavigation();
 const { getCurrentQuery } = useQueryParams();
-const { api: labApi } = useLab();
 const currentDate = today();
-const loading = ref(false);
-const error = ref(false);
 const form = reactive({
   date: (route.query.date as string) || onlyDate(currentDate),
   shift: stringToShift(route.query.shift as string) || Shift.ALL,
@@ -27,25 +24,12 @@ const form = reactive({
   mainSwabAreaId: (route.query.mainSwabAreaId as string) || null,
   productId: (route.query.productId as string) || null,
   swabTestCode: (route.query.swabTestCode as string) || null,
+  swabStatus: (route.query.swabStatus as SwabStatus) || SwabStatus.ALL,
 });
 const pagination = usePagination({
   perPage: parseInt(route.query.perPage as string) || 20,
   currentPage: parseInt(route.query.currentPage as string) || 1,
 });
-const fetch = async () => {
-  error.value = false;
-  loading.value = true;
-
-  try {
-    await labApi().loadAllBacteria();
-  } catch (e) {
-    console.log(e);
-
-    error.value = true;
-  } finally {
-    loading.value = false;
-  }
-};
 
 const switchPage = async (name: string) => {
   let query: any = getCurrentQuery();
@@ -60,8 +44,6 @@ const switchPage = async (name: string) => {
 
   await goTo({ name, query });
 };
-
-onBeforeMount(fetch);
 </script>
 
 <template>
@@ -90,50 +72,39 @@ onBeforeMount(fetch);
     </b-row>
 
     <b-row class="mt-4">
-      <b-col v-if="error" class="text-center">
-        <p>พบข้อผิดพลาดในการโหลดข้อมูล</p>
+      <b-col>
+        <swab-test-filter
+          v-model="form"
+          :hidden-state="{
+            mainSwabArea: isPage('swab-test-update-product'),
+            product: isPage('swab-test-update-area'),
+            swabStatus: false,
+          }"
+          :col-state="{
+            date: 'sm-6 md-4',
+            shift: 'sm-6 md-3',
+            swabPeriod: 'sm-12 md-5',
+            facility: 'sm-12 md-6',
+            facilityItem: 'sm-12 md-6',
+            mainSwabArea: 'sm-12 md-6',
+            product: 'sm-12 md-6',
+            swabStatus: 'sm-12 md-6',
+            swabTestCode: '12',
+          }"
+          :clearable-state="{
+            swabPeriod: true,
+            facility: true,
+            facilityItem: true,
+            mainSwabArea: true,
+            product: true,
+          }"
+          :pagination-state="pagination.$state"
+          :swab-status-options="[SwabStatus.NORMAL, SwabStatus.DETECTED]"
+        />
 
-        <b-button variant="dark" @click="fetch"> โหลดข้อมูลใหม่ </b-button>
-      </b-col>
+        <hr />
 
-      <b-col v-else>
-        <b-row>
-          <b-col v-if="loading" class="text-center">
-            <line-md-loading-twotone-loop :style="{ fontSize: '2em' }" />
-          </b-col>
-
-          <b-col v-else>
-            <swab-test-filter
-              v-model="form"
-              :hidden-state="{
-                mainSwabArea: isPage('swab-test-update-product'),
-                product: isPage('swab-test-update-area'),
-              }"
-              :col-state="{
-                date: 'sm-6 md-4',
-                shift: 'sm-6 md-3',
-                swabPeriod: 'sm-12 md-5',
-                facility: 'sm-12 md-6',
-                facilityItem: 'sm-12 md-6',
-                mainSwabArea: '12',
-                product: '12',
-                swabTestCode: '12',
-              }"
-              :clearable-state="{
-                swabPeriod: true,
-                facility: true,
-                facilityItem: true,
-                mainSwabArea: true,
-                product: true,
-              }"
-              :pagination-state="pagination.$state"
-            />
-
-            <hr />
-
-            <NuxtPage v-model="form" :pagination="pagination" />
-          </b-col>
-        </b-row>
+        <NuxtPage v-model="form" :pagination="pagination" />
       </b-col>
     </b-row>
   </div>

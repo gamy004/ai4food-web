@@ -384,6 +384,7 @@ watch(
             style="margin-bottom: 0rem !important"
             :clearable="clearableState.isClearable('facility')"
             :disabled="disabled"
+            :facility-item-id="form.facilityItemId"
             v-model="formFacility"
           ></facility-select>
         </div>

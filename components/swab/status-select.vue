@@ -7,6 +7,7 @@ export interface Props {
   disabled?: boolean;
   showAll?: boolean;
   modelValue?: SwabStatus | null;
+  options?: SwabStatus[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -14,22 +15,25 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   showAll: false,
   modelValue: null,
+  options: () => [SwabStatus.PENDING, SwabStatus.DETECTED, SwabStatus.NORMAL],
 });
 
 const emit = defineEmits(["update:modelValue"]);
 
-const SwabStatusOptions = ref([
-  { value: SwabStatus.PENDING, text: SwabStatusMapper.pending },
-  { value: SwabStatus.DETECTED, text: SwabStatusMapper.detected },
-  { value: SwabStatus.NORMAL, text: SwabStatusMapper.normal },
-]);
-
-if (props.showAll) {
-  SwabStatusOptions.value.unshift({
-    value: SwabStatus.ALL,
-    text: SwabStatusMapper.all,
+const swabStatusOptions = computed(() => {
+  const displayedOptions = props.options.map((swabStatus) => {
+    return { value: swabStatus, text: SwabStatusMapper[swabStatus] };
   });
-}
+
+  if (props.showAll) {
+    displayedOptions.unshift({
+      value: SwabStatus.ALL,
+      text: SwabStatusMapper.all,
+    });
+  }
+
+  return displayedOptions;
+});
 
 const modelValue = computed({
   get: () => props.modelValue,
@@ -41,7 +45,7 @@ const modelValue = computed({
 <template>
   <v-select
     v-model="modelValue"
-    :options="SwabStatusOptions"
+    :options="swabStatusOptions"
     label="text"
     :clearable="clearable"
     :disabled="disabled"
