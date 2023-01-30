@@ -99,7 +99,11 @@ const switchPage = async (name: string) => {
             product: true,
           }"
           :pagination-state="pagination.$state"
-          :swab-status-options="[SwabStatus.NORMAL, SwabStatus.DETECTED]"
+          :swab-status-options="[
+            SwabStatus.PENDING,
+            SwabStatus.NORMAL,
+            SwabStatus.DETECTED,
+          ]"
         />
 
         <hr />

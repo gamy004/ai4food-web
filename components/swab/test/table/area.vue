@@ -146,7 +146,7 @@ const fetch = async function fetch(props) {
   };
 
   if (props.editSpecie) {
-    params.hasBacteria = true;
+    params.swabStatus = SwabStatus.DETECTED;
   }
 
   try {

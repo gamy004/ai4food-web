@@ -1,7 +1,6 @@
 import { useRepo } from "pinia-orm";
 import { Shift, TimePickerData } from "./useDate";
 import { UpsertFileData } from "./useUpload";
-const { today } = useDate();
 import LabTest from "~~/models/LabTest";
 import SwabArea from "~~/models/SwabArea";
 import SwabAreaHistory from "~~/models/SwabAreaHistory";
@@ -167,6 +166,7 @@ export const useSwab = () => {
   const swabEnvironmentRepo = useRepo(SwabEnvironment);
   const swabAreaHistoryEnvironmentRepo = useRepo(SwabAreaHistoryEnvironment);
   const swabProductHistoryRepo = useRepo(SwabProductHistory);
+  const { today } = useDate();
 
   const loadAllSwabPeriod = async (): Promise<SwabPeriod[]> => {
     return new Promise((resolve, reject) => {
@@ -530,69 +530,6 @@ export const useSwab = () => {
     return histories;
   };
 
-  const getSwabPlan = (
-    filter: LoadAllSwabAreaHistoryFilter,
-    options = { save: true }
-  ): Promise<GetSwabPlanResponse> => {
-    const { toDto } = useFilterSwabAreaHistory();
-
-    const params: SearchParams = toDto(filter);
-
-    return new Promise((resolve, reject) => {
-      const { data, error } = get<GetSwabPlanResponse>(
-        "/swab/area-history/export",
-        {
-          params,
-        }
-      );
-
-      watch(data, (swabPlanData) => {
-        let {
-          // facilities = [],
-          // swabAreas = [],
-          swabAreaHistories = [],
-          // products = [],
-          swabProductHistories = [],
-          // swabPeriods = [],
-          totalSwabAreaHistories = 0,
-          totalSwabProductHistories = 0,
-        } = swabPlanData;
-
-        // facilities = facilityRepo.save(facilities);
-
-        // swabAreas = swabAreaRepo.save(swabAreas);
-
-        if (options.save) {
-          swabAreaHistories = swabAreaHistoryRepo.save(swabAreaHistories);
-
-          swabProductHistories =
-            swabProductHistoryRepo.save(swabProductHistories);
-        }
-
-        // products = productRepo.save(products);
-
-        // swabPeriods = swabPeriodRepo.save(swabPeriods);
-
-        resolve({
-          // swabPeriods,
-          // facilities,
-          // swabAreas,
-          // products,
-          swabAreaHistories,
-          swabProductHistories,
-          totalSwabAreaHistories,
-          totalSwabProductHistories,
-        });
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Load swab plan failed");
-      });
-    });
-  };
-
   const mapPivotSwabAreaEnvironment = (swabAreaHistory) => {
     if (swabAreaHistory.swabEnvironments?.length) {
       swabAreaHistory.swabEnvironments = swabAreaHistory.swabEnvironments.map(
@@ -934,8 +871,6 @@ export const useSwab = () => {
     getSwabEnvironmentByName,
 
     getSwabEnvironmentBySwabAreaHistoryId,
-
-    getSwabPlan,
 
     loadSwabAreaToSwabAreaHistory,
 

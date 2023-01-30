@@ -74,7 +74,6 @@ const form = computed({
 });
 
 const swabTestCode = ref(form.value.swabTestCode);
-const swabStatus = ref(form.value.swabStatus);
 
 const getUpdatedQuery = () => {
   let updatedQuery: any = { ...getCurrentQuery() };

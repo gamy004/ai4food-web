@@ -132,7 +132,7 @@ const fetch = async (props) => {
     };
 
     if (props.editSpecie) {
-      params.hasBacteria = true;
+      params.swabStatus = SwabStatus.DETECTED;
     }
 
     let [data, total = 0]: [SwabProductHistory[], number] =

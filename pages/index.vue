@@ -9,15 +9,15 @@ const route = useRoute();
 const { isAuthenticated, authUser } = useAuth();
 
 const pageExportSwabPlan = {
-  name: "export-lab-report",
+  name: "export-swab-report",
   query: {
     view: "area",
   },
 };
 
-const pageReportSwab = {
-  name: "report-swab-area",
-};
+// const pageReportSwab = {
+//   name: "report-swab-area",
+// };
 
 const pageSwabArea = {
   name: "swab-area",
@@ -136,11 +136,11 @@ const pageImportProductSchedule = {
               class="w-100"
               @click="navigate"
             >
-              ออกรายงานจุด swab
+              รายงานจุดตรวจ swab
             </button-arrow-right>
           </nuxt-link>
 
-          <nuxt-link
+          <!-- <nuxt-link
             v-if="authUser.isInSwabTeam || authUser.isInAdminTeam"
             v-slot="{ navigate }"
             :to="pageReportSwab"
@@ -155,7 +155,7 @@ const pageImportProductSchedule = {
             >
               รายการผลตรวจ swab
             </button-arrow-right>
-          </nuxt-link>
+          </nuxt-link> -->
         </div>
 
         <div class="d-grid gap-2 mt-4">
