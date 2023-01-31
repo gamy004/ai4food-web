@@ -59,6 +59,7 @@ export interface LoadSwabProductHistoryResponse {
   facilityItems: FacilityItem[];
   products: Product[];
   swabProductHistories: SwabProductHistory[];
+  total: number;
 }
 
 export interface LoadSwabAreaHistoryResponse {
@@ -691,7 +692,7 @@ export const useSwab = () => {
 
   const loadSwabProductHistory = (
     filter: LoadAllSwabProductHistoryFilter
-  ): Promise<SwabProductHistory[]> => {
+  ): Promise<[SwabProductHistory[], number]> => {
     return new Promise((resolve, reject) => {
       const { toDto } = useFilterSwabProductHistory();
 
@@ -704,22 +705,23 @@ export const useSwab = () => {
 
       watch(data, (swabProductHistoryData: LoadSwabProductHistoryResponse) => {
         const {
-          facilities = [],
-          facilityItems = [],
-          products = [],
+          // facilities = [],
+          // facilityItems = [],
+          // products = [],
           swabProductHistories = [],
+          total = 0,
         } = swabProductHistoryData;
 
-        facilityRepo.save(facilities);
+        // facilityRepo.save(facilities);
 
-        facilityItemRepo.save(facilityItems);
+        // facilityItemRepo.save(facilityItems);
 
-        productRepo.save(products);
+        // productRepo.save(products);
 
         const updatedSwabProductHistories =
           swabProductHistoryRepo.save(swabProductHistories);
 
-        resolve(updatedSwabProductHistories);
+        resolve([updatedSwabProductHistories, total]);
       });
 
       watch(error, (e) => {
