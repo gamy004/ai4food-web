@@ -52,6 +52,7 @@ export const useExportSwabHistory = () => {
       productId,
       skip,
       take,
+      swabStatus,
     } = data;
 
     const params: any = {};
@@ -91,6 +92,10 @@ export const useExportSwabHistory = () => {
 
     if (productId) {
       params.productId = productId;
+    }
+
+    if (swabStatus && swabStatus !== SwabStatus.ALL) {
+      params.swabStatus = swabStatus;
     }
 
     if (skip !== undefined) {
