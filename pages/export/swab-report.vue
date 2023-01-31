@@ -137,20 +137,36 @@ const tableFields = computed(() => {
       label: "ช่วงตรวจ",
       thStyle: { width: "10%" },
     },
-    {
-      key: "เครื่อง",
-      label: "เครื่อง",
-      thStyle: { width: "10%" },
-    },
   ];
 
   if (isView("area")) {
     fields = [
       ...fields,
       {
+        key: "เครื่อง",
+        label: "เครื่อง",
+        thStyle: { width: "10%" },
+      },
+      {
         key: "จุดตรวจ",
         label: "จุดตรวจ",
-        thStyle: { width: "20%" },
+        thStyle: { width: "15%" },
+      },
+      {
+        key: "status",
+        label: "ผลตรวจ",
+        thClass: "text-center",
+        tdClass: "text-center",
+        // thStyle: { width: "10%" },
+      },
+      { key: "เวลาที่ตรวจ", label: "เวลาที่ตรวจ" },
+      { key: "ไลน์ที่ตรวจ", label: "ไลน์ที่ตรวจ" },
+      {
+        key: "bacteriaSpecie",
+        label: "สายพันธุ์เชื้อ",
+        thClass: "text-center",
+        tdClass: "text-center",
+        // thStyle: { width: "20%" },
       },
     ];
   }
@@ -159,32 +175,33 @@ const tableFields = computed(() => {
     fields = [
       ...fields,
       {
+        key: "status",
+        label: "ผลตรวจ",
+        thClass: "text-center",
+        tdClass: "text-center",
+        // thStyle: { width: "10%" },
+      },
+      {
+        key: "เครื่อง",
+        label: "เครื่อง",
+        thStyle: { width: "10%" },
+      },
+      {
         key: "สินค้า",
         label: "สินค้า",
-        thStyle: { width: "20%" },
+        thStyle: { width: "10%" },
+      },
+      { key: "เวลาที่ตรวจ", label: "เวลาที่ตรวจ" },
+      { key: "ไลน์ที่ตรวจ", label: "ไลน์ที่ตรวจ" },
+      {
+        key: "bacteriaSpecie",
+        label: "สายพันธุ์เชื้อ",
+        thClass: "text-center",
+        tdClass: "text-center",
+        // thStyle: { width: "20%" },
       },
     ];
   }
-
-  fields = [
-    ...fields,
-    {
-      key: "status",
-      label: "ผลตรวจ",
-      thClass: "text-center",
-      tdClass: "text-center",
-      // thStyle: { width: "10%" },
-    },
-    { key: "เวลาที่ตรวจ", label: "เวลาที่ตรวจ" },
-    { key: "ไลน์ที่ตรวจ", label: "ไลน์ที่ตรวจ" },
-    {
-      key: "bacteriaSpecie",
-      label: "สายพันธุ์เชื้อ",
-      thClass: "text-center",
-      tdClass: "text-center",
-      // thStyle: { width: "20%" },
-    },
-  ];
 
   return fields;
 });
@@ -455,6 +472,12 @@ watch(
                         product: true,
                       }"
                       :pagination-state="pagination.$state"
+                      :swab-status-options="[
+                        SwabStatus.NOT_RECORDED,
+                        SwabStatus.PENDING,
+                        SwabStatus.DETECTED,
+                        SwabStatus.NORMAL,
+                      ]"
                       placeholder-date="เลือกวันที่ต้องการออกรายงาน"
                     />
                   </b-col>
