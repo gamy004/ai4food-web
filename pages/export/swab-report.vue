@@ -36,7 +36,8 @@ const {
   api: exportSwabHistoryApi,
 } = useExportSwabHistory();
 const { api: labApi } = useLab();
-
+const { api: productApi } = useProduct();
+const { api: swabApi } = useSwab();
 const refreshing = ref(false);
 const loading = ref(false);
 const error = ref(false);
@@ -143,6 +144,13 @@ const tableFields = computed(() => {
     fields = [
       ...fields,
       {
+        key: "status",
+        label: "ผลตรวจ",
+        thClass: "text-center",
+        tdClass: "text-center",
+        // thStyle: { width: "10%" },
+      },
+      {
         key: "เครื่อง",
         label: "เครื่อง",
         thStyle: { width: "10%" },
@@ -151,13 +159,6 @@ const tableFields = computed(() => {
         key: "จุดตรวจ",
         label: "จุดตรวจ",
         thStyle: { width: "15%" },
-      },
-      {
-        key: "status",
-        label: "ผลตรวจ",
-        thClass: "text-center",
-        tdClass: "text-center",
-        // thStyle: { width: "10%" },
       },
       { key: "เวลาที่ตรวจ", label: "เวลาที่ตรวจ" },
       { key: "ไลน์ที่ตรวจ", label: "ไลน์ที่ตรวจ" },
@@ -240,6 +241,8 @@ const resetState = () => {
 };
 
 const fetchBaseData = async () => {
+  await swabApi().loadAllMainSwabArea();
+  await productApi().loadAllProduct();
   await labApi().loadAllBacteriaWithSpecie();
 };
 
@@ -256,14 +259,11 @@ const fetchHistory = async (formValue) => {
     dateRange.cachedToDateString = toDateString;
 
     const swabPlanData: ExportSwabHistoryResponse =
-      await exportSwabHistoryApi().fetch(
-        {
-          ...formValue,
-          skip: pagination.offset.value,
-          take: pagination.$state.perPage,
-        },
-        { save: false }
-      );
+      await exportSwabHistoryApi().fetch({
+        ...formValue,
+        skip: pagination.offset.value,
+        take: pagination.$state.perPage,
+      });
 
     totalSwabAreaHistories.value = swabPlanData.totalSwabAreaHistories;
     totalSwabProductHistories.value = swabPlanData.totalSwabProductHistories;
