@@ -23,7 +23,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(["update:modelValue"]);
 
-const isFetched = ref(false);
+// const isFetched = ref(false);
 const loading = ref(false);
 const productIds = ref([]);
 
@@ -36,26 +36,26 @@ const modelValue = computed({
 });
 
 const fetch = async () => {
-  if (!isFetched.value) {
-    loading.value = true;
+  // if (!isFetched.value) {
+  loading.value = true;
 
-    try {
-      const ProductData: Product[] = await productApi().loadAllProduct();
+  try {
+    const ProductData: Product[] = await productApi().loadAllProduct();
 
-      if (ProductData.length) {
-        productIds.value = ProductData.map(({ id }) => id);
-      }
-    } catch (error) {
-      toast.error("ไม่สามารถโหลดข้อมูลสินค้าได้", { timeout: 1000 });
-    } finally {
-      loading.value = false;
-      isFetched.value = true;
+    if (ProductData.length) {
+      productIds.value = ProductData.map(({ id }) => id);
     }
+  } catch (error) {
+    toast.error("ไม่สามารถโหลดข้อมูลสินค้าได้", { timeout: 1000 });
+  } finally {
+    loading.value = false;
+    // isFetched.value = true;
   }
+  // }
 };
 
 onBeforeMount(async () => {
-  isFetched.value = false;
+  // isFetched.value = false;
 
   await fetch();
 });

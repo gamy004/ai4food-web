@@ -101,6 +101,7 @@ defineExpose({ clearDate });
   <Datepicker
     v-model="date"
     range
+    utc
     :placeholder="placeholder"
     :enable-time-picker="false"
     :locale="locale"

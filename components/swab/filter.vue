@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import Datepicker from "@vuepic/vue-datepicker";
-import { Shift } from "~~/composables/useDate.js";
+import { DateRangeInterface, Shift } from "~~/composables/useDate.js";
 import { useHiddenState } from "~~/composables/useHiddenState";
 import { ColState, useColState } from "~~/composables/useColState";
 import { BooleanState } from "~~/composables/useBooleanState";
 import { PaginationState } from "~~/composables/usePagination";
 
 export interface FormData {
-  date: string;
+  date?: string;
+  dateRange?: DateRangeInterface;
   shift?: Shift;
   swabPeriodId?: string;
   facilityId?: string;
@@ -22,6 +23,7 @@ export interface Props {
   modelValue: FormData;
   hiddenState?: BooleanState<
     | "date"
+    | "dateRange"
     | "shift"
     | "swabPeriod"
     | "facility"
@@ -31,6 +33,7 @@ export interface Props {
   >;
   colState?: ColState<
     | "date"
+    | "dateRange"
     | "shift"
     | "swabPeriod"
     | "facility"
@@ -40,6 +43,7 @@ export interface Props {
   >;
   clearableState?: BooleanState<
     | "date"
+    | "dateRange"
     | "shift"
     | "swabPeriod"
     | "facility"
@@ -48,17 +52,19 @@ export interface Props {
     | "product"
   >;
   paginationState?: PaginationState;
+  placeholderDate?: string;
   // invalidState?: FormInvalidData
 }
 
 const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   showShiftAll: false,
+  placeholderDate: "",
 });
 
 const emit = defineEmits(["update:modelValue"]);
 const { updateQueryParams, getCurrentQuery } = useQueryParams();
-const { onlyDate } = useDate();
+const { onlyDate, updateDateRangeQueryParams } = useDate();
 
 const form = computed({
   get: () => props.modelValue,
@@ -103,6 +109,17 @@ const formDate = computed({
       ...updatedQuery,
       date: updatedValue,
     });
+  },
+});
+
+const formDateRange = computed({
+  get: () => form.value.dateRange,
+  set: (value) => {
+    updatePaginateState();
+
+    form.value.dateRange = value;
+
+    updateDateRangeQueryParams(value);
   },
 });
 
@@ -288,6 +305,29 @@ watch(
             auto-apply
             :clearable="clearableState.isClearable('date')"
             :disabled="disabled"
+            :placeholder="placeholderDate"
+          />
+        </div>
+      </div>
+
+      <div
+        v-if="!hiddenState.isHidden('dateRange', true)"
+        :class="[colState.colClass('dateRange', 'md-8')]"
+      >
+        <div class="input-group align-items-baseline">
+          <label for="dateRage" class="form-label d-block min-w-75px"
+            >วันที่</label
+          >
+
+          <date-picker-range
+            id="dateRage"
+            class="col"
+            v-model="formDateRange"
+            locale="th"
+            auto-apply
+            :clearable="clearableState.isClearable('dateRange')"
+            :disabled="disabled"
+            :placeholder="placeholderDate"
           />
         </div>
       </div>
@@ -344,6 +384,7 @@ watch(
             style="margin-bottom: 0rem !important"
             :clearable="clearableState.isClearable('facility')"
             :disabled="disabled"
+            :facility-item-id="form.facilityItemId"
             v-model="formFacility"
           ></facility-select>
         </div>

@@ -8,6 +8,7 @@ import {
   HasManyBy,
 } from "pinia-orm/dist/decorators";
 import { useDate, Shift } from "~~/composables/useDate";
+import { SwabStatus, SwabStatusMapper } from "~~/composables/useSwab";
 import FacilityItem from "./FacilityItem";
 import Product from "./Product";
 import SwabArea from "./SwabArea";
@@ -122,6 +123,28 @@ export default class SwabAreaHistory extends Model {
     const relatedSwabTest = swapTestRepo.find(this.swabTestId);
 
     return relatedSwabTest ? relatedSwabTest.swabTestCode : null;
+  }
+
+  get swabStatus(): SwabStatus {
+    let status = SwabStatus.NOT_RECORDED;
+
+    if (this.isRecorded) {
+      const swapTestRepo = useRepo(SwabTest);
+
+      const relatedSwabTest = swapTestRepo.find(this.swabTestId);
+
+      status = relatedSwabTest.swabStatus;
+    }
+
+    return status;
+  }
+
+  get status(): SwabStatusMapper {
+    return SwabStatusMapper[this.swabStatus];
+  }
+
+  get isRecorded() {
+    return this.swabAreaSwabedAt !== null;
   }
 
   get isCompleted() {

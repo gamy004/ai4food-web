@@ -11,6 +11,11 @@ const { today, onlyDate, dateToShift, stringToShift } = useDate();
 
 const currentDate = today();
 
+const pagination = usePagination({
+  perPage: parseInt(route.query.perPage as string) || 20,
+  currentPage: parseInt(route.query.currentPage as string) || 1,
+});
+
 const form = reactive({
   date: (route.query.date as string) || onlyDate(currentDate),
   shift: stringToShift(route.query.shift as string) || dateToShift(currentDate),
@@ -18,6 +23,7 @@ const form = reactive({
   facilityItemId: (route.query.facilityItemId as string) || null,
   swabPeriodId: (route.query.swabPeriodId as string) || null,
   productId: (route.query.productId as string) || null,
+  swabTestCode: (route.query.swabTestCode as string) || null,
 });
 
 // const pageManageSwabProduct = computed(() => {
@@ -36,23 +42,33 @@ const form = reactive({
   <div class="page__swab-product mt-4">
     <b-row>
       <b-col cols="8" class="text-start">
-        <h2 class="font-weight-bold">บันทึก swab สินค้า</h2>
+        <h2 class="font-weight-bold">บันทึกการตรวจสินค้า</h2>
       </b-col>
       <!-- <b-col cols="4" class="text-end">
         <nuxt-link v-slot="{ navigate }" :to="pageManageSwabProduct" custom>
           <button-arrow-right variant="outline-primary" size="md" @click="navigate">
-                        เพิ่มบันทึก swab สินค้า
+                        เพิ่มบันทึกการตรวจสินค้า
                     </button-arrow-right>
         </nuxt-link>
       </b-col> -->
     </b-row>
 
     <div class="d-grid gap-2 mt-3">
-      <swab-filter
+      <swab-test-filter
         v-model="form"
         :hidden-state="{
           product: false,
         }"
+        :col-state="{
+          date: 'sm-6 md-4',
+          shift: 'sm-6 md-4',
+          swabPeriod: 'sm-12 md-4',
+          facility: 'sm-12 md-4',
+          facilityItem: 'sm-12 md-4',
+          product: 'sm-12 md-4',
+          swabTestCode: '12',
+        }"
+        :pagination-state="pagination.$state"
         :clearable-state="{
           swabPeriod: true,
           facility: true,
@@ -71,6 +87,8 @@ const form = reactive({
         :swab-period-id="form.swabPeriodId"
         :shift="form.shift"
         :product-id="form.productId"
+        :swab-test-code="form.swabTestCode"
+        :pagination="pagination"
       />
     </div>
   </div>

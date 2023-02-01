@@ -6,7 +6,7 @@ import crossIcon from "~icons/akar-icons/cross";
 import SwabAreaHistory from "~~/models/SwabAreaHistory";
 import { FormData as SwabTestFilterFormData } from "~~/components/swab/test/filter.vue";
 import { Pagination } from "~~/composables/usePagination";
-import { LoadAllLabSwabAreaHistoryData } from "~~/composables/useLab";
+import { LoadAllSwabAreaHistoryFilter } from "~~/composables/useFilterSwabAreaHistory";
 
 export interface Props {
   modelValue: SwabTestFilterFormData;
@@ -24,7 +24,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(["update:modelValue"]);
 
 const toast = useToast();
-const { formatTimeThLocale, shiftToAbbreviation } = useDate();
+const { formatThLocale, formatTimeThLocale, shiftToAbbreviation } = useDate();
 const { getFacilityById, getFacilityItemById } = useFacility();
 const {
   getSwabPeriodById,
@@ -38,14 +38,10 @@ const {
   api: labApi,
 } = useLab();
 
-const form = computed({
-  get: () => props.modelValue,
-  set: (value) => emit("update:modelValue", value),
-});
-
 const tableFields = computed(() => {
   const fields = [
     { key: "order", label: "ลำดับ" },
+    { key: "date", label: "วัน" },
     { key: "time", label: "เวลา" },
     { key: "shift", label: "กะ" },
     { key: "swabTestCode", label: "รหัส" },
@@ -67,16 +63,14 @@ const tableFields = computed(() => {
           : "ผลตรวจเชื้อ",
       thClass: "text-center",
       tdClass: "text-center",
-      thStyle:
-        props.editSpecie || props.readOnly
-          ? { width: props.readOnly ? "30%" : "40%" }
-          : {},
+      thStyle: props.editSpecie || props.readOnly ? { width: "30%" } : {},
     },
   ];
 
   return fields;
 });
 
+const countTotal = ref(0);
 const swabAreaHistoryIds = ref([]);
 const submittingSwabTestId = ref(null);
 const hasData = ref(true);
@@ -109,7 +103,10 @@ const displayData = computed(() => {
     return {
       index: idx,
       order: idx + 1,
-      time: formatTimeThLocale(swabAreaHistory.swabAreaSwabedAt),
+      date: formatThLocale(new Date(swabAreaHistory.swabAreaDate), "ddMMyy"),
+      time: swabAreaHistory.swabAreaSwabedAt
+        ? formatTimeThLocale(swabAreaHistory.swabAreaSwabedAt)
+        : "",
       shift: swabAreaHistory.shift,
       swabTestCode: swabTest ? swabTest.swabTestCode : "",
       swabPeriodName: swabPeriod ? swabPeriod.swabPeriodName : "",
@@ -117,6 +114,7 @@ const displayData = computed(() => {
       facilityItemName: facilityItem ? facilityItem.facilityItemName : "",
       swabAreaName: swabArea ? swabArea.swabAreaName : "",
       id: swabAreaHistory.id,
+      swabStatus: swabAreaHistory.swabStatus,
       swabTestId: swabAreaHistory.swabTestId,
       swabTest,
       stateBacteria,
@@ -126,26 +124,34 @@ const displayData = computed(() => {
   });
 });
 
-const paginatedData = computed(() =>
-  props.pagination.paginate(displayData.value)
-);
+// const swabTestData = computed(() =>
+//   displayData.value.map(({ swabTest }) => swabTest)
+// );
 
-const fetch = async function fetch(form) {
+// const paginatedData = computed(() =>
+//   props.pagination.paginate(displayData.value)
+// );
+
+const fetch = async function fetch(props) {
   loading.value = true;
   error.value = false;
   hasData.value = true;
+  countTotal.value = 0;
   swabAreaHistoryIds.value = [];
 
-  const params: LoadAllLabSwabAreaHistoryData = { ...form.value };
+  const params: LoadAllSwabAreaHistoryFilter = {
+    ...props.modelValue,
+    skip: props.pagination.offset.value,
+    take: props.pagination.$state.perPage,
+  };
 
   if (props.editSpecie) {
-    params.hasBacteria = true;
+    params.swabStatus = SwabStatus.DETECTED;
   }
 
   try {
-    let data: SwabAreaHistory[] = await labApi().loadAllLabSwabAreaHistory(
-      params
-    );
+    let [data, total = 0]: [SwabAreaHistory[], number] =
+      await labApi().loadAllLabSwabAreaHistory(params);
 
     // if (props.editSpecie) {
     //   data = data.filter((record) => {
@@ -154,6 +160,8 @@ const fetch = async function fetch(form) {
     //     return stateBacteria;
     //   });
     // }
+
+    countTotal.value = total;
 
     if (data && data.length) {
       swabAreaHistoryIds.value = data.map(({ id }) => id);
@@ -171,7 +179,7 @@ const fetch = async function fetch(form) {
   }
 };
 
-watch(() => form, fetch, { immediate: true, deep: true });
+watch(() => props, fetch, { immediate: true, deep: true });
 </script>
 
 <template>
@@ -188,7 +196,7 @@ watch(() => form, fetch, { immediate: true, deep: true });
           hover
           small
           responsive
-          :items="paginatedData"
+          :items="displayData"
           :fields="tableFields"
         >
           <template #cell(shift)="{ item }">
@@ -201,10 +209,10 @@ watch(() => form, fetch, { immediate: true, deep: true });
               :style="{ fontSize: '1.25em' }"
             />
 
-            <badge-bacteria-status
+            <badge-swab-status
               v-else
-              :swab-test="item.swabTest"
-            ></badge-bacteria-status>
+              :swab-status="item.swabStatus"
+            ></badge-swab-status>
           </template>
 
           <template #cell(action)="{ item }">
@@ -235,7 +243,7 @@ watch(() => form, fetch, { immediate: true, deep: true });
         <base-pagination
           v-model="pagination.$state.currentPage"
           :per-page="pagination.$state.perPage"
-          :total-rows="displayData.length"
+          :total-rows="countTotal"
           aria-controls="swabTestAreaTable"
         />
       </div>

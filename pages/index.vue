@@ -5,7 +5,7 @@ definePageMeta({
   middleware: ["auth"],
 });
 
-const route = useRoute();
+// const route = useRoute();
 const { isAuthenticated, authUser } = useAuth();
 
 const pageExportSwabPlan = {
@@ -15,9 +15,9 @@ const pageExportSwabPlan = {
   },
 };
 
-const pageReportSwab = {
-  name: "report-swab-area",
-};
+// const pageReportSwab = {
+//   name: "report-swab-area",
+// };
 
 const pageSwabArea = {
   name: "swab-area",
@@ -68,50 +68,85 @@ const pageImportProductSchedule = {
 
     <div class="row">
       <div class="col col-md-6 col-lg-4">
-        <div v-if="authUser.isInSwabTeam" class="d-grid gap-2 mt-4">
+        <div
+          v-if="
+            authUser.isInProductionTeam ||
+            authUser.isInSwabTeam ||
+            authUser.isInAdminTeam
+          "
+          class="d-grid gap-2 mt-4"
+        >
           <h4 class="font-weight-bold">รายการข้อมูลพื้นฐาน</h4>
 
-          <nuxt-link v-slot="{ navigate }" :to="pageExportSwabPlan" custom>
-            <nuxt-link v-slot="{ navigate }" :to="pageManageProduct" custom>
-              <button-arrow-right
-                v-if="authUser.isInProductionTeam || authUser.isInAdminTeam"
-                variant="outline-primary"
-                size="lg"
-                class="w-100"
-                @click="navigate"
-              >
-                จัดการสินค้าอาหาร
-              </button-arrow-right>
-            </nuxt-link>
-
-            <nuxt-link
-              v-slot="{ navigate }"
-              :to="pageImportProductSchedule"
-              custom
+          <nuxt-link
+            v-if="authUser.isInProductionTeam || authUser.isInAdminTeam"
+            v-slot="{ navigate }"
+            :to="pageManageProduct"
+            custom
+          >
+            <button-arrow-right
+              variant="outline-primary"
+              size="lg"
+              class="w-100"
+              @click="navigate"
             >
-              <button-arrow-right
-                v-if="authUser.isInProductionTeam || authUser.isInAdminTeam"
-                variant="outline-primary"
-                size="lg"
-                class="w-100"
-                @click="navigate"
-              >
-                จัดการแผนการผลิต
-              </button-arrow-right>
-            </nuxt-link>
+              จัดการสินค้าอาหาร
+            </button-arrow-right>
+          </nuxt-link>
 
-            <nuxt-link v-slot="{ navigate }" :to="pageManageSwabArea" custom>
-              <button-arrow-right
-                v-if="authUser.isInSwabTeam || authUser.isInAdminTeam"
-                variant="outline-primary"
-                size="lg"
-                class="w-100"
-                @click="navigate"
-              >
-                จัดการจุดตรวจ swab
-              </button-arrow-right>
-            </nuxt-link>
+          <nuxt-link
+            v-if="authUser.isInProductionTeam || authUser.isInAdminTeam"
+            v-slot="{ navigate }"
+            :to="pageImportProductSchedule"
+            custom
+          >
+            <button-arrow-right
+              variant="outline-primary"
+              size="lg"
+              class="w-100"
+              @click="navigate"
+            >
+              จัดการแผนการผลิต
+            </button-arrow-right>
+          </nuxt-link>
 
+          <nuxt-link
+            v-if="authUser.isInSwabTeam || authUser.isInAdminTeam"
+            v-slot="{ navigate }"
+            :to="pageManageSwabArea"
+            custom
+          >
+            <button-arrow-right
+              variant="outline-primary"
+              size="lg"
+              class="w-100"
+              @click="navigate"
+            >
+              จัดการจุดตรวจ swab
+            </button-arrow-right>
+          </nuxt-link>
+        </div>
+
+        <div
+          v-if="
+            authUser.isInSwabTeam ||
+            authUser.isInLabTeam ||
+            authUser.isInAdminTeam
+          "
+          class="d-grid gap-2 mt-4"
+        >
+          <h4 class="font-weight-bold">ออกรายงานและรายการข้อมูล</h4>
+
+          <nuxt-link
+            v-if="
+              authUser.isInSwabTeam ||
+              authUser.isInLabTeam ||
+              authUser.isInAdminTeam
+            "
+            v-slot="{ navigate }"
+            :to="pageExportSwabPlan"
+            custom
+          >
             <button-arrow-right
               variant="outline-primary"
               block
@@ -119,11 +154,16 @@ const pageImportProductSchedule = {
               class="w-100"
               @click="navigate"
             >
-              ออกรายงานจุด swab
+              ออกรายงานการตรวจ
             </button-arrow-right>
           </nuxt-link>
 
-          <nuxt-link v-slot="{ navigate }" :to="pageReportSwab" custom>
+          <!-- <nuxt-link
+            v-if="authUser.isInSwabTeam || authUser.isInAdminTeam"
+            v-slot="{ navigate }"
+            :to="pageReportSwab"
+            custom
+          >
             <button-arrow-right
               variant="outline-primary"
               block
@@ -133,27 +173,38 @@ const pageImportProductSchedule = {
             >
               รายการผลตรวจ swab
             </button-arrow-right>
-          </nuxt-link>
+          </nuxt-link> -->
         </div>
 
-        <div class="d-grid gap-2 mt-4">
+        <div
+          v-if="authUser.isInSwabTeam || authUser.isInLabTeam"
+          class="d-grid gap-2 mt-4"
+        >
           <h4 class="font-weight-bold">ระบบบันทึกข้อมูล</h4>
 
-          <nuxt-link v-slot="{ navigate }" :to="pageSwabArea" custom>
+          <nuxt-link
+            v-if="authUser.isInSwabTeam"
+            v-slot="{ navigate }"
+            :to="pageSwabArea"
+            custom
+          >
             <button-arrow-right
-              v-if="authUser.isInSwabTeam"
               variant="outline-primary"
               size="lg"
               class="w-100"
               @click="navigate"
             >
-              บันทึกจุดตรวจ swab
+              บันทึกการตรวจจุด swab
             </button-arrow-right>
           </nuxt-link>
 
-          <nuxt-link v-slot="{ navigate }" :to="pageSwabProduct" custom>
+          <nuxt-link
+            v-if="authUser.isInSwabTeam"
+            v-slot="{ navigate }"
+            :to="pageSwabProduct"
+            custom
+          >
             <button-arrow-right
-              v-if="authUser.isInSwabTeam"
               variant="outline-primary"
               size="lg"
               class="w-100"
@@ -163,63 +214,67 @@ const pageImportProductSchedule = {
             </button-arrow-right>
           </nuxt-link>
 
-          <nuxt-link v-slot="{ navigate }" :to="pageUpdateSwabTestArea" custom>
+          <nuxt-link
+            v-if="authUser.isInLabTeam"
+            v-slot="{ navigate }"
+            :to="pageUpdateSwabTestArea"
+            custom
+          >
             <button-arrow-right
-              v-if="authUser.isInLabTeam"
               variant="outline-primary"
               size="lg"
               class="w-100"
               @click="navigate"
             >
-              บันทึกผล lab จุดตรวจ swab
+              บันทึกผลตรวจ lab จุด swab
             </button-arrow-right>
           </nuxt-link>
 
           <nuxt-link
+            v-if="authUser.isInLabTeam"
             v-slot="{ navigate }"
             :to="pageUpdateSwabTestProduct"
             custom
           >
             <button-arrow-right
-              v-if="authUser.isInLabTeam"
               variant="outline-primary"
               size="lg"
               class="w-100"
               @click="navigate"
             >
-              บันทึกผล lab การตรวจสินค้า
+              บันทึกผลตรวจ lab สินค้า
             </button-arrow-right>
           </nuxt-link>
 
           <nuxt-link
+            v-if="authUser.isInLabTeam"
             v-slot="{ navigate }"
             :to="pageUpdateBacteriaSpecieArea"
             custom
           >
             <button-arrow-right
-              v-if="authUser.isInLabTeam"
               variant="outline-primary"
               size="lg"
               class="w-100"
               @click="navigate"
             >
-              บันทึกผล specie เชื้อจุดตรวจ swab
+              บันทึกผลตรวจ specie จุด swab
             </button-arrow-right>
           </nuxt-link>
 
           <nuxt-link
+            v-if="authUser.isInLabTeam"
             v-slot="{ navigate }"
             :to="pageUpdateBacteriaSpecieProduct"
             custom
           >
             <button-arrow-right
-              v-if="authUser.isInLabTeam"
               variant="outline-primary"
               size="lg"
               class="w-100"
               @click="navigate"
             >
-              บันทึกผล specie เชื้อสินค้า
+              บันทึกผลตรวจ specie สินค้า
             </button-arrow-right>
           </nuxt-link>
         </div>

@@ -39,6 +39,6 @@ const hasBacteriaSpecie: ComputedRef<boolean> = computed(() => {
       </b-badge>
     </span>
 
-    <b-badge v-else variant="primary" pill> รอผลตรวจ </b-badge>
+    <b-badge v-else variant="primary" pill> รอผล </b-badge>
   </div>
 </template>

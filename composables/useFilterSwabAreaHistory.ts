@@ -1,16 +1,20 @@
-import { useDate, Shift } from "./useDate";
+import { useDate, Shift, DateRangeInterface } from "./useDate";
 import { SearchParams } from "./useRequest";
+import { SwabStatus } from "./useSwab";
 
 export interface LoadAllSwabAreaHistoryFilter {
-  date: string;
+  date?: string;
+  dateRange?: DateRangeInterface;
   shift?: Shift;
   facilityId?: string;
   facilityItemId?: string;
   mainSwabAreaId?: string;
   swabPeriodId?: string;
   swabTestCode?: string;
+  hasBacteria?: boolean;
   skip?: number;
   take?: number;
+  swabStatus?: SwabStatus;
 }
 
 export const useFilterSwabAreaHistory = () => {
@@ -19,19 +23,29 @@ export const useFilterSwabAreaHistory = () => {
   const toDto = (data: LoadAllSwabAreaHistoryFilter): SearchParams => {
     const {
       date,
+      dateRange,
       shift,
       facilityId,
       facilityItemId,
       mainSwabAreaId,
       swabPeriodId,
       swabTestCode,
+      hasBacteria,
       skip,
       take,
+      swabStatus,
     } = data;
 
-    const params: any = {
-      swabAreaDate: onlyDate(new Date(date)),
-    };
+    const params: any = {};
+
+    if (date) {
+      params.swabAreaDate = onlyDate(new Date(date));
+    }
+
+    if (dateRange) {
+      params.fromDate = onlyDate(new Date(dateRange.from));
+      params.toDate = onlyDate(new Date(dateRange.to));
+    }
 
     if (shift && shift !== Shift.ALL) {
       params.shift = shift;
@@ -46,7 +60,7 @@ export const useFilterSwabAreaHistory = () => {
     }
 
     if (mainSwabAreaId) {
-      params.mainSwabAreaId = mainSwabAreaId;
+      params.swabAreaId = mainSwabAreaId;
     }
 
     if (swabPeriodId) {
@@ -57,11 +71,18 @@ export const useFilterSwabAreaHistory = () => {
       params.swabTestCode = swabTestCode;
     }
 
-    if (skip) {
-      params.skip = skip;
+    if (swabStatus && swabStatus !== SwabStatus.ALL) {
+      params.swabStatus = swabStatus;
     }
 
-    if (take) {
+    if (hasBacteria) {
+      params.hasBacteria = true;
+    }
+
+    if (skip !== undefined) {
+      params.skip = skip;
+    }
+    if (take !== undefined) {
       params.take = take;
     }
 

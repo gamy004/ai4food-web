@@ -37,8 +37,8 @@ const swabEnvironments = computed(() => {
   let notDefinedSwabEnvironment = null;
   const orderedData = [];
 
-  data.forEach(record => {
-    if (record.swabEnvironmentName === "ไม่ระบุ") {
+  data.forEach((record) => {
+    if (record.swabEnvironmentName === "ไม่เข้าเงื่อนไข") {
       notDefinedSwabEnvironment = record;
     } else {
       orderedData.push(record);

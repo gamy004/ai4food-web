@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Shift } from "~~/composables/useDate";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
+import { SwabStatus } from "~~/composables/useSwab";
 
 definePageMeta({
   title: "Ai4FoodSafety - Update Test Page",
@@ -19,7 +20,11 @@ const currentDate = today();
 const loading = ref(false);
 const error = ref(false);
 const form = reactive({
-  date: (route.query.date as string) || onlyDate(currentDate),
+  // date: (route.query.date as string) || onlyDate(currentDate),
+  dateRange: {
+    from: (route.query.from as string) || onlyDate(currentDate),
+    to: (route.query.to as string) || onlyDate(currentDate),
+  },
   shift: stringToShift(route.query.shift as string) || Shift.ALL,
   swabPeriodId: (route.query.swabPeriodId as string) || null,
   facilityId: (route.query.facilityId as string) || null,
@@ -27,6 +32,7 @@ const form = reactive({
   mainSwabAreaId: (route.query.mainSwabAreaId as string) || null,
   productId: (route.query.productId as string) || null,
   swabTestCode: (route.query.swabTestCode as string) || null,
+  swabStatus: (route.query.swabStatus as SwabStatus) || null,
 });
 const pagination = usePagination({
   perPage: parseInt(route.query.perPage as string) || 20,
@@ -106,11 +112,14 @@ onBeforeMount(fetch);
             <swab-test-filter
               v-model="form"
               :hidden-state="{
+                date: true,
+                dateRange: false,
                 mainSwabArea: isPage('report-swab-product'),
                 product: isPage('report-swab-area'),
+                swabStatus: false,
               }"
               :col-state="{
-                date: 'sm-6 md-4',
+                dateRange: 'sm-6 md-4',
                 shift: 'sm-6 md-3',
                 swabPeriod: 'sm-12 md-5',
                 facility: 'sm-12 md-6',

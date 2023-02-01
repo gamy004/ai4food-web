@@ -5,6 +5,7 @@ import CarbonEdit from "~icons/carbon/edit";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import SwabProductHistory from "~~/models/SwabProductHistory";
 import { Shift } from "~~/composables/useDate";
+import { Pagination } from "~~/composables/usePagination";
 
 export interface Props {
   date: string;
@@ -13,9 +14,13 @@ export interface Props {
   facilityItemId?: string;
   swabPeriodId?: string;
   productId?: string;
+  swabTestCode?: string;
+  pagination: Pagination;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  pagination: () => usePagination({ perPage: 20, currentPage: 1 }),
+});
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
@@ -30,6 +35,7 @@ const {
 const { getFacilityById, getFacilityItemById } = useFacility();
 const { getProductById } = useProduct();
 
+const countTotal = ref(0);
 const loading = ref(false);
 const error = ref(false);
 // const removedId = ref(null);
@@ -138,16 +144,19 @@ const fetch = async function fetch(props) {
   loading.value = true;
 
   try {
-    props;
-    const swapProductHistoryData: SwabProductHistory[] =
-      await swabApi().loadSwabProductHistory(props);
+    const [swapProductHistoryData, total] =
+      await swabApi().loadSwabProductHistory({
+        ...props,
+        skip: props.pagination.offset.value,
+        take: props.pagination.$state.perPage,
+      });
+
+    countTotal.value = total;
 
     if (swapProductHistoryData && swapProductHistoryData.length) {
       swapProductHistoryIds.value = swapProductHistoryData.map(({ id }) => id);
     }
   } catch (e) {
-    console.log(e);
-
     error.value = true;
 
     toast.error("โหลดข้อมูล swab สินค้าไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", {
@@ -179,78 +188,86 @@ watch(() => props, fetch, { immediate: true, deep: true });
       </b-col>
 
       <b-col v-else>
-        <b-table
-          v-if="tableData.length"
-          id="swabProductHistoryTable"
-          hover
-          small
-          responsive
-          :items="tableData"
-          :fields="tableFields"
-          @row-clicked="onTableRowClicked"
-        >
-          <template #cell(shift)="{ item }">
-            {{ shiftToAbbreviation(item.shift) }}
-          </template>
+        <div v-if="tableData.length">
+          <b-table
+            id="swabProductHistoryTable"
+            hover
+            small
+            responsive
+            :items="tableData"
+            :fields="tableFields"
+            @row-clicked="onTableRowClicked"
+          >
+            <template #cell(shift)="{ item }">
+              {{ shiftToAbbreviation(item.shift as Shift) }}
+            </template>
 
-          <template #cell(status)="{ item }">
-            <div class="text-center">
-              <nuxt-link
-                v-slot="{ navigate }"
-                :to="getRouteManageSwabProductHistory(item.id)"
-                custom
-              >
-                <CarbonEdit
-                  style="
-                     {
-                      fontsize: '1em';
-                    }
-                  "
-                  @click="navigate"
-                />
-              </nuxt-link>
-            </div>
-          </template>
+            <template #cell(status)="{ item }">
+              <div class="text-center">
+                <nuxt-link
+                  v-slot="{ navigate }"
+                  :to="getRouteManageSwabProductHistory(item.id)"
+                  custom
+                >
+                  <CarbonEdit
+                    style="
+                       {
+                        fontsize: '1em';
+                      }
+                    "
+                    @click="navigate"
+                  />
+                </nuxt-link>
+              </div>
+            </template>
 
-          <template #cell(action)="{ item }">
-            <div class="text-center">
-              <nuxt-link
-                v-slot="{ navigate }"
-                :to="getRouteManageSwabProductHistory(item.id)"
-                custom
-              >
-                <CarbonEdit
-                  style="
-                     {
-                      fontsize: '1em';
-                    }
-                  "
-                  @click="navigate"
-                />
-              </nuxt-link>
+            <template #cell(action)="{ item }">
+              <div class="text-center">
+                <nuxt-link
+                  v-slot="{ navigate }"
+                  :to="getRouteManageSwabProductHistory(item.id)"
+                  custom
+                >
+                  <CarbonEdit
+                    style="
+                       {
+                        fontsize: '1em';
+                      }
+                    "
+                    @click="navigate"
+                  />
+                </nuxt-link>
 
-              <!-- <a
-                href="javascript:void(0)"
-                @click="promptRemove(item.id)"
-                class="ms-3 text-danger"
-              >
-                <CarbonTrashCan
-                  style="
-                     {
-                      fontsize: '1em';
-                    }
-                  "
-                />
-              </a> -->
-            </div>
-          </template>
+                <!-- <a
+                  href="javascript:void(0)"
+                  @click="promptRemove(item.id)"
+                  class="ms-3 text-danger"
+                >
+                  <CarbonTrashCan
+                    style="
+                       {
+                        fontsize: '1em';
+                      }
+                    "
+                  />
+                </a> -->
+              </div>
+            </template>
 
-          <template #cell(isCompleted)="{ item }">
-            <badge-complete-status
-              :is-completed="item.isCompleted"
-            ></badge-complete-status>
-          </template>
-        </b-table>
+            <template #cell(isCompleted)="{ item }">
+              <badge-complete-status
+                :is-completed="(item.isCompleted as boolean)"
+              ></badge-complete-status>
+            </template>
+          </b-table>
+
+          <base-pagination
+            v-model="pagination.$state.currentPage"
+            :per-page="pagination.$state.perPage"
+            :total-rows="countTotal"
+            aria-controls="swabProductHistoryTable"
+          />
+        </div>
 
         <b-card v-else bg-variant="light">
           <b-card-text class="text-center">

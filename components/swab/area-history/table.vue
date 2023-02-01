@@ -11,8 +11,10 @@ export interface Props {
   date: string;
   shift: Shift;
   facilityId?: string;
+  facilityItemId?: string;
   mainSwabAreaId?: string;
   swabPeriodId?: string;
+  swabTestCode?: string;
   pagination: Pagination;
 }
 

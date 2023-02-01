@@ -25,7 +25,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(["update:modelValue"]);
 
-const isFetched = ref(false);
+// const isFetched = ref(false);
 const loading = ref(false);
 const swabPeriodIds = ref([]);
 
@@ -56,27 +56,27 @@ const modelValue = computed({
 });
 
 const fetch = async () => {
-  if (!isFetched.value) {
-    loading.value = true;
+  // if (!isFetched.value) {
+  loading.value = true;
 
-    try {
-      const swabPeriodData: SwabPeriod[] =
-        await swabPeriodApi().loadAllSwabPeriod();
+  try {
+    const swabPeriodData: SwabPeriod[] =
+      await swabPeriodApi().loadAllSwabPeriod();
 
-      if (swabPeriodData.length) {
-        swabPeriodIds.value = swabPeriodData.map(({ id }) => id);
-      }
-    } catch (error) {
-      toast.error("ไม่สามารถโหลดข้อมูลช่วงตรวจได้", { timeout: 1000 });
-    } finally {
-      loading.value = false;
-      isFetched.value = true;
+    if (swabPeriodData.length) {
+      swabPeriodIds.value = swabPeriodData.map(({ id }) => id);
     }
+  } catch (error) {
+    toast.error("ไม่สามารถโหลดข้อมูลช่วงตรวจได้", { timeout: 1000 });
+  } finally {
+    loading.value = false;
+    // isFetched.value = true;
   }
+  // }
 };
 
 onBeforeMount(async () => {
-  isFetched.value = false;
+  // isFetched.value = false;
 
   await fetch();
 });

@@ -36,7 +36,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(["update:modelValue"]);
 
-const isFetched = ref(false);
+// const isFetched = ref(false);
 const loading = ref(false);
 const facilityIds = ref([]);
 
@@ -68,38 +68,38 @@ const formGroupLabel = computed(() => (props.showLabel ? "เครื่อง�
 const formGroupLabelClass = computed(() => (!props.showLabel ? "p-0" : ""));
 
 const fetch = async () => {
-  if (!isFetched.value) {
-    loading.value = true;
+  // if (!isFetched.value) {
+  loading.value = true;
 
-    try {
-      const calledMethod = props.onlySwab
-        ? "loadAllSwabFacility"
-        : "loadAllFacility";
+  try {
+    const calledMethod = props.onlySwab
+      ? "loadAllSwabFacility"
+      : "loadAllFacility";
 
-      const facilityData: Facility[] = await facilityApi()[calledMethod]();
+    const facilityData: Facility[] = await facilityApi()[calledMethod]();
 
-      if (facilityData.length) {
-        facilityIds.value = facilityData.map(({ id }) => id);
+    if (facilityData.length) {
+      facilityIds.value = facilityData.map(({ id }) => id);
 
-        if (modelValue.value === null && props.defaultValue !== null) {
-          const defaultFacility = getFacilityByName(props.defaultValue);
+      if (modelValue.value === null && props.defaultValue !== null) {
+        const defaultFacility = getFacilityByName(props.defaultValue);
 
-          if (defaultFacility) {
-            emit("update:modelValue", { id: defaultFacility.id });
-          }
+        if (defaultFacility) {
+          emit("update:modelValue", { id: defaultFacility.id });
         }
       }
-    } catch (error) {
-      toast.error("ไม่สามารถโหลดข้อมูลเครื่องได้", { timeout: 1000 });
-    } finally {
-      loading.value = false;
-      isFetched.value = true;
     }
+  } catch (error) {
+    toast.error("ไม่สามารถโหลดข้อมูลเครื่องได้", { timeout: 1000 });
+  } finally {
+    loading.value = false;
+    // isFetched.value = true;
   }
+  // }
 };
 
 onBeforeMount(async () => {
-  isFetched.value = false;
+  // isFetched.value = false;
 
   await fetch();
 });

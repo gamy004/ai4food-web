@@ -30,7 +30,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(["update:modelValue"]);
 
-const isFetched = ref(false);
+// const isFetched = ref(false);
 const loading = ref(false);
 const facilityItemIds = ref([]);
 
@@ -53,27 +53,27 @@ const modelValue = computed({
 });
 
 const fetch = async () => {
-  if (!isFetched.value) {
-    loading.value = true;
+  // if (!isFetched.value) {
+  loading.value = true;
 
-    try {
-      const facilityItemData: FacilityItem[] =
-        await facilityApi().loadAllFacilityItem();
+  try {
+    const facilityItemData: FacilityItem[] =
+      await facilityApi().loadAllFacilityItem(props.facilityId);
 
-      if (facilityItemData.length) {
-        facilityItemIds.value = facilityItemData.map(({ id }) => id);
-      }
-    } catch (error) {
-      toast.error("ไม่สามารถโหลดข้อมูลไลน์ได้", { timeout: 1000 });
-    } finally {
-      loading.value = false;
-      isFetched.value = true;
+    if (facilityItemData.length) {
+      facilityItemIds.value = facilityItemData.map(({ id }) => id);
     }
+  } catch (error) {
+    toast.error("ไม่สามารถโหลดข้อมูลไลน์ได้", { timeout: 1000 });
+  } finally {
+    loading.value = false;
+    // isFetched.value = true;
   }
+  // }
 };
 
 onBeforeMount(async () => {
-  isFetched.value = false;
+  // isFetched.value = false;
 
   await fetch();
 });
@@ -89,7 +89,7 @@ onBeforeMount(async () => {
     :clearable="clearable"
     :reduce="({ id }) => ({ id })"
     deselect-from-dropdown
-    @open="fetch({ facilityId: props.facilityId })"
+    @open="fetch"
   >
     <template #selected-option="{ facilityItemName }">
       {{ facilityItemName }}
