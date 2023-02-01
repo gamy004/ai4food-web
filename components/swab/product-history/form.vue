@@ -125,9 +125,9 @@ const create = async () => {
   try {
     promise = await swabApi().createSwabProductHistory(form);
 
-    toast.success("เพิ่มบันทึก swab สินค้าสำเร็จ", { timeout: 1000 });
+    toast.success("เพิ่มบันทึกการตรวจสินค้าสำเร็จ", { timeout: 1000 });
   } catch (error) {
-    toast.error("เพิ่มบันทึก swab สินค้าไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
+    toast.error("เพิ่มบันทึกการตรวจสินค้าไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
   }
 
   return promise;

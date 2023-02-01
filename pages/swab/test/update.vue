@@ -58,13 +58,13 @@ const switchPage = async (name: string) => {
               :pressed="isPage('swab-test-update-area')"
               variant="outline-primary"
               @click="switchPage('swab-test-update-area')"
-              >รายการจุดตรวจ Swab</b-button
+              >รายการจุด swab</b-button
             >
             <b-button
               :pressed="isPage('swab-test-update-product')"
               variant="outline-primary"
               @click="switchPage('swab-test-update-product')"
-              >รายการตรวจสินค้า</b-button
+              >รายการสินค้า</b-button
             >
           </b-button-group>
         </b-row>

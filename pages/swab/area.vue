@@ -30,7 +30,7 @@ const pagination = usePagination({
 
 <template>
   <div class="page__swab-area mt-4">
-    <h2 class="font-weight-bold text-center">บันทึกจุดตรวจ swab</h2>
+    <h2 class="font-weight-bold text-center">บันทึกการตรวจจุด swab</h2>
 
     <div class="d-grid gap-2 mt-3">
       <swab-test-filter

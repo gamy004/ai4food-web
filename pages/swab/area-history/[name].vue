@@ -347,7 +347,7 @@ onMounted(async () => {
 
 <template>
   <div class="page__swab-area--update mt-4">
-    <h2 class="font-weight-bold text-center">บันทึกจุดตรวจ swab</h2>
+    <h2 class="font-weight-bold text-center">บันทึกการตรวจจุด swab</h2>
 
     <b-col v-if="loading" class="text-center mt-5">
       <line-md-loading-twotone-loop :style="{ fontSize: '2em' }" />

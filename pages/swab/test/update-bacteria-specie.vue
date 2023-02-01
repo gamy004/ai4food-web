@@ -66,7 +66,7 @@ onBeforeMount(fetch);
 
 <template>
   <div class="page__update-plan mt-4">
-    <h2 class="font-weight-bold text-center">บันทึกผล Bacteria Specie</h2>
+    <h2 class="font-weight-bold text-center">บันทึกผลตรวจ specie</h2>
 
     <b-row align-h="center">
       <b-col cols="8" lg="6">
@@ -76,13 +76,13 @@ onBeforeMount(fetch);
               :pressed="isPage('swab-test-update-bacteria-specie-area')"
               variant="outline-primary"
               @click="switchPage('swab-test-update-bacteria-specie-area')"
-              >รายการจุดตรวจ Swab</b-button
+              >รายการจุด Swab</b-button
             >
             <b-button
               :pressed="isPage('swab-test-update-bacteria-specie-product')"
               variant="outline-primary"
               @click="switchPage('swab-test-update-bacteria-specie-product')"
-              >รายการตรวจสินค้า</b-button
+              >รายการสินค้า</b-button
             >
           </b-button-group>
         </b-row>

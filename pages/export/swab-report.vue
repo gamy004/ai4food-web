@@ -38,6 +38,7 @@ const {
 const { api: labApi } = useLab();
 const { api: productApi } = useProduct();
 const { api: swabApi } = useSwab();
+const exporting = ref(false);
 const refreshing = ref(false);
 const loading = ref(false);
 const error = ref(false);
@@ -360,9 +361,19 @@ const fetchExport = async (
   return await fetchExport(take, skip, acc);
 };
 
-const onFormSubmitted = async () => {
+const onExported = async () => {
   if (canExport.value) {
-    exportSwabHistoryApi().exportReport(form);
+    exporting.value = true;
+
+    try {
+      await exportSwabHistoryApi().exportReport(form);
+    } catch (error) {
+      toast.error("นำออกรายงานไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", {
+        timeout: 1000,
+      });
+    } finally {
+      exporting.value = false;
+    }
   }
 };
 
@@ -372,6 +383,9 @@ const refresh = async () => {
   try {
     await fetchHistory(form);
   } catch (error) {
+    toast.error("refresh ข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", {
+      timeout: 1000,
+    });
   } finally {
     refreshing.value = false;
   }
@@ -410,7 +424,7 @@ watch(
               <b-col>
                 <b-row align-h="between">
                   <b-col sm="6" md="8">
-                    <h3 class="font-weight-bold">ออกรายงานจุด swab</h3>
+                    <h3 class="font-weight-bold">ออกรายงานการตรวจ</h3>
                   </b-col>
 
                   <b-col sm="6" md="4" class="text-end">
@@ -430,10 +444,18 @@ watch(
                     <b-button
                       variant="outline-primary"
                       :disabled="!canExport"
-                      @click="onFormSubmitted"
+                      @click="onExported"
                     >
-                      <download-icon />
-                      <span>นำออกรายงาน</span>
+                      <span>
+                        <line-md-loading-twotone-loop
+                          v-if="exporting"
+                          :style="{ fontSize: '1em' }"
+                        />
+
+                        <download-icon v-else />
+                      </span>
+
+                      <span v-show="!exporting" class="ms-2">นำออกรายงาน</span>
                     </b-button>
                   </b-col>
                 </b-row>
