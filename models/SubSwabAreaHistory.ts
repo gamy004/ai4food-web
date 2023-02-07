@@ -12,6 +12,7 @@ import { SwabStatus, SwabStatusMapper } from "~~/composables/useSwab";
 import FacilityItem from "./FacilityItem";
 import Product from "./Product";
 import SwabArea from "./SwabArea";
+import SwabAreaHistory from "./SwabAreaHistory";
 import SwabAreaHistoryEnvironment from "./SwabAreaHistoryEnvironment";
 import SwabAreaHistoryImage from "./SwabAreaHistoryImage";
 import SwabEnvironment from "./SwabEnvironment";
@@ -20,8 +21,8 @@ import SwabTest from "./SwabTest";
 
 const { formatThLocale, formatTimeThLocale } = useDate();
 
-export default class SwabAreaHistory extends Model {
-  static entity = "swab_area_history";
+export default class SubSwabAreaHistory extends Model {
+  static entity = "sub_swab_area_history";
 
   @Uid()
   declare id: string;
@@ -71,9 +72,6 @@ export default class SwabAreaHistory extends Model {
   @Attr([])
   declare swabAreaHistoryImageIds: string[];
 
-  @Attr([])
-  declare subSwabAreaHistoryIds: string[];
-
   @Attr(null)
   declare mainSwabAreaHistoryId: string | null;
 
@@ -106,9 +104,6 @@ export default class SwabAreaHistory extends Model {
 
   @BelongsTo(() => FacilityItem, "facilityItemId")
   declare facilityItem: FacilityItem;
-
-  @HasManyBy(() => SwabAreaHistory, "subSwabAreaHistoryIds")
-  declare subSwabAreaHistories: SwabAreaHistory[];
 
   @BelongsTo(() => SwabAreaHistory, "mainSwabAreaHistoryId")
   declare mainSwabAreaHistory: SwabAreaHistory;
@@ -159,24 +154,14 @@ export default class SwabAreaHistory extends Model {
     return this.swabAreaSwabedAt !== null;
   }
 
-  get isMainArea() {
-    return this.mainSwabAreaHistoryId === null;
-  }
-
-  get hasSubSwabAreaHistories() {
-    return this.subSwabAreaHistoryIds.length > 0;
-  }
-
-  get shouldRecordEnvironment(): boolean {
-    return (
-      !this.isMainArea || (this.isMainArea && !this.hasSubSwabAreaHistories)
-    );
-  }
-
   get isCompleted() {
     let isCompleted = true;
 
-    if (this.isMainArea) {
+    const swapAreaRepo = useRepo(SwabArea);
+
+    const relatedSwabArea = swapAreaRepo.find(this.swabAreaId);
+
+    if (relatedSwabArea.isMainArea) {
       isCompleted =
         this.swabAreaSwabedAt !== null &&
         this.facilityItemId !== null &&
@@ -186,7 +171,7 @@ export default class SwabAreaHistory extends Model {
         this.swabAreaHistoryImageIds.length > 0;
     }
 
-    if (this.shouldRecordEnvironment) {
+    if (relatedSwabArea.shouldRecordEnvironment) {
       const swabAreaHistoryEnvironmentRepo = useRepo(
         SwabAreaHistoryEnvironment
       );

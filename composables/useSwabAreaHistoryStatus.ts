@@ -3,8 +3,7 @@ import SwabAreaHistory from "~~/models/SwabAreaHistory";
 
 export const useSwabAreaHistoryStatus = () => {
   const isAllRelatedSwabAreaCompleted = (swabAreaHistory: SwabAreaHistory) => {
-    const { getSwabAreaById, getSubSwabAreaHistoriesOfSamePeriodShift } =
-      useSwab();
+    const { getSwabAreaById, getSubSwabAreaHistories } = useSwab();
 
     let countComplete = 0;
     let countArea = 1;
@@ -18,11 +17,11 @@ export const useSwabAreaHistoryStatus = () => {
 
     if (swabArea.isMainArea) {
       // get related sub swab area history on the same swab period and shift
-      const relatedSubSwabAreaHistories =
-        getSubSwabAreaHistoriesOfSamePeriodShift(
-          swabAreaHistory.id,
-          swabAreaHistory.shift
-        );
+      const relatedSubSwabAreaHistories = getSubSwabAreaHistories(
+        swabAreaHistory.id
+      );
+
+      console.log(relatedSubSwabAreaHistories);
 
       isCompleted =
         isCompleted &&
