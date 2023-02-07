@@ -33,8 +33,6 @@ const form = computed({
   set: (value) => emit("update:modelValue", value),
 });
 
-console.log(props.swabArea);
-
 const validationRules = {
   swabAreaTemperature: {
     requiredIfShouldRecordEnvironment: requiredIf(
@@ -119,7 +117,7 @@ const invalidState = computed(() => ({
         <label
           for="swabAreaHumidity"
           class="form-label min-w-125px d-block col-12 col-md-auto"
-          >ความชื้</label
+          >ความชื้น</label
         >
 
         <div class="form-control p-0 border-0">

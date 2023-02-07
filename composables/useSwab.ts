@@ -64,11 +64,11 @@ export interface LoadSwabProductHistoryResponse {
 
 export interface LoadSwabAreaHistoryResponse {
   total: number;
-  facilities: Facility[];
-  swabAreas: SwabArea[];
-  facilityItems: FacilityItem[];
+  // facilities: Facility[];
+  // swabAreas: SwabArea[];
+  // facilityItems: FacilityItem[];
   swabAreaHistories: SwabAreaHistory[];
-  subSwabAreaHistories: SwabAreaHistory[];
+  // subSwabAreaHistories: SwabAreaHistory[];
 }
 
 export type ConenctProductData = {
@@ -241,7 +241,6 @@ export const useSwab = () => {
 
   const createMainSwabArea = (body: BodyManageSwabArea): Promise<any> => {
     return new Promise((resolve, reject) => {
-      console.log(body);
       const { data, error } = post<any>(`/swab/area`, {
         ...body,
       });
@@ -411,27 +410,17 @@ export const useSwab = () => {
     return swabAreaHistoryRepo.find(id);
   };
 
-  const getSubSwabAreaHistoriesOfSamePeriodShift = (
-    id: string,
-    shift: Shift
-  ): SwabAreaHistory[] => {
+  const getSubSwabAreaHistories = (id: string): SwabAreaHistory[] => {
     let subSwabAreaHistories = [];
 
     const mainSwabAreaHistory = getSwabAreaHistoryById(id);
-    const mainSwabArea = getSwabAreaById(mainSwabAreaHistory.swabAreaId);
-    const subSwabAreas = getSwabAreaByMainSwabAreaId(
-      mainSwabAreaHistory.swabAreaId
-    );
 
-    if (mainSwabAreaHistory && subSwabAreas.length) {
-      const subSwabAreaIds = subSwabAreas.map(({ id }) => id).filter(Boolean);
+    if (mainSwabAreaHistory) {
+      const subSwabAreaHistoryIds = mainSwabAreaHistory.subSwabAreaHistoryIds;
 
-      subSwabAreaHistories = swabAreaHistoryRepo
-        .where("shift", shift)
-        .where("swabAreaId", subSwabAreaIds)
-        .where("swabPeriodId", mainSwabAreaHistory.swabPeriodId)
-        .where("swabAreaDate", mainSwabAreaHistory.swabAreaDate)
-        .get();
+      subSwabAreaHistories = subSwabAreaHistoryIds.map((subSwabAreaHistoryId) =>
+        swabAreaHistoryRepo.find(subSwabAreaHistoryId)
+      );
     }
 
     return subSwabAreaHistories;
@@ -604,30 +593,30 @@ export const useSwab = () => {
       watch(data, (swabAreaHistoryData: LoadSwabAreaHistoryResponse) => {
         let {
           total = 0,
-          facilities = [],
-          swabAreas = [],
-          facilityItems = [],
+          // facilities = [],
+          // swabAreas = [],
+          // facilityItems = [],
           swabAreaHistories = [],
-          subSwabAreaHistories = [],
+          // subSwabAreaHistories = [],
         } = swabAreaHistoryData;
 
-        facilities = facilityRepo.save(facilities);
+        // facilities = facilityRepo.save(facilities);
 
-        swabAreas = swabAreaRepo.save(swabAreas);
+        // swabAreas = swabAreaRepo.save(swabAreas);
 
-        facilityItems = facilityItemRepo.save(facilityItems);
+        // facilityItems = facilityItemRepo.save(facilityItems);
 
         swabAreaHistories = swabAreaHistoryRepo.save(swabAreaHistories);
 
-        subSwabAreaHistories = swabAreaHistoryRepo.save(subSwabAreaHistories);
+        // subSwabAreaHistories = swabAreaHistoryRepo.save(subSwabAreaHistories);
 
         resolve({
           total,
-          facilities,
-          swabAreas,
-          facilityItems,
+          // facilities,
+          // swabAreas,
+          // facilityItems,
           swabAreaHistories,
-          subSwabAreaHistories,
+          // subSwabAreaHistories,
         });
       });
 
@@ -856,7 +845,7 @@ export const useSwab = () => {
 
     getSwabAreaHistoryById,
 
-    getSubSwabAreaHistoriesOfSamePeriodShift,
+    getSubSwabAreaHistories,
 
     getSwabProductHistoriesByIds,
 
