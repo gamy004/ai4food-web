@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useToast } from "vue-toastification";
-import CarbonEdit from "~icons/carbon/edit";
+// import CarbonEdit from "~icons/carbon/edit";
 import CarbonCheckmarkFilled from "~icons/carbon/checkmark-filled";
 // import CarbonTrashCan from "~icons/carbon/trash-can";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
@@ -296,24 +296,15 @@ watch(() => props, fetch, { immediate: true, deep: true });
             </template>
           </b-table> -->
 
-          <b-list-group>
+          <b-list-group id="swabProductHistoryTable">
             <b-list-group-item
               v-for="item in tableData"
               :key="`swab-area-history-data-${item.id}`"
               class="d-flex justify-content-between align-items-start"
               :to="getNavigatedPage(item)"
             >
-              <carbon-checkmark-filled
-                :style="{
-                  fontSize: '1em',
-                  minWidth: '25px',
-                  marginRight: '0.5rem',
-                }"
-                :class="{
-                  'text-secondary': !item.isCompleted,
-                  'text-success': item.isCompleted,
-                }"
-              />
+              <icon-complete :active="item.isCompleted"></icon-complete>
+
               <div class="ms-2 me-auto">
                 <div class="fw-bold mb-1">
                   {{ item.code }}
