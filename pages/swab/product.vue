@@ -40,18 +40,7 @@ const form = reactive({
 
 <template>
   <div class="page__swab-product mt-4">
-    <b-row>
-      <b-col cols="8" class="text-start">
-        <h2 class="font-weight-bold">บันทึกการตรวจสินค้า</h2>
-      </b-col>
-      <!-- <b-col cols="4" class="text-end">
-        <nuxt-link v-slot="{ navigate }" :to="pageManageSwabProduct" custom>
-          <button-arrow-right variant="outline-primary" size="md" @click="navigate">
-                        เพิ่มบันทึกการตรวจสินค้า
-                    </button-arrow-right>
-        </nuxt-link>
-      </b-col> -->
-    </b-row>
+    <h2 class="font-weight-bold text-center">บันทึกการตรวจสินค้า</h2>
 
     <div class="d-grid gap-2 mt-3">
       <swab-test-filter
