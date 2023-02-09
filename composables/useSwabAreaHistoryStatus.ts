@@ -21,8 +21,6 @@ export const useSwabAreaHistoryStatus = () => {
         swabAreaHistory.id
       );
 
-      console.log(relatedSubSwabAreaHistories);
-
       isCompleted =
         isCompleted &&
         relatedSubSwabAreaHistories.every(

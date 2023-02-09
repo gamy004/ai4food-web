@@ -82,11 +82,7 @@ export const useAuth = () => {
         resolve();
       });
 
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Login failed");
-      });
+      watch(error, reject);
     });
   }
 
@@ -108,11 +104,7 @@ export const useAuth = () => {
         resolve();
       });
 
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Load profile failed");
-      });
+      watch(error, reject);
     });
   }
 

@@ -43,9 +43,7 @@ const onFormSubmitted = async () => {
 
       toast.success("Login สำเร็จ กำลังเข้าสู่ระบบ", { timeout: 1000 });
 
-      setTimeout(() => {
-        router.push("/");
-      }, 1000);
+      router.replace("/");
     } catch (e) {
       console.log(e);
       error.value = true;
