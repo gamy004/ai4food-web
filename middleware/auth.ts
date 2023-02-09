@@ -2,11 +2,11 @@ import { useToast } from "vue-toastification";
 
 const AUTH_LOGIN_PATH = "/auth/login";
 
-const { isAuthenticated, clearAuth, api: authApi } = useAuth();
+export default defineNuxtRouteMiddleware(async (_, from) => {
+  const { isAuthenticated, clearAuth, api: authApi } = useAuth();
+  const router = useRouter();
+  const toast = useToast();
 
-const toast = useToast();
-
-export default defineNuxtRouteMiddleware(async (to, from) => {
   try {
     await authApi().loadProfile();
   } catch (error) {
@@ -16,6 +16,6 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   }
 
   if (!isAuthenticated.value && from.path != AUTH_LOGIN_PATH) {
-    return navigateTo(AUTH_LOGIN_PATH);
+    return router.push(AUTH_LOGIN_PATH);
   }
 });

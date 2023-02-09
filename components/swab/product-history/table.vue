@@ -188,8 +188,71 @@ watch(() => props, fetch, { immediate: true, deep: true });
       </b-col>
 
       <b-col v-else>
-        <div v-if="tableData.length">
-          <b-table
+        <div v-if="tableData.length" class="d-grid gap-3">
+          <b-list-group id="swabProductHistoryTable">
+            <b-list-group-item
+              v-for="item in tableData"
+              :key="`swab-product-history-data-${item.id}`"
+              class="d-flex justify-content-between align-items-start"
+              :to="getRouteManageSwabProductHistory(item.id)"
+            >
+              <icon-complete :active="item.isCompleted"></icon-complete>
+
+              <div class="ms-2 me-auto">
+                <div class="fw-bold mb-1">
+                  {{ item.code }}
+                  <span v-if="item.productName.length"
+                    >: {{ item.productName }}</span
+                  >
+                </div>
+                <div>ช่วงตรวจ: {{ item.swabPeriodName }}</div>
+                <small>
+                  <span>กะ: {{ shiftToAbbreviation(item.shift) }}</span>
+                  <!-- <span class="mx-2">|</span> -->
+                  <!-- <span>ช่วงตรวจ: {{ item.swabPeriodName }}</span> -->
+                  <span v-if="item.facilityName.length" class="mx-2">|</span>
+
+                  <span v-if="item.facilityName.length"
+                    >เครื่อง: {{ item.facilityName }}</span
+                  >
+
+                  <span v-if="item.facilityItemName.length" class="mx-2"
+                    >|</span
+                  >
+
+                  <span v-if="item.facilityItemName.length"
+                    >ไลน์: {{ item.facilityItemName }}</span
+                  >
+
+                  <span v-if="item.productLot.length" class="mx-2">|</span>
+
+                  <span v-if="item.productLot.length"
+                    >SubLot: {{ item.productLot }}</span
+                  >
+
+                  <span v-if="item.productDate.length" class="mx-2">|</span>
+
+                  <span v-if="item.productDate.length"
+                    >วันที่ผลิต: {{ item.productDate }}</span
+                  >
+                </small>
+              </div>
+
+              <!-- <badge-complete-status
+                class="position-absolute end-0 me-2"
+                :is-completed="item.isCompleted"
+                complete-text="บันทึกครบเรียบร้อย"
+                :in-complete-text="`บันทึกแล้ว ${item.countComplete}/${item.countArea} จุด`"
+              ></badge-complete-status> -->
+
+              <badge-complete-status
+                class="position-absolute end-0 me-2"
+                :is-completed="(item.isCompleted as boolean)"
+              ></badge-complete-status>
+            </b-list-group-item>
+          </b-list-group>
+
+          <!-- <b-table
             id="swabProductHistoryTable"
             hover
             small
@@ -237,20 +300,6 @@ watch(() => props, fetch, { immediate: true, deep: true });
                     @click="navigate"
                   />
                 </nuxt-link>
-
-                <!-- <a
-                  href="javascript:void(0)"
-                  @click="promptRemove(item.id)"
-                  class="ms-3 text-danger"
-                >
-                  <CarbonTrashCan
-                    style="
-                       {
-                        fontsize: '1em';
-                      }
-                    "
-                  />
-                </a> -->
               </div>
             </template>
 
@@ -259,7 +308,7 @@ watch(() => props, fetch, { immediate: true, deep: true });
                 :is-completed="(item.isCompleted as boolean)"
               ></badge-complete-status>
             </template>
-          </b-table>
+          </b-table> -->
 
           <base-pagination
             v-model="pagination.$state.currentPage"
