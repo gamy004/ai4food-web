@@ -19,19 +19,20 @@ export interface Props {
 const props = withDefaults(defineProps<Props>(), {
   pagination: () => usePagination({ perPage: 20, currentPage: 1 }),
 });
+
 const route = useRoute();
 const router = useRouter();
 const { shiftToAbbreviation } = useDate();
 // const { isAllRelatedSwabAreaCompleted } = useSwabAreaHistoryStatus();
 const toast = useToast();
 
-// const {
-//   getSwabAreaHistoryById,
-//   getSwabAreaById,
-//   getSwabPeriodById,
-//   getSwabTestById,
-//   api: swabApi,
-// } = useSwab();
+const {
+  getSwabAreaHistoryById,
+  getSwabAreaById,
+  getSwabPeriodById,
+  getSwabTestById,
+} = useSwab();
+const { getCleaningHistoryById, api: cleaningApi } = useCleaning();
 // const { getFacilityById, getFacilityItemById } = useFacility();
 const countTotal = ref(0);
 const hasData = ref(false);
@@ -57,7 +58,7 @@ const getRouteUpdateCleaningHistory = (item) => {
 };
 
 const cleaningHistories = computed(() => {
-  return cleaningHistoryIds.value.map(getCleaningHsitoryById);
+  return cleaningHistoryIds.value.map(getCleaningHistoryById);
 });
 
 const tableFields = [
@@ -66,8 +67,8 @@ const tableFields = [
   { key: "shift", label: "กะ", thStyle: { width: "5%" } },
   { key: "swabPeriodName", label: "ช่วงตรวจ", thStyle: { width: "15%" } },
   { key: "swabAreaName", label: "จุดตรวจ", thStyle: { width: "30%" } },
-//   { key: "facilityName", label: "เครื่อง", thStyle: { width: "10%" } },
-//   { key: "facilityItemName", label: "ไลน์", thStyle: { width: "10%" } },
+  //   { key: "facilityName", label: "เครื่อง", thStyle: { width: "10%" } },
+  //   { key: "facilityItemName", label: "ไลน์", thStyle: { width: "10%" } },
   { key: "time", label: "เวลาบันทึก", thStyle: { width: "10%" } },
   // { key: "productName", label: "จุดตรวจ" },
   // { key: "productDate", label: "วันที่ผลิต" },
@@ -84,7 +85,9 @@ const tableFields = [
 
 const tableData = computed(() => {
   return cleaningHistories.value.reduce((acc, cleaningHistory) => {
-    const swabAreaHistory = getSwabAreaHistoryById(cleaningHistory.swabAreaHistoryId);
+    const swabAreaHistory = getSwabAreaHistoryById(
+      cleaningHistory.swabAreaHistoryId
+    );
     const swabArea = getSwabAreaById(swabAreaHistory.swabAreaId);
     const swabPeriod = getSwabPeriodById(swabAreaHistory.swabPeriodId);
     const swabTest = getSwabTestById(swabAreaHistory.swabTestId);
@@ -99,10 +102,10 @@ const tableData = computed(() => {
       code: swabTest.swabTestCode,
       shift: swabAreaHistory.shift,
       swabPeriodName: swabPeriod ? swabPeriod.swabPeriodName : "",
-      swabAreaName: swabArea ? swabArea.swabAreaName : ""
+      swabAreaName: swabArea ? swabArea.swabAreaName : "",
       isCompleted: false,
-    //   countComplete,
-    //   countArea,
+      //   countComplete,
+      //   countArea,
     };
 
     // if (swabProductHistory.facilityItemId) {
@@ -153,11 +156,12 @@ const fetch = async function fetch(props) {
   cleaningHistoryIds.value = [];
 
   try {
-    const { total, cleaningHistories } = await cleaningApi().loadCleaningHistory({
-      ...props,
-      skip: props.pagination.offset.value,
-      take: props.pagination.$state.perPage,
-    });
+    const { total, cleaningHistories } =
+      await cleaningApi().loadCleaningHistory({
+        ...props,
+        skip: props.pagination.offset.value,
+        take: props.pagination.$state.perPage,
+      });
 
     countTotal.value = total;
 

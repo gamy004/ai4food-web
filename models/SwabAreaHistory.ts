@@ -9,6 +9,7 @@ import {
 } from "pinia-orm/dist/decorators";
 import { useDate, Shift } from "~~/composables/useDate";
 import { SwabStatus, SwabStatusMapper } from "~~/composables/useSwab";
+import CleaningHistory from "./CleaningHistory";
 import FacilityItem from "./FacilityItem";
 import Product from "./Product";
 import SwabArea from "./SwabArea";
@@ -85,6 +86,12 @@ export default class SwabAreaHistory extends Model {
 
   @BelongsTo(() => SwabTest, "swabTestId")
   declare swabTest: SwabTest;
+
+  @Attr(null)
+  declare cleaningHistoryId: string | null;
+
+  @BelongsTo(() => CleaningHistory, "cleaningHistoryId")
+  declare cleaningHistory: CleaningHistory;
 
   @BelongsToMany(
     () => SwabEnvironment,

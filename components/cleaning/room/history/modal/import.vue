@@ -61,9 +61,21 @@ const showValue = computed({
 const tableFields = computed(() => {
   return [
     { key: "roomName", label: "ห้อง", thStyle: { width: "30%" } },
-    { key: "cleaningRoomDate", label: "วันที่ล้างไลน์", thStyle: { width: "10%" } },
-    { key: "cleaningRoomStartedAt", label: "เวลาเริ่ม", thStyle: { width: "5%" } },
-    { key: "cleaningRoomEndedAt", label: "เวลาสิ้นสุด", thStyle: { width: "5%" } },
+    {
+      key: "cleaningRoomDate",
+      label: "วันที่ล้างไลน์",
+      thStyle: { width: "10%" },
+    },
+    {
+      key: "cleaningRoomStartedAt",
+      label: "เวลาเริ่ม",
+      thStyle: { width: "5%" },
+    },
+    {
+      key: "cleaningRoomEndedAt",
+      label: "เวลาสิ้นสุด",
+      thStyle: { width: "5%" },
+    },
     { key: "shift", label: "กะ", thStyle: { width: "5%" } },
 
     // { key: "productScheduleStartedAt", label: "เวลาเริ่ม", thStyle: { width: "5%" } },
@@ -127,22 +139,38 @@ const onWorkbookRead = async (workbook) => {
         time = time.split("-");
         const month = time[1].split("/");
         // console.debug(month);
-        const startTime = new Date(Number(month[2]), Number(month[1]) - 1, Number(time[0]));
-        const endTime = new Date(Number(month[2]), Number(month[1]) - 1, Number(month[0]));
+        const startTime = new Date(
+          Number(month[2]),
+          Number(month[1]) - 1,
+          Number(time[0])
+        );
+        const endTime = new Date(
+          Number(month[2]),
+          Number(month[1]) - 1,
+          Number(month[0])
+        );
         // console.debug(startTime, endTime);
 
         // console.debug(range.s.r, range.e.c);
-        const header = ["Room",
+        const header = [
+          "Room",
           "ล้างประจำวัน (ตามแผนผลิตปกติ)",
           "Std. เวลาล้าง ประจำวัน (ชั่วโมง)",
           "ล้างประจำสัปดาห์ (ตามแผนผลิตปกติ)",
-          "Std. เวลาล้างประจำสัปดาห์(ชั่วโมง)"];
+          "Std. เวลาล้างประจำสัปดาห์(ชั่วโมง)",
+        ];
         const timeHdr = [];
-        const defaultHdr = ["เริ่ม", "เสร็จ", "รวมเวลาล้าง(ชั่วโมง)", "เวลา Diff จาก STD", "% ที่ล้างไลน์จริง"];
+        const defaultHdr = [
+          "เริ่ม",
+          "เสร็จ",
+          "รวมเวลาล้าง(ชั่วโมง)",
+          "เวลา Diff จาก STD",
+          "% ที่ล้างไลน์จริง",
+        ];
         for (let d = startTime; d <= endTime; d.setDate(d.getDate() + 1)) {
           const date = d.toLocaleDateString("en-US");
-          const newDay = defaultHdr.map(el => date + "_day_" + el);
-          const newNight = defaultHdr.map(el => date + "_night_" + el);
+          const newDay = defaultHdr.map((el) => date + "_day_" + el);
+          const newNight = defaultHdr.map((el) => date + "_night_" + el);
           timeHdr.push(...newDay, ...newNight);
         }
         header.push(...timeHdr);
@@ -162,12 +190,15 @@ const onWorkbookRead = async (workbook) => {
             defval: null,
             range: utils.encode_range({
               s: { c: 2, r: R },
-              e: { c: range.e.c, r: R }
-            })
+              e: { c: range.e.c, r: R },
+            }),
           })[0];
 
           try {
-            if (history[header[5]] !== undefined && history[header[5]] !== null) {
+            if (
+              history[header[5]] !== undefined &&
+              history[header[5]] !== null
+            ) {
               // for each room
               // console.debug(history[header[5]], history.Room);
               const room = getRoomByName(history.Room);
@@ -176,27 +207,39 @@ const onWorkbookRead = async (workbook) => {
                 const date =
                   ts[0].split("/")[2] +
                   "-" +
-                  (ts[0].split("/")[1].length > 1 ? ts[0].split("/")[1] : "0" + ts[0].split("/")[1]) +
+                  (ts[0].split("/")[1].length > 1
+                    ? ts[0].split("/")[1]
+                    : "0" + ts[0].split("/")[1]) +
                   "-" +
-                  (ts[0].split("/")[0].length > 1 ? ts[0].split("/")[0] : "0" + ts[0].split("/")[0]);
+                  (ts[0].split("/")[0].length > 1
+                    ? ts[0].split("/")[0]
+                    : "0" + ts[0].split("/")[0]);
                 if (["เริ่ม"].includes(ts[2]) && room) {
                   console.debug("roomName: ", room.roomName);
                   jsonResults.push({
                     room: { id: room.id },
                     roomName: room.roomName,
                     cleaningRoomDate: date,
-                    cleaningRoomStartedAt: history[t].toFixed(2).split(".")[0] === "24"
-                      ? "00:00:00"
-                      : history[t].toFixed(2).split(".")[0] +
-                        ":" +
-                        history[t].toFixed(2).split(".")[1] +
-                        ":00",
-                    cleaningRoomEndedAt: history[ts[0] + "_" + ts[1] + "_เสร็จ"].toFixed(2).split(".")[0] === "24"
-                      ? "23:59:59"
-                      : history[ts[0] + "_" + ts[1] + "_เสร็จ"].toFixed(2).split(".")[0] +
-                        ":" +
-                        history[ts[0] + "_" + ts[1] + "_เสร็จ"].toFixed(2).split(".")[1] +
-                        ":00",
+                    cleaningRoomStartedAt:
+                      history[t].toFixed(2).split(".")[0] === "24"
+                        ? "00:00:00"
+                        : history[t].toFixed(2).split(".")[0] +
+                          ":" +
+                          history[t].toFixed(2).split(".")[1] +
+                          ":00",
+                    cleaningRoomEndedAt:
+                      history[ts[0] + "_" + ts[1] + "_เสร็จ"]
+                        .toFixed(2)
+                        .split(".")[0] === "24"
+                        ? "23:59:59"
+                        : history[ts[0] + "_" + ts[1] + "_เสร็จ"]
+                            .toFixed(2)
+                            .split(".")[0] +
+                          ":" +
+                          history[ts[0] + "_" + ts[1] + "_เสร็จ"]
+                            .toFixed(2)
+                            .split(".")[1] +
+                          ":00",
                     shift: ts[1],
                   });
                 }
@@ -208,14 +251,13 @@ const onWorkbookRead = async (workbook) => {
         }
       });
 
-      console.debug("jsonResults: ", jsonResults)
+      console.debug("jsonResults: ", jsonResults);
 
       hasImportedData.value = true;
 
       importedData.value = jsonResults;
-
     } catch (error) {
-      console.debug("error: ", error)
+      console.debug("error: ", error);
       toast.error("ไม่สามารถดึงข้อมูลได้ กรุญาลองใหม่อีกครั้ง", {
         timeout: 1000,
       });
@@ -224,7 +266,6 @@ const onWorkbookRead = async (workbook) => {
         loading.value = false;
       }, 1000);
     }
-
   }
 
   fileInputRef.value.value = null;
@@ -252,7 +293,7 @@ const onSubmit = async () => {
       for (let index = 0; index < chunkedImportedData.length; index++) {
         const data = chunkedImportedData[index];
 
-        await cleaningApi().ImportCleaningRoomHistory({
+        await cleaningApi().importCleaningRoomHistory({
           importTransaction: {
             id: importTransaction.id,
           },
@@ -307,7 +348,12 @@ watch(() => workbook, onWorkbookRead, { deep: true });
 
 <template>
   <b-form @submit="onSubmit">
-    <modal ref="modalRef" id="productCreateModal" fullscreen v-model="showValue">
+    <modal
+      ref="modalRef"
+      id="productCreateModal"
+      fullscreen
+      v-model="showValue"
+    >
       <template #title> นำเข้าข้อมูลเวลาการล้างไลน์ </template>
 
       <template #header-close>
@@ -318,9 +364,17 @@ watch(() => workbook, onWorkbookRead, { deep: true });
           </small>
 
           <div class="input-group align-items-baseline">
-            <label id="fieldset-importedDate" class="form-label d-block min-w-75px text-center"
-              for="importedDate">วันที่</label>
-            <b-form-select name="importedDate" v-model="selectedImportedDate" :options="importedDate"></b-form-select>
+            <label
+              id="fieldset-importedDate"
+              class="form-label d-block min-w-75px text-center"
+              for="importedDate"
+              >วันที่</label
+            >
+            <b-form-select
+              name="importedDate"
+              v-model="selectedImportedDate"
+              :options="importedDate"
+            ></b-form-select>
           </div>
         </b-col>
       </template>
@@ -330,7 +384,10 @@ watch(() => workbook, onWorkbookRead, { deep: true });
           <b-col v-if="!hasImportedData" cols="12" class="text-center">
             <div class="text-dark">กรุณาเลือกไฟล์เพื่อทำการนำเข้าข้อมูล</div>
 
-            <LineMdLoadingTwotoneLoop v-if="loading" :style="{ fontSize: '2em' }" />
+            <LineMdLoadingTwotoneLoop
+              v-if="loading"
+              :style="{ fontSize: '2em' }"
+            />
 
             <label v-else for="fileInput" class="btn btn-outline-primary mt-2">
               <upload-icon />
@@ -340,8 +397,15 @@ watch(() => workbook, onWorkbookRead, { deep: true });
           </b-col>
 
           <b-col v-else>
-            <b-table id="result-table" hover small caption-top responsive :fields="tableFields"
-              :items="filteredImportedData">
+            <b-table
+              id="result-table"
+              hover
+              small
+              caption-top
+              responsive
+              :fields="tableFields"
+              :items="filteredImportedData"
+            >
               <template #cell(date)="{ item, index }">
                 <div>
                   <p>{{ item.date }}</p>
@@ -351,7 +415,13 @@ watch(() => workbook, onWorkbookRead, { deep: true });
             </b-table>
           </b-col>
 
-          <input ref="fileInputRef" id="fileInput" type="file" style="display: none" @change="readFile" />
+          <input
+            ref="fileInputRef"
+            id="fileInput"
+            type="file"
+            style="display: none"
+            @change="readFile"
+          />
         </b-row>
       </template>
 
@@ -360,8 +430,16 @@ watch(() => workbook, onWorkbookRead, { deep: true });
           ยกเลิก
         </b-button>
 
-        <b-button v-if="hasImportedData" type="submit" variant="primary" :disabled="submitting">
-          <LineMdLoadingTwotoneLoop v-if="submitting" :style="{ fontSize: '1em' }" />
+        <b-button
+          v-if="hasImportedData"
+          type="submit"
+          variant="primary"
+          :disabled="submitting"
+        >
+          <LineMdLoadingTwotoneLoop
+            v-if="submitting"
+            :style="{ fontSize: '1em' }"
+          />
 
           <span v-else>นำเข้า</span>
         </b-button>
