@@ -27,6 +27,10 @@ const pageSwabProduct = {
   name: "swab-product",
 };
 
+const pageUpdateCleaningHistory = {
+  name: "update-cleaning-history",
+};
+
 const pageUpdateSwabTestArea = {
   name: "swab-test-update-area",
 };
@@ -211,6 +215,21 @@ const pageImportProductSchedule = {
               @click="navigate"
             >
               บันทึกการตรวจสินค้า
+            </button-arrow-right>
+          </nuxt-link>
+
+          <nuxt-link
+            v-slot="{ navigate }"
+            :to="pageUpdateCleaningHistory"
+            custom
+          >
+            <button-arrow-right
+              variant="outline-primary"
+              size="lg"
+              class="w-100"
+              @click="navigate"
+            >
+              บันทึกการทำความสะอาด
             </button-arrow-right>
           </nuxt-link>
 
