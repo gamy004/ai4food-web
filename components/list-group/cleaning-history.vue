@@ -33,7 +33,7 @@ const {
   getSwabTestById,
 } = useSwab();
 const { getCleaningHistoryById, api: cleaningApi } = useCleaning();
-// const { getFacilityById, getFacilityItemById } = useFacility();
+const { getFacilityById, getFacilityItemById } = useFacility();
 const countTotal = ref(0);
 const hasData = ref(false);
 const loading = ref(false);
@@ -61,48 +61,29 @@ const cleaningHistories = computed(() => {
   return cleaningHistoryIds.value.map(getCleaningHistoryById);
 });
 
-const tableFields = [
-  // { key: 'date', label: 'วันที่' },
-  { key: "code", label: "รหัส", thStyle: { width: "10%" } },
-  { key: "shift", label: "กะ", thStyle: { width: "5%" } },
-  { key: "swabPeriodName", label: "ช่วงตรวจ", thStyle: { width: "15%" } },
-  { key: "swabAreaName", label: "จุดตรวจ", thStyle: { width: "30%" } },
-  //   { key: "facilityName", label: "เครื่อง", thStyle: { width: "10%" } },
-  //   { key: "facilityItemName", label: "ไลน์", thStyle: { width: "10%" } },
-  { key: "time", label: "เวลาบันทึก", thStyle: { width: "10%" } },
-  // { key: "productName", label: "จุดตรวจ" },
-  // { key: "productDate", label: "วันที่ผลิต" },
-  // { key: "productLot", label: "SubLot" },
-  {
-    key: "isCompleted",
-    label: "สถานะ",
-    thClass: "text-center",
-    tdClass: "text-center",
-    thStyle: { width: "10%" },
-  },
-  { key: "action", label: "", thClass: "text-center", tdClass: "text-center" },
-];
-
-const tableData = computed(() => {
+const displayData = computed(() => {
   return cleaningHistories.value.reduce((acc, cleaningHistory) => {
     const swabAreaHistory = getSwabAreaHistoryById(
       cleaningHistory.swabAreaHistoryId
     );
+
     const swabArea = getSwabAreaById(swabAreaHistory.swabAreaId);
     const swabPeriod = getSwabPeriodById(swabAreaHistory.swabPeriodId);
     const swabTest = getSwabTestById(swabAreaHistory.swabTestId);
-
+    const facilityItem = getFacilityItemById(swabAreaHistory.facilityItemId);
+    const facility = getFacilityById(swabArea.facilityId);
     // const { isCompleted, countComplete, countArea } =
     //   isAllRelatedSwabAreaCompleted(swabAreaHistory);
 
     const tableRecord = {
-      id: swabAreaHistory.id,
-      // date: swabAreaHistory.swabAreaDate,
+      id: cleaningHistory.id,
       time: swabAreaHistory.readableSwabAreaTime,
       code: swabTest.swabTestCode,
       shift: swabAreaHistory.shift,
       swabPeriodName: swabPeriod ? swabPeriod.swabPeriodName : "",
       swabAreaName: swabArea ? swabArea.swabAreaName : "",
+      facilityName: facility ? facility.facilityName : "",
+      facilityItemName: facilityItem ? facilityItem.facilityItemName : "",
       isCompleted: false,
       //   countComplete,
       //   countArea,
@@ -138,7 +119,7 @@ const tableData = computed(() => {
   }, []);
 });
 
-// const paginatedData = computed(() => pagination.paginate(tableData.value));
+// const paginatedData = computed(() => pagination.paginate(displayData.value));
 
 const isPropInvalid = (props): boolean => {
   return props.date === null;
@@ -210,7 +191,7 @@ watch(() => props, fetch, { immediate: true, deep: true });
             hover
             small
             responsive
-            :items="tableData"
+            :items="displayData"
             :fields="tableFields"
             @row-clicked="onTableRowClicked"
           >
@@ -267,7 +248,7 @@ watch(() => props, fetch, { immediate: true, deep: true });
 
           <b-list-group id="cleaningHistoryListGroup">
             <b-list-group-item
-              v-for="item in tableData"
+              v-for="item in displayData"
               :key="`swab-area-history-data-${item.id}`"
               class="d-flex justify-content-between align-items-start"
               :to="getRouteUpdateCleaningHistory(item)"
@@ -283,6 +264,14 @@ watch(() => props, fetch, { immediate: true, deep: true });
                   <span>กะ: {{ shiftToAbbreviation(item.shift) }}</span>
                   <span class="mx-2">|</span>
                   <span>ช่วงตรวจ: {{ item.swabPeriodName }}</span>
+                  <span v-if="item.facilityName" class="mx-2">|</span>
+                  <span v-if="item.facilityName"
+                    >เครื่อง: {{ item.facilityName }}</span
+                  >
+                  <span v-if="item.facilityItemName" class="mx-2">|</span>
+                  <span v-if="item.facilityItemName"
+                    >ไลน์: {{ item.facilityItemName }}</span
+                  >
                 </small>
               </div>
 

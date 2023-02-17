@@ -1,6 +1,7 @@
 import { Model } from "pinia-orm";
 import { Attr, Str, Uid, BelongsTo } from "pinia-orm/dist/decorators";
 import CleaningProgram from "./CleaningProgram";
+import SwabAreaHistory from "./SwabAreaHistory";
 
 export default class CleaningHistory extends Model {
   static entity = "cleaning_history";
@@ -25,4 +26,10 @@ export default class CleaningHistory extends Model {
 
   @Attr(null)
   declare swabRoundId: string;
+
+  @Attr(null)
+  declare swabAreaHistoryId: string | null;
+
+  @BelongsTo(() => SwabAreaHistory, "swabAreaHistoryId")
+  declare swabAreaHistory: SwabAreaHistory;
 }

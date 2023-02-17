@@ -87,12 +87,6 @@ export default class SwabAreaHistory extends Model {
   @BelongsTo(() => SwabTest, "swabTestId")
   declare swabTest: SwabTest;
 
-  @Attr(null)
-  declare cleaningHistoryId: string | null;
-
-  @BelongsTo(() => CleaningHistory, "cleaningHistoryId")
-  declare cleaningHistory: CleaningHistory;
-
   @BelongsToMany(
     () => SwabEnvironment,
     () => SwabAreaHistoryEnvironment,
