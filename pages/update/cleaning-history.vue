@@ -33,22 +33,24 @@ const form = reactive({
       <swab-test-filter
         v-model="form"
         :hidden-state="{
+          mainSwabArea: false,
+        }"
+        :clearable-state="{
+          swabPeriod: true,
           facility: true,
           facilityItem: true,
-          mainSwabArea: false,
+          mainSwabArea: true,
         }"
         :col-state="{
           date: 'sm-6 md-4',
           shift: 'sm-6 md-4',
           swabPeriod: 'sm-12 md-4',
-          mainSwabArea: 'sm-12 md-4',
+          facility: 'sm-12 md-6',
+          facilityItem: 'sm-12 md-6',
+          mainSwabArea: '12',
           swabTestCode: '12',
         }"
         :pagination-state="pagination.$state"
-        :clearable-state="{
-          swabPeriod: true,
-          mainSwabArea: true,
-        }"
         show-shift-all
       />
 
