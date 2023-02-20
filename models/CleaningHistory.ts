@@ -9,9 +9,6 @@ export default class CleaningHistory extends Model {
   @Uid()
   declare id: string;
 
-  @Str("")
-  declare cleaningDate: string;
-
   @Attr(null)
   declare cleaningHistoryStartedAt: string;
 
@@ -32,4 +29,10 @@ export default class CleaningHistory extends Model {
 
   @BelongsTo(() => SwabAreaHistory, "swabAreaHistoryId")
   declare swabAreaHistory: SwabAreaHistory;
+
+  get isCompleted() {
+    let isCompleted = true;
+
+    return isCompleted;
+  }
 }

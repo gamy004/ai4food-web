@@ -45,12 +45,10 @@ const cleaningHistoryIds = ref([]);
 //   currentPage: parseInt(route.query.currentPage as string) || props.currentPage,
 // });
 
-const getRouteUpdateCleaningHistory = (item) => {
+const getRouteUpdateCleaningHistory = (id) => {
   return {
     name: "update-cleaning-history-id",
-    params: {
-      id: item.id,
-    },
+    params: { id },
     query: {
       redirect: route.fullPath,
     },
@@ -251,7 +249,7 @@ watch(() => props, fetch, { immediate: true, deep: true });
               v-for="item in displayData"
               :key="`swab-area-history-data-${item.id}`"
               class="d-flex justify-content-between align-items-start"
-              :to="getRouteUpdateCleaningHistory(item)"
+              :to="getRouteUpdateCleaningHistory(item.id)"
             >
               <icon-complete :active="item.isCompleted"></icon-complete>
 

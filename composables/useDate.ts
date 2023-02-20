@@ -1,5 +1,5 @@
 import { parseISO } from "date-fns";
-import { format, utcToZonedTime } from "date-fns-tz";
+import { format, utcToZonedTime, zonedTimeToUtc } from "date-fns-tz";
 import { th } from "date-fns/locale";
 
 export enum Shift {
@@ -42,6 +42,10 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     return utcToZonedTime(new Date(), timeZone);
   }
 
+  function timezone() {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  }
+
   function parseDate(date) {
     return typeof date === "string" ? parseISO(date) : date;
   }
@@ -58,6 +62,34 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     }
 
     return format(parseDate(date), timeFormat, { timeZone });
+  }
+
+  function toObject(dateString, timeObject = null) {
+    let dateObject = new Date(dateString);
+
+    dateObject.setMinutes(0, 0, 0);
+
+    if (timeObject) {
+      dateObject.setHours(
+        timeObject.hours,
+        timeObject.minutes,
+        timeObject.seconds
+      );
+    }
+
+    return dateObject;
+  }
+
+  function toTimestamp(dateString, timeObject): Date {
+    let dateObject = toObject(dateString, timeObject);
+
+    if (timezone) {
+      dateObject = zonedTimeToUtc(dateObject, timeZone);
+    }
+
+    console.log(dateObject);
+
+    return dateObject;
   }
 
   function timePickerToTimeString(
@@ -167,8 +199,11 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
 
   return {
     today,
+    timezone,
     onlyDate,
     onlyTime,
+    toObject,
+    toTimestamp,
     parseDate,
     timePickerToTimeString,
     timeStringToTimePicker,

@@ -3,6 +3,7 @@ import { SearchParams } from "./useRequest";
 import { SwabStatus } from "./useSwab";
 
 export interface LoadCleaningHistoryFilter {
+  id?: string;
   date?: string;
   dateRange?: DateRangeInterface;
   shift?: Shift;
@@ -18,6 +19,7 @@ export const useFilterCleaningHistory = () => {
 
   const toDto = (data: LoadCleaningHistoryFilter): SearchParams => {
     const {
+      id,
       date,
       dateRange,
       shift,
@@ -29,6 +31,10 @@ export const useFilterCleaningHistory = () => {
     } = data;
 
     const params: any = {};
+
+    if (id) {
+      params.id = id;
+    }
 
     if (date) {
       params.date = onlyDate(new Date(date));

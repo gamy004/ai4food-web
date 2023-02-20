@@ -1,6 +1,7 @@
 import { useRepo } from "pinia-orm";
 import CleaningHistory from "~~/models/CleaningHistory";
-import { Shift } from "./useDate";
+import CleaningProgram from "~~/models/CleaningProgram";
+import { Shift, TimePickerData } from "./useDate";
 import { LoadCleaningHistoryFilter } from "./useFilterCleaningHistory";
 import { SearchParams } from "./useRequest";
 
@@ -29,6 +30,17 @@ export type BodyImportCleaningRoomHistory = {
 export interface LoadCleaningHistoryResponse {
   total: number;
   cleaningHistories: CleaningHistory[];
+}
+
+export interface UpdateCleaningHistoryForm {
+  cleaningHistoryStartedAt: Date | null;
+  cleaningHistoryStartedAtDate: string | null;
+  cleaningHistoryStartedAtTime: TimePickerData | null;
+  cleaningHistoryEndedAt: Date | null;
+  cleaningHistoryEndedAtDate: string | null;
+  cleaningHistoryEndedAtTime: TimePickerData | null;
+  cleaningProgram: CleaningProgram | null;
+  cleaningValidations: string[];
 }
 
 export const useCleaning = () => {
@@ -79,6 +91,22 @@ export const useCleaning = () => {
     });
   };
 
+  const loadCleaningHistoryById = async (
+    id: string
+  ): Promise<CleaningHistory> => {
+    return new Promise((resolve, reject) => {
+      const { data, error } = get<CleaningHistory>(`/cleaning-history/${id}`);
+
+      watch(data, (responseData: CleaningHistory) => {
+        const cleaningHistory = cleaningHistoryRepo.save(responseData);
+
+        resolve(cleaningHistory);
+      });
+
+      watch(error, reject);
+    });
+  };
+
   return {
     getCleaningHistoryById,
 
@@ -86,6 +114,7 @@ export const useCleaning = () => {
       return {
         importCleaningRoomHistory,
         loadCleaningHistory,
+        loadCleaningHistoryById,
       };
     },
   };
