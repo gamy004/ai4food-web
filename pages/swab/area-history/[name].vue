@@ -163,19 +163,6 @@ const displayedImages = computed({
   },
 });
 
-const checkMarkClassName = computed(() => ({
-  "text-secondary": !swabAreaHistory.value.isCompleted,
-  "text-success": swabAreaHistory.value.isCompleted,
-}));
-
-const badgeVariant = computed(() =>
-  swabAreaHistory.value.isCompleted ? "success" : "light"
-);
-
-const badgeText = computed(() =>
-  swabAreaHistory.value.isCompleted ? "บันทึกสำเร็จ" : "บันทึกไม่สำเร็จ"
-);
-
 const imageDirectory = computed(
   () => `swab-area-history-image/${kebabCase(swabTest.value?.swabTestCode)}`
 );
@@ -361,19 +348,21 @@ onMounted(async () => {
             class="d-flex justify-content-between align-items-center"
           >
             <h5>
-              <carbon-checkmark-filled
-                :style="{ fontSize: '1em', marginRight: '1rem' }"
-                :class="checkMarkClassName"
-              />
+              <icon-complete
+                :active="swabAreaHistory.isCompleted"
+              ></icon-complete>
 
               <b>{{ title }} : </b>
 
               {{ swabArea.swabAreaName }}
             </h5>
 
-            <b-badge :variant="badgeVariant" pill>
-              {{ badgeText }}
-            </b-badge>
+            <badge-complete-status
+              class="me-2"
+              in-complete-text="บันทึกไม่สำเร็จ"
+              complete-text="บันทึกสำเร็จ"
+              :is-completed="swabAreaHistory.isCompleted"
+            ></badge-complete-status>
           </b-col>
 
           <!-- <b-col cols="12" v-if="swabAreaHistory" class="mt-2">

@@ -82,7 +82,7 @@ const displayData = computed(() => {
       swabAreaName: swabArea ? swabArea.swabAreaName : "",
       facilityName: facility ? facility.facilityName : "",
       facilityItemName: facilityItem ? facilityItem.facilityItemName : "",
-      isCompleted: false,
+      isCompleted: cleaningHistory.isCompleted,
       //   countComplete,
       //   countArea,
     };

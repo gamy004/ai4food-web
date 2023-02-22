@@ -82,6 +82,8 @@ const pageUpdateSwabAreaHistory: ComputedRef<object> = computed(() => {
       </span>
 
       <badge-complete-status
+        in-complete-text="บันทึกไม่สำเร็จ"
+        complete-text="บันทึกสำเร็จ"
         :is-completed="isCompleted"
       ></badge-complete-status>
     </b-list-group-item>

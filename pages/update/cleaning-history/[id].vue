@@ -21,27 +21,17 @@ definePageMeta({
 const toast = useToast();
 const route = useRoute();
 const router = useRouter();
-const {
-  onlyDate,
-  onlyTime,
-  toTimestamp,
-  today,
-  timeStringToTimePicker,
-  formatThLocale,
-} = useDate();
+const { onlyDate, onlyTime, toTimestamp, today, timeStringToTimePicker } =
+  useDate();
 const { dateGreaterThan } = useValidationRule();
-// const { getFacilityById } = useFacility();
 
-// const {
-//   api: swabApi,
-//   getSwabAreaById,
-//   getSwabAreaHistoryById,
-//   getSwabTestById,
-//   getSwabPeriodById,
-//   getSwabAreaHistoryImagesByIds,
-//   getSwabEnvironmentBySwabAreaHistoryId,
-// } = useSwab();
-const { getSwabAreaHistoryById, getSwabAreaById } = useSwab();
+const {
+  getSwabAreaHistoryById,
+  getSwabPeriodById,
+  getSwabAreaById,
+  getSwabTestById,
+} = useSwab();
+const { getFacilityById, getFacilityItemById } = useFacility();
 const { getCleaningHistoryById, api: cleaningApi } = useCleaning();
 const id = ref(route.params.id as string);
 
@@ -49,8 +39,7 @@ const invalid = ref(false);
 const error = ref(false);
 const loading = ref(false);
 const submitting = ref(false);
-// const facilityId = ref(null);
-const cleaningHistory = ref<CleaningHistory | null>(null);
+const cleaningHistoryId = ref<string | null>(null);
 const currentDate = today();
 const form = reactive<UpdateCleaningHistoryBody>({
   cleaningHistoryStartedAt: null,
@@ -61,8 +50,6 @@ const form = reactive<UpdateCleaningHistoryBody>({
   cleaningHistoryEndedAtTime: null,
   cleaningProgram: null,
   cleaningValidations: [],
-  // product: null,
-  // facilityItem: null,
 });
 
 const formCleaningHistoryStartedAtDate = computed({
@@ -119,21 +106,55 @@ const { validate, isInvalid, isFormInvalid } = useValidation(
   form
 );
 
-const cleaningHistoryEndedAtValidationState = computed(() =>
-  isFormInvalid("cleaningHistoryEndedAt", ["dateGreaterThan"])
+const cleaningHistory = computed(() =>
+  cleaningHistoryId.value
+    ? getCleaningHistoryById(cleaningHistoryId.value)
+    : null
 );
-
-const title = computed(() => {
-  let title = "Title";
-
-  return title;
-});
 
 const swabAreaHistory = computed(() =>
   cleaningHistory.value
-    ? getSwabAreaHistoryById(cleaningHistory.value.id)
+    ? getSwabAreaHistoryById(cleaningHistory.value.swabAreaHistoryId)
     : null
 );
+
+const swabPeriod = computed(() =>
+  swabAreaHistory.value
+    ? getSwabPeriodById(swabAreaHistory.value.swabPeriodId)
+    : null
+);
+
+const swabArea = computed(() =>
+  swabAreaHistory.value
+    ? getSwabAreaById(swabAreaHistory.value.swabAreaId)
+    : null
+);
+
+const swabTest = computed(() =>
+  swabAreaHistory.value
+    ? getSwabTestById(swabAreaHistory.value.swabTestId)
+    : null
+);
+
+const facilityItem = computed(() =>
+  swabAreaHistory.value
+    ? getFacilityItemById(swabAreaHistory.value.facilityItemId)
+    : null
+);
+
+const facility = computed(() =>
+  swabArea.value ? getFacilityById(swabArea.value.facilityId) : null
+);
+
+const title = computed(() => {
+  let title = "";
+
+  if (swabTest) {
+    title += `${swabTest.value.swabTestCode}`;
+  }
+
+  return title;
+});
 
 // const swabAreaDate = computed(() =>
 //   formatThLocale(new Date(swabAreaHistory.value.swabAreaDate))
@@ -172,39 +193,36 @@ const init = async () => {
       id.value
     );
 
+    console.log(entity);
+
     if (entity) {
-      cleaningHistory.value = Object.freeze(entity);
+      cleaningHistoryId.value = Object.freeze(entity.id);
 
-      form.cleaningHistoryStartedAtDate = onlyDate(
-        entity.cleaningHistoryStartedAt
-      );
-      form.cleaningHistoryStartedAtTime = timeStringToTimePicker(
-        onlyTime(entity.cleaningHistoryStartedAt)
-      );
-      console.log(entity);
+      if (entity.cleaningHistoryStartedAt) {
+        form.cleaningHistoryStartedAtDate = onlyDate(
+          entity.cleaningHistoryStartedAt
+        );
 
-      form.cleaningHistoryEndedAtDate = onlyDate(entity.cleaningHistoryEndedAt);
-      form.cleaningHistoryEndedAtTime = timeStringToTimePicker(
-        onlyTime(entity.cleaningHistoryEndedAt)
-      );
-      form.cleaningProgram = {
-        id: entity.cleaningProgramId,
-      };
-      // swabAreaId.value = cleaningHistory.swabAreaId;
-      // swabTestId.value = cleaningHistory.swabTestId;
-      // swabPeriodId.value = cleaningHistory.swabPeriodId;
+        form.cleaningHistoryStartedAtTime = timeStringToTimePicker(
+          onlyTime(entity.cleaningHistoryStartedAt)
+        );
+      }
 
-      // if (cleaningHistory.swabAreaSwabedAt) {
-      //   form.swabAreaSwabedAt = timeStringToTimePicker(
-      //     cleaningHistory.swabAreaSwabedAt
-      //   );
-      // }
+      if (entity.cleaningHistoryEndedAt) {
+        form.cleaningHistoryEndedAtDate = onlyDate(
+          entity.cleaningHistoryEndedAt
+        );
 
-      // if (cleaningHistory.facilityItemId) {
-      //   form.facilityItem = {
-      //     id: cleaningHistory.facilityItemId,
-      //   };
-      // }
+        form.cleaningHistoryEndedAtTime = timeStringToTimePicker(
+          onlyTime(entity.cleaningHistoryEndedAt)
+        );
+      }
+
+      if (entity.cleaningProgramId) {
+        form.cleaningProgram = {
+          id: entity.cleaningProgramId,
+        };
+      }
     }
   } catch (e) {
     console.log(e);
@@ -295,7 +313,6 @@ onMounted(async () => {
     <div v-else class="d-grid gap-2 mt-3">
       <b-form id="formUpdateCleaningHistory" @submit="onSubmit">
         <b-row v-if="cleaningHistory">
-          <pre>{{ cleaningHistory }}</pre>
           <b-col
             cols="12"
             class="d-flex justify-content-between align-items-center"
@@ -307,11 +324,11 @@ onMounted(async () => {
 
               <b>{{ title }} : </b>
 
-              <!-- <span>{{ swabArea.swabAreaName }}</span> -->
+              <span v-if="swabArea">{{ swabArea.swabAreaName }}</span>
             </h5>
 
             <badge-complete-status
-              class="position-absolute end-0 me-2"
+              class="me-2"
               :is-completed="cleaningHistory.isCompleted"
             ></badge-complete-status>
 
@@ -325,33 +342,36 @@ onMounted(async () => {
                                                 ${swabAreaHistory.swabAreaSwabedAt}` : ''
                         }}
                     </b-col> -->
+          <b-col cols="12">
+            <div class="d-grid gap-2">
+              <div v-if="swabAreaHistory" class="text__swab-area-date">
+                <b>วันที่ : </b>{{ swabAreaHistory.readableSwabAreaDate }}
+              </div>
+
+              <div v-if="swabPeriod" class="text__swab-period-name">
+                <b>ช่วงตรวจ : </b>{{ swabPeriod.swabPeriodName }}
+              </div>
+
+              <div v-if="facility" class="text__facility-name">
+                <b>เครื่่อง : </b>{{ facility.facilityName }}
+              </div>
+
+              <div v-if="swabArea" class="text__swab-area-name">
+                <b>จุดตรวจ : </b>{{ swabArea.swabAreaName }}
+              </div>
+
+              <div v-if="facilityItem" class="text__facility-item-name">
+                <b>ไลน์ : </b>{{ facilityItem.facilityItemName }}
+              </div>
+            </div>
+          </b-col>
         </b-row>
 
-        <b-row class="mt-2">
-          <div class="d-grid gap-2">
-            <!-- <div v-if="swabAreaHistory" class="text__swab-area-date">
-              <b>วันที่ : </b>{{ swabAreaDate }}
-            </div>
-
-            <div v-if="swabPeriod" class="text__swab-period-name">
-              <b>ช่วงตรวจ : </b>{{ swabPeriod.swabPeriodName }}
-            </div>
-
-            <div v-if="facility" class="text__facility-name">
-              <b>เครื่่อง : </b>{{ facility.facilityName }}
-            </div>
-
-            <div v-if="swabArea" class="text__swab-area-name">
-              <b>จุดตรวจ : </b>{{ swabArea.swabAreaName }}
-            </div> -->
-          </div>
-        </b-row>
-
-        <b-row class="mt-3">
+        <b-row class="mt-4">
           <b-col>
             <h6 class="fw-bold">ข้อมูลการทำความสะอาด:</h6>
 
-            <b-row class="px-3">
+            <b-row>
               <!-- <b-col md="6" class="my-2">
                 <div class="input-group align-items-baseline">
                   <label
@@ -511,7 +531,7 @@ onMounted(async () => {
               </b-col>
             </b-row>
 
-            <b-row class="px-3">
+            <b-row>
               <b-col>
                 <div class="input-group align-items-baseline">
                   <div class="form-control p-0 border-0">
