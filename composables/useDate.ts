@@ -87,8 +87,6 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
       dateObject = zonedTimeToUtc(dateObject, timeZone);
     }
 
-    console.log(dateObject);
-
     return dateObject;
   }
 

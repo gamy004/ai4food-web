@@ -32,23 +32,36 @@ export interface LoadCleaningHistoryResponse {
   cleaningHistories: CleaningHistory[];
 }
 
-export interface UpdateCleaningHistoryForm {
+export interface ConectCleaningProgramData {
+  id: string;
+}
+
+export interface UpdateCleaningHistoryBody {
   cleaningHistoryStartedAt: Date | null;
   cleaningHistoryStartedAtDate: string | null;
   cleaningHistoryStartedAtTime: TimePickerData | null;
   cleaningHistoryEndedAt: Date | null;
   cleaningHistoryEndedAtDate: string | null;
   cleaningHistoryEndedAtTime: TimePickerData | null;
-  cleaningProgram: CleaningProgram | null;
+  cleaningProgram: ConectCleaningProgramData | null;
   cleaningValidations: string[];
 }
 
 export const useCleaning = () => {
-  const { get, post } = useRequest();
+  const { get, post, put } = useRequest();
+  const cleaningProgramRepo = useRepo(CleaningProgram);
   const cleaningHistoryRepo = useRepo(CleaningHistory);
 
   const getCleaningHistoryById = (id: string) => {
     return cleaningHistoryRepo.find(id);
+  };
+
+  const getCleaningProgramByNames = (names: string[]) => {
+    return names
+      .map((name) => {
+        return cleaningProgramRepo.where("cleaningProgramName", name).first();
+      })
+      .filter(Boolean);
   };
 
   const importCleaningRoomHistory = async (
@@ -61,6 +74,20 @@ export const useCleaning = () => {
       });
 
       watch(data, resolve);
+
+      watch(error, reject);
+    });
+  };
+
+  const loadCleaningProgram = async (): Promise<CleaningProgram[]> => {
+    return new Promise((resolve, reject) => {
+      const { data, error } = get<CleaningProgram[]>(`/cleaning-program`);
+
+      watch(data, (cleaningPrograms: CleaningProgram[]) => {
+        cleaningPrograms = cleaningProgramRepo.save(cleaningPrograms);
+
+        resolve(cleaningPrograms);
+      });
 
       watch(error, reject);
     });
@@ -98,6 +125,8 @@ export const useCleaning = () => {
       const { data, error } = get<CleaningHistory>(`/cleaning-history/${id}`);
 
       watch(data, (responseData: CleaningHistory) => {
+        console.log(responseData);
+
         const cleaningHistory = cleaningHistoryRepo.save(responseData);
 
         resolve(cleaningHistory);
@@ -107,14 +136,43 @@ export const useCleaning = () => {
     });
   };
 
-  return {
-    getCleaningHistoryById,
+  const updateCleaningHistory = async (
+    id: string,
+    body: UpdateCleaningHistoryBody
+  ): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const {
+        cleaningHistoryStartedAt,
+        cleaningHistoryEndedAt,
+        cleaningProgram,
+        cleaningValidations,
+      } = body;
 
+      const { data, error } = put<any>(`/cleaning-history/${id}`, {
+        cleaningHistoryStartedAt,
+        cleaningHistoryEndedAt,
+        cleaningProgramId: cleaningProgram.id,
+        cleaningHistoryValidations: cleaningValidations,
+      });
+
+      watch(data, (responseData) => {
+        resolve(responseData);
+      });
+
+      watch(error, reject);
+    });
+  };
+
+  return {
+    getCleaningProgramByNames,
+    getCleaningHistoryById,
     api() {
       return {
         importCleaningRoomHistory,
+        loadCleaningProgram,
         loadCleaningHistory,
         loadCleaningHistoryById,
+        updateCleaningHistory,
       };
     },
   };

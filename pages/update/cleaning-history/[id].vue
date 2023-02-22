@@ -2,13 +2,13 @@
 import { ComputedRef, ReactiveEffect, ref } from "vue";
 import { kebabCase } from "lodash";
 import { useToast } from "vue-toastification";
-import { required } from "@vuelidate/validators";
+import { minValue, required } from "@vuelidate/validators";
 import DatePicker from "@vuepic/vue-datepicker";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import CarbonCheckmarkFilled from "~icons/carbon/checkmark-filled";
 import SwabAreaHistory from "~~/models/SwabAreaHistory";
 import CleaningHistory from "~~/models/CleaningHistory";
-import { UpdateCleaningHistoryForm } from "~~/composables/useCleaning";
+import { UpdateCleaningHistoryBody } from "~~/composables/useCleaning";
 
 definePageMeta({
   title: "Ai4FoodSafety - Update Swab Area History Page",
@@ -29,7 +29,7 @@ const {
   timeStringToTimePicker,
   formatThLocale,
 } = useDate();
-
+const { dateGreaterThan } = useValidationRule();
 // const { getFacilityById } = useFacility();
 
 // const {
@@ -50,9 +50,9 @@ const error = ref(false);
 const loading = ref(false);
 const submitting = ref(false);
 // const facilityId = ref(null);
-const cleaningHistory = ref(null);
+const cleaningHistory = ref<CleaningHistory | null>(null);
 const currentDate = today();
-const form: UpdateCleaningHistoryForm = reactive({
+const form = reactive<UpdateCleaningHistoryBody>({
   cleaningHistoryStartedAt: null,
   cleaningHistoryEndedAt: null,
   cleaningHistoryStartedAtDate: onlyDate(currentDate),
@@ -71,11 +71,7 @@ const formCleaningHistoryStartedAtDate = computed({
   },
 
   set: (date) => {
-    console.log(date);
-
     form.cleaningHistoryStartedAtDate = onlyDate(date);
-
-    console.log(form.cleaningHistoryStartedAtTime);
 
     if (form.cleaningHistoryStartedAtTime) {
       form.cleaningHistoryStartedAt = toTimestamp(
@@ -92,8 +88,6 @@ const formCleaningHistoryEndedAtDate = computed({
   },
 
   set: (date) => {
-    console.log(date);
-
     form.cleaningHistoryEndedAtDate = onlyDate(date);
 
     if (form.cleaningHistoryEndedAtTime) {
@@ -105,7 +99,7 @@ const formCleaningHistoryEndedAtDate = computed({
   },
 });
 
-const validationRules = {
+const validationRules = computed(() => ({
   cleaningHistoryStartedAtTime: {
     required,
     $lazy: true,
@@ -114,11 +108,19 @@ const validationRules = {
     required,
     $lazy: true,
   },
-};
+  cleaningHistoryEndedAt: {
+    dateGreaterThan: dateGreaterThan(form.cleaningHistoryStartedAt),
+    $lazy: true,
+  },
+}));
 
 const { validate, isInvalid, isFormInvalid } = useValidation(
   validationRules,
   form
+);
+
+const cleaningHistoryEndedAtValidationState = computed(() =>
+  isFormInvalid("cleaningHistoryEndedAt", ["dateGreaterThan"])
 );
 
 const title = computed(() => {
@@ -160,19 +162,34 @@ const swabAreaHistory = computed(() =>
 //   swabAreaHistory.value.isCompleted ? "บันทึกสำเร็จ" : "บันทึกไม่สำเร็จ"
 // );
 
-const init = async function init() {
+const init = async () => {
   error.value = false;
 
   loading.value = true;
 
   try {
-    const cleaningHistory: CleaningHistory =
-      await cleaningApi().loadCleaningHistoryById(id.value);
+    const entity: CleaningHistory = await cleaningApi().loadCleaningHistoryById(
+      id.value
+    );
 
-    console.log(cleaningHistory);
+    if (entity) {
+      cleaningHistory.value = Object.freeze(entity);
 
-    if (cleaningHistory) {
-      cleaningHistory.value = cleaningHistory;
+      form.cleaningHistoryStartedAtDate = onlyDate(
+        entity.cleaningHistoryStartedAt
+      );
+      form.cleaningHistoryStartedAtTime = timeStringToTimePicker(
+        onlyTime(entity.cleaningHistoryStartedAt)
+      );
+      console.log(entity);
+
+      form.cleaningHistoryEndedAtDate = onlyDate(entity.cleaningHistoryEndedAt);
+      form.cleaningHistoryEndedAtTime = timeStringToTimePicker(
+        onlyTime(entity.cleaningHistoryEndedAt)
+      );
+      form.cleaningProgram = {
+        id: entity.cleaningProgramId,
+      };
       // swabAreaId.value = cleaningHistory.swabAreaId;
       // swabTestId.value = cleaningHistory.swabTestId;
       // swabPeriodId.value = cleaningHistory.swabPeriodId;
@@ -190,6 +207,8 @@ const init = async function init() {
       // }
     }
   } catch (e) {
+    console.log(e);
+
     error.value = true;
 
     toast.error("โหลดข้อมูลการทำความสะอาดไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", {
@@ -211,14 +230,16 @@ const onSubmit = async () => {
     return;
   }
 
-  await updateSwabPlan();
+  await submit();
 };
 
-const updateSwabPlan = async () => {
+const submit = async () => {
   submitting.value = true;
 
   try {
-    // await cleaningApi().updateSwabPlanById(swabAreaHistoryId.value, form);
+    console.log(cleaningHistory.value);
+
+    await cleaningApi().updateCleaningHistory(id.value, form);
 
     toast.success("อัพเดตข้อมูลการทำความสะอาดสำเร็จ", { timeout: 1000 });
 
@@ -226,6 +247,8 @@ const updateSwabPlan = async () => {
       router.back();
     }, 1000);
   } catch (error) {
+    console.log(error);
+
     toast.error("อัพเดตข้อมูลการทำความสะอาดไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
   } finally {
     submitting.value = false;
@@ -235,11 +258,10 @@ const updateSwabPlan = async () => {
 watch(
   () => form.cleaningHistoryStartedAtTime,
   (timeObject) => {
-    console.log(timeObject);
     if (form.cleaningHistoryStartedAtDate) {
       form.cleaningHistoryStartedAt = toTimestamp(
         form.cleaningHistoryStartedAtDate,
-        form.cleaningHistoryStartedAtTime
+        timeObject
       );
     }
   }
@@ -248,11 +270,10 @@ watch(
 watch(
   () => form.cleaningHistoryEndedAtTime,
   (timeObject) => {
-    console.log(timeObject);
     if (form.cleaningHistoryEndedAtDate) {
       form.cleaningHistoryEndedAt = toTimestamp(
         form.cleaningHistoryEndedAtDate,
-        form.cleaningHistoryEndedAtTime
+        timeObject
       );
     }
   }
@@ -272,7 +293,7 @@ onMounted(async () => {
     </b-col>
 
     <div v-else class="d-grid gap-2 mt-3">
-      <b-form id="formUpdateSwabAreaHistory" @submit="onSubmit">
+      <b-form id="formUpdateCleaningHistory" @submit="onSubmit">
         <b-row v-if="cleaningHistory">
           <pre>{{ cleaningHistory }}</pre>
           <b-col
@@ -328,7 +349,7 @@ onMounted(async () => {
 
         <b-row class="mt-3">
           <b-col>
-            <h6 class="fw-bold">ข้อมูลเวลาทำความสะอาด:</h6>
+            <h6 class="fw-bold">ข้อมูลการทำความสะอาด:</h6>
 
             <b-row class="px-3">
               <!-- <b-col md="6" class="my-2">
@@ -424,63 +445,86 @@ onMounted(async () => {
                 </div>
               </b-col> -->
 
-              <b-col sm="6" md="3" class="my-2">
-                <div class="input-group align-items-baseline">
-                  <label
-                    for="cleaningHistoryEndedAtDate"
-                    class="form-label min-w-125px d-block col-12 col-auto"
-                    >วันที่สิ้นสุด
-                  </label>
+              <b-col sm="12" md="6">
+                <b-row>
+                  <b-col sm="6" class="my-2">
+                    <div class="input-group align-items-baseline">
+                      <label
+                        for="cleaningHistoryEndedAtDate"
+                        class="form-label min-w-125px d-block col-12 col-auto"
+                        >วันที่สิ้นสุด
+                      </label>
 
-                  <date-picker
-                    id="cleaningHistoryEndedAtDate"
-                    v-model="formCleaningHistoryEndedAtDate"
-                    class="form-control p-0 border-0"
-                    :disabled="submitting"
-                    :enable-time-picker="false"
-                    auto-apply
-                    locale="th"
-                    utc
-                    :clearable="false"
-                  />
-                </div>
+                      <date-picker
+                        id="cleaningHistoryEndedAtDate"
+                        v-model="formCleaningHistoryEndedAtDate"
+                        class="form-control p-0 border-0"
+                        :disabled="submitting"
+                        :enable-time-picker="false"
+                        auto-apply
+                        locale="th"
+                        utc
+                        :clearable="false"
+                      />
+                    </div>
+                  </b-col>
+
+                  <b-col sm="6" class="my-2">
+                    <div class="input-group align-items-baseline">
+                      <label
+                        for="cleaningHistoryEndedAtTime"
+                        class="form-label min-w-125px d-block col-12 col-auto"
+                        >เวลาสิ้นสุด
+                      </label>
+
+                      <date-picker
+                        id="cleaningHistoryEndedAtTime"
+                        v-model="form.cleaningHistoryEndedAtTime"
+                        class="form-control p-0 border-0"
+                        :disabled="submitting"
+                        cancel-text="ยกเลิก"
+                        select-text="ยืนยัน"
+                        time-picker
+                        :clearable="false"
+                      />
+
+                      <b-form-invalid-feedback
+                        :state="
+                          isFormInvalid('cleaningHistoryEndedAtTime', [
+                            'required',
+                          ])
+                        "
+                      >
+                        กรุณาเลือกเวลาสิ้นสุด
+                      </b-form-invalid-feedback>
+                    </div>
+                  </b-col>
+                </b-row>
+
+                <b-form-invalid-feedback
+                  :state="
+                    isFormInvalid('cleaningHistoryEndedAt', ['dateGreaterThan'])
+                  "
+                >
+                  กรุณาเลือกวันที่และเวลาสิ้นสุดหลังวันที่และเวลาเริ่มต้น
+                </b-form-invalid-feedback>
               </b-col>
+            </b-row>
 
-              <b-col sm="6" md="3" class="my-2">
+            <b-row class="px-3">
+              <b-col>
                 <div class="input-group align-items-baseline">
-                  <label
-                    for="cleaningHistoryEndedAtTime"
-                    class="form-label min-w-125px d-block col-12 col-auto"
-                    >เวลาสิ้นสุด
-                  </label>
-
-                  <date-picker
-                    id="cleaningHistoryEndedAtTime"
-                    v-model="form.cleaningHistoryEndedAtTime"
-                    class="form-control p-0 border-0"
-                    :disabled="submitting"
-                    cancel-text="ยกเลิก"
-                    select-text="ยืนยัน"
-                    time-picker
-                    :clearable="false"
-                  />
-
-                  <b-form-invalid-feedback
-                    :state="
-                      isFormInvalid('cleaningHistoryEndedAtTime', ['required'])
-                    "
-                  >
-                    กรุณาเลือกเวลาสิ้นสุด
-                  </b-form-invalid-feedback>
+                  <div class="form-control p-0 border-0">
+                    <cleaning-program-select
+                      id="cleaningProgram"
+                      v-model="form.cleaningProgram"
+                      :disabled="submitting"
+                      required
+                    />
+                  </div>
                 </div>
               </b-col>
             </b-row>
-          </b-col>
-        </b-row>
-
-        <b-row class="mt-3">
-          <b-col>
-            <h6 class="fw-bold">ข้อมูลโปรแกรมทำความสะอาด:</h6>
           </b-col>
         </b-row>
         <!-- <b-row class="mt-4">

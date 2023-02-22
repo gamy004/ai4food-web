@@ -13,10 +13,13 @@ export default class CleaningHistory extends Model {
   declare cleaningHistoryStartedAt: string;
 
   @Attr(null)
-  declare cleaningHistoryEndAt: string;
+  declare cleaningHistoryEndedAt: string;
 
-  @BelongsTo(() => CleaningProgram, "id")
-  declare cleaningProgramId: string;
+  @Attr(null)
+  declare cleaningProgramId: string | null;
+
+  @BelongsTo(() => CleaningProgram, "cleaningProgramId")
+  declare cleaningProgram: CleaningProgram;
 
   @Attr(null)
   declare recordedUserId: string;
