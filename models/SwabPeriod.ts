@@ -38,5 +38,5 @@ export default class SwabPeriod extends Model {
     "swabPeriodId",
     "cleaningValidationId"
   )
-  declare CleaningValidations: CleaningValidation[];
+  declare cleaningValidations: CleaningValidation[];
 }

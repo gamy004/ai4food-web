@@ -520,6 +520,14 @@ export const useSwab = () => {
     return histories;
   };
 
+  const loadCleaningValidationToSwabPeriod = (
+    swabPeriod: SwabPeriod
+  ): SwabPeriod => {
+    swabPeriodRepo.with("cleaningValidations").load([swabPeriod]);
+
+    return swabPeriod;
+  };
+
   const mapPivotSwabAreaEnvironment = (swabAreaHistory) => {
     if (swabAreaHistory.swabEnvironments?.length) {
       swabAreaHistory.swabEnvironments = swabAreaHistory.swabEnvironments.map(
@@ -868,6 +876,8 @@ export const useSwab = () => {
     loadFacilityItemToSwabProductHistory,
 
     loadProductToSwabProductHistory,
+
+    loadCleaningValidationToSwabPeriod,
 
     api() {
       return {
