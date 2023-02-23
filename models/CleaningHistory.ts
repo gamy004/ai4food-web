@@ -3,6 +3,16 @@ import { Attr, Str, Uid, BelongsTo } from "pinia-orm/dist/decorators";
 import CleaningProgram from "./CleaningProgram";
 import SwabAreaHistory from "./SwabAreaHistory";
 
+export enum CleaningType {
+  DRY = "dry",
+  WET = "wet",
+}
+
+export enum CleaningTypeMapper {
+  dry = "แบบแห้ง",
+  wet = "แบบเปียก",
+}
+
 export default class CleaningHistory extends Model {
   static entity = "cleaning_history";
 
@@ -32,6 +42,9 @@ export default class CleaningHistory extends Model {
 
   @BelongsTo(() => SwabAreaHistory, "swabAreaHistoryId")
   declare swabAreaHistory: SwabAreaHistory;
+
+  @Attr(null)
+  declare cleaningType: CleaningType | null;
 
   get isCompleted() {
     let isCompleted = true;

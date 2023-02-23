@@ -105,7 +105,10 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     return onlyTime(mockDate, includeSeconds);
   }
 
-  function timeStringToTimePicker(timeString: string): TimePickerData {
+  function timeStringToTimePicker(
+    timeString: string,
+    includeSeconds = true
+  ): TimePickerData {
     const splittedTimeString = timeString.split(":");
 
     if (splittedTimeString.length !== 3) {
@@ -117,7 +120,7 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     return {
       hours: Number(splittedTimeString[0]),
       minutes: Number(splittedTimeString[1]),
-      seconds: Number(splittedTimeString[2]),
+      seconds: includeSeconds ? Number(splittedTimeString[2]) : 0,
     };
   }
 

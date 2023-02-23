@@ -66,17 +66,17 @@ export const useValidationRule = () => {
       }
     );
 
-  const dateGreaterThanOrEqual = (comparedDate: Date) =>
-    helpers.withParams(
-      { type: "dateGreaterThanOrEqual", value: comparedDate },
-      (targetDate: Date) => {
-        return (
-          targetDate &&
-          comparedDate &&
-          targetDate.getTime() >= comparedDate.getTime()
-        );
-      }
-    );
+  // const dateGreaterThanOrEqual = (comparedDate: Date) =>
+  //   helpers.withParams(
+  //     { type: "dateGreaterThanOrEqual", value: comparedDate },
+  //     (targetDate: Date) => {
+  //       return (
+  //         targetDate &&
+  //         comparedDate &&
+  //         targetDate.getTime() >= comparedDate.getTime()
+  //       );
+  //     }
+  //   );
 
   const dateLesserThan = (comparedDate: Date) =>
     helpers.withParams(
@@ -113,23 +113,23 @@ export const useValidationRule = () => {
   //       }
   //     );
 
-  const dateLesserThanOrEqual = (comparedDate: Date) =>
-    helpers.withParams(
-      { type: "dateLesserThanOrEqual", value: comparedDate },
-      (targetDate: Date) => {
-        return (
-          targetDate &&
-          comparedDate &&
-          targetDate.getTime() <= comparedDate.getTime()
-        );
-      }
-    );
+  // const dateLesserThanOrEqual = (comparedDate: Date) =>
+  //   helpers.withParams(
+  //     { type: "dateLesserThanOrEqual", value: comparedDate },
+  //     (targetDate: Date) => {
+  //       return (
+  //         targetDate &&
+  //         comparedDate &&
+  //         targetDate.getTime() <= comparedDate.getTime()
+  //       );
+  //     }
+  //   );
 
   return {
     duplicateFields,
     dateGreaterThan,
-    dateGreaterThanOrEqual,
+    // dateGreaterThanOrEqual,
     dateLesserThan,
-    dateLesserThanOrEqual,
+    // dateLesserThanOrEqual,
   };
 };

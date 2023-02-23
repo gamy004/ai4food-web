@@ -1,5 +1,5 @@
 import { useRepo } from "pinia-orm";
-import CleaningHistory from "~~/models/CleaningHistory";
+import CleaningHistory, { CleaningType } from "~~/models/CleaningHistory";
 import CleaningProgram from "~~/models/CleaningProgram";
 import { Shift, TimePickerData } from "./useDate";
 import { LoadCleaningHistoryFilter } from "./useFilterCleaningHistory";
@@ -44,6 +44,7 @@ export interface UpdateCleaningHistoryBody {
   cleaningHistoryEndedAtDate: string | null;
   cleaningHistoryEndedAtTime: TimePickerData | null;
   cleaningProgram: ConectCleaningProgramData | null;
+  cleaningType: CleaningType | null;
   cleaningValidations: string[];
 }
 
@@ -125,8 +126,6 @@ export const useCleaning = () => {
       const { data, error } = get<CleaningHistory>(`/cleaning-history/${id}`);
 
       watch(data, (responseData: CleaningHistory) => {
-        console.log(responseData);
-
         const cleaningHistory = cleaningHistoryRepo.save(responseData);
 
         resolve(cleaningHistory);
@@ -145,6 +144,7 @@ export const useCleaning = () => {
         cleaningHistoryStartedAt,
         cleaningHistoryEndedAt,
         cleaningProgram,
+        cleaningType,
         cleaningValidations,
       } = body;
 
@@ -152,6 +152,7 @@ export const useCleaning = () => {
         cleaningHistoryStartedAt,
         cleaningHistoryEndedAt,
         cleaningProgramId: cleaningProgram.id,
+        cleaningType,
         cleaningHistoryValidations: cleaningValidations,
       });
 
