@@ -7,6 +7,7 @@ import {
   HasManyBy,
   BelongsToMany,
 } from "pinia-orm/dist/decorators";
+import CleaningHistoryValidation from "./CleaningHistoryValidation";
 import SwabPeriod from "./SwabPeriod";
 import SwabPeriodCleaningValidation from "./SwabPeriodCleaningValidation";
 
@@ -32,4 +33,14 @@ export default class CleaningValidation extends Model {
     "swabPeriodId"
   )
   declare swabPeriods: SwabPeriod[];
+
+  @Attr([])
+  declare cleaningValidationIds: string[];
+
+  @HasManyBy(
+    () => CleaningHistoryValidation,
+    "cleaningValidationIds",
+    "cleaningValidationId"
+  )
+  declare cleaningHistoryValidations: CleaningHistoryValidation[];
 }

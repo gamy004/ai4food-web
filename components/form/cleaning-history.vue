@@ -12,8 +12,7 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
 });
 
-const { onlyDate, onlyTime, toTimestamp, today, timeStringToTimePicker } =
-  useDate();
+const { onlyDate, toTimestamp } = useDate();
 const { dateLesserThan } = useValidationRule();
 const formCleaningHistoryStartedAtDate = computed({
   get: () => {
@@ -98,12 +97,8 @@ watch(
 <template>
   <b-row>
     <b-col>
-      <b-row class="mt-4">
-        <b-col>
-          <h6 class="fw-bold">ข้อมูลการทำความสะอาด:</h6>
-
-          <b-row class="my-2">
-            <!-- <b-col md="6" class="my-2">
+      <b-row class="my-2">
+        <!-- <b-col md="6" class="my-2">
                 <div class="input-group align-items-baseline">
                   <label
                     for="cleaningHistoryStartedAt"
@@ -123,72 +118,70 @@ watch(
                 </div>
               </b-col> -->
 
-            <b-col sm="12" md="6">
-              <b-row>
-                <b-col sm="6" class="my-2">
-                  <div class="input-group align-items-baseline">
-                    <label
-                      for="cleaningHistoryStartedAtDate"
-                      class="form-label min-w-125px d-block col-12 col-auto"
-                      >วันที่เริ่มต้น
-                    </label>
+        <b-col sm="12" md="6">
+          <b-row>
+            <b-col sm="6" class="my-2">
+              <div class="input-group align-items-baseline">
+                <label
+                  for="cleaningHistoryStartedAtDate"
+                  class="form-label min-w-125px d-block col-12 col-auto"
+                  >วันที่เริ่มต้น
+                </label>
 
-                    <date-picker
-                      id="cleaningHistoryStartedAtDate"
-                      v-model="formCleaningHistoryStartedAtDate"
-                      class="form-control p-0 border-0"
-                      :disabled="disabled"
-                      auto-apply
-                      :enable-time-picker="false"
-                      locale="th"
-                      utc
-                      :clearable="false"
-                    />
-                  </div>
-                </b-col>
-
-                <b-col sm="6" class="my-2">
-                  <div class="input-group align-items-baseline">
-                    <label
-                      for="cleaningHistoryStartedAtTime"
-                      class="form-label min-w-125px d-block col-12 col-auto"
-                      >เวลาเริ่มต้น
-                    </label>
-
-                    <date-picker
-                      id="cleaningHistoryStartedAtTime"
-                      v-model="modelValue.cleaningHistoryStartedAtTime"
-                      class="form-control p-0 border-0"
-                      :disabled="disabled"
-                      cancel-text="ยกเลิก"
-                      select-text="ยืนยัน"
-                      time-picker
-                      :clearable="false"
-                    />
-
-                    <b-form-invalid-feedback
-                      :state="
-                        isFormInvalid('cleaningHistoryStartedAtTime', [
-                          'required',
-                        ])
-                      "
-                    >
-                      กรุณาเลือกเวลาเริ่มต้น
-                    </b-form-invalid-feedback>
-                  </div>
-                </b-col>
-              </b-row>
-
-              <b-form-invalid-feedback
-                :state="
-                  isFormInvalid('cleaningHistoryStartedAt', ['dateLesserThan'])
-                "
-              >
-                กรุณาเลือกวันที่และเวลาเริ่มต้น ก่อนวันที่และเวลาสิ้นสุด
-              </b-form-invalid-feedback>
+                <date-picker
+                  id="cleaningHistoryStartedAtDate"
+                  v-model="formCleaningHistoryStartedAtDate"
+                  class="form-control p-0 border-0"
+                  :disabled="disabled"
+                  auto-apply
+                  :enable-time-picker="false"
+                  locale="th"
+                  utc
+                  :clearable="false"
+                />
+              </div>
             </b-col>
 
-            <!-- <b-col md="6" class="my-2">
+            <b-col sm="6" class="my-2">
+              <div class="input-group align-items-baseline">
+                <label
+                  for="cleaningHistoryStartedAtTime"
+                  class="form-label min-w-125px d-block col-12 col-auto"
+                  >เวลาเริ่มต้น
+                </label>
+
+                <date-picker
+                  id="cleaningHistoryStartedAtTime"
+                  v-model="modelValue.cleaningHistoryStartedAtTime"
+                  class="form-control p-0 border-0"
+                  :disabled="disabled"
+                  cancel-text="ยกเลิก"
+                  select-text="ยืนยัน"
+                  time-picker
+                  :clearable="false"
+                />
+
+                <b-form-invalid-feedback
+                  :state="
+                    isFormInvalid('cleaningHistoryStartedAtTime', ['required'])
+                  "
+                >
+                  กรุณาเลือกเวลาเริ่มต้น
+                </b-form-invalid-feedback>
+              </div>
+            </b-col>
+          </b-row>
+
+          <b-form-invalid-feedback
+            :state="
+              isFormInvalid('cleaningHistoryStartedAt', ['dateLesserThan'])
+            "
+          >
+            กรุณาเลือกวันที่และเวลาเริ่มต้น ก่อนวันที่และเวลาสิ้นสุด
+          </b-form-invalid-feedback>
+        </b-col>
+
+        <!-- <b-col md="6" class="my-2">
                 <div class="input-group align-items-baseline">
                   <label
                     for="cleaningHistoryEndedAt"
@@ -208,104 +201,94 @@ watch(
                 </div>
               </b-col> -->
 
-            <b-col sm="12" md="6">
-              <b-row>
-                <b-col sm="6" class="my-2">
-                  <div class="input-group align-items-baseline">
-                    <label
-                      for="cleaningHistoryEndedAtDate"
-                      class="form-label min-w-125px d-block col-12 col-auto"
-                      >วันที่สิ้นสุด
-                    </label>
+        <b-col sm="12" md="6">
+          <b-row>
+            <b-col sm="6" class="my-2">
+              <div class="input-group align-items-baseline">
+                <label
+                  for="cleaningHistoryEndedAtDate"
+                  class="form-label min-w-125px d-block col-12 col-auto"
+                  >วันที่สิ้นสุด
+                </label>
 
-                    <date-picker
-                      id="cleaningHistoryEndedAtDate"
-                      v-model="formCleaningHistoryEndedAtDate"
-                      class="form-control p-0 border-0"
-                      :disabled="disabled"
-                      :enable-time-picker="false"
-                      auto-apply
-                      locale="th"
-                      utc
-                      :clearable="false"
-                    />
-                  </div>
-                </b-col>
+                <date-picker
+                  id="cleaningHistoryEndedAtDate"
+                  v-model="formCleaningHistoryEndedAtDate"
+                  class="form-control p-0 border-0"
+                  :disabled="disabled"
+                  :enable-time-picker="false"
+                  auto-apply
+                  locale="th"
+                  utc
+                  :clearable="false"
+                />
+              </div>
+            </b-col>
 
-                <b-col sm="6" class="my-2">
-                  <div class="input-group align-items-baseline">
-                    <label
-                      for="cleaningHistoryEndedAtTime"
-                      class="form-label min-w-125px d-block col-12 col-auto"
-                      >เวลาสิ้นสุด
-                    </label>
+            <b-col sm="6" class="my-2">
+              <div class="input-group align-items-baseline">
+                <label
+                  for="cleaningHistoryEndedAtTime"
+                  class="form-label min-w-125px d-block col-12 col-auto"
+                  >เวลาสิ้นสุด
+                </label>
 
-                    <date-picker
-                      id="cleaningHistoryEndedAtTime"
-                      v-model="modelValue.cleaningHistoryEndedAtTime"
-                      class="form-control p-0 border-0"
-                      :disabled="disabled"
-                      cancel-text="ยกเลิก"
-                      select-text="ยืนยัน"
-                      time-picker
-                      :clearable="false"
-                    />
+                <date-picker
+                  id="cleaningHistoryEndedAtTime"
+                  v-model="modelValue.cleaningHistoryEndedAtTime"
+                  class="form-control p-0 border-0"
+                  :disabled="disabled"
+                  cancel-text="ยกเลิก"
+                  select-text="ยืนยัน"
+                  time-picker
+                  :clearable="false"
+                />
 
-                    <b-form-invalid-feedback
-                      :state="
-                        isFormInvalid('cleaningHistoryEndedAtTime', [
-                          'required',
-                        ])
-                      "
-                    >
-                      กรุณาเลือกเวลาสิ้นสุด
-                    </b-form-invalid-feedback>
-                  </div>
-                </b-col>
-              </b-row>
+                <b-form-invalid-feedback
+                  :state="
+                    isFormInvalid('cleaningHistoryEndedAtTime', ['required'])
+                  "
+                >
+                  กรุณาเลือกเวลาสิ้นสุด
+                </b-form-invalid-feedback>
+              </div>
+            </b-col>
+          </b-row>
 
-              <!-- <b-form-invalid-feedback
+          <!-- <b-form-invalid-feedback
                   :state="
                     isFormInvalid('cleaningHistoryEndedAt', ['dateGreaterThan'])
                   "
                 >
                   กรุณาเลือกวันที่และเวลาสิ้นสุดหลังวันที่และเวลาเริ่มต้น
                 </b-form-invalid-feedback> -->
-            </b-col>
-          </b-row>
-
-          <b-row class="my-2">
-            <b-col>
-              <div class="input-group align-items-baseline">
-                <div class="form-control p-0 border-0">
-                  <cleaning-program-select
-                    id="cleaningProgram"
-                    v-model="modelValue.cleaningProgram"
-                    :disabled="disabled"
-                    required
-                  />
-                </div>
-              </div>
-            </b-col>
-            <b-col>
-              <div class="input-group align-items-baseline">
-                <div class="form-control p-0 border-0">
-                  <cleaning-type-select
-                    id="cleaningType"
-                    v-model="modelValue.cleaningType"
-                    :disabled="disabled"
-                    required
-                  />
-                </div>
-              </div>
-            </b-col>
-          </b-row>
         </b-col>
       </b-row>
 
-      <b-row class="mt-3">
+      <b-row class="my-2">
         <b-col>
-          <h6 class="fw-bold">รายการตรวจสอบ:</h6>
+          <div class="input-group align-items-baseline">
+            <div class="form-control p-0 border-0">
+              <cleaning-program-select
+                id="cleaningProgram"
+                v-model="modelValue.cleaningProgram"
+                :disabled="disabled"
+                required
+              />
+            </div>
+          </div>
+        </b-col>
+        <b-col>
+          <div class="input-group align-items-baseline">
+            <div class="form-control p-0 border-0">
+              <cleaning-type-select
+                id="cleaningType"
+                v-model="modelValue.cleaningType"
+                :disabled="disabled"
+                required
+              />
+            </div>
+          </div>
         </b-col>
       </b-row>
     </b-col>

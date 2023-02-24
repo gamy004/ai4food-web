@@ -1,5 +1,6 @@
 import { Model } from "pinia-orm";
-import { Attr, Str, Uid, BelongsTo } from "pinia-orm/dist/decorators";
+import { Attr, Uid, BelongsTo, HasManyBy } from "pinia-orm/dist/decorators";
+import CleaningHistoryValidation from "./CleaningHistoryValidation";
 import CleaningProgram from "./CleaningProgram";
 import SwabAreaHistory from "./SwabAreaHistory";
 
@@ -45,6 +46,16 @@ export default class CleaningHistory extends Model {
 
   @Attr(null)
   declare cleaningType: CleaningType | null;
+
+  @Attr([])
+  declare cleaningValidationIds: string[];
+
+  @HasManyBy(
+    () => CleaningHistoryValidation,
+    "cleaningValidationIds",
+    "cleaningHistoryId"
+  )
+  declare cleaningHistoryValidations: CleaningHistoryValidation[];
 
   get isCompleted() {
     let isCompleted = true;

@@ -47,7 +47,7 @@ const cleaningHistoryEndedAt = toTimestamp(
   cleaningHistoryEndedAtTime
 );
 
-const form = reactive<UpdateCleaningHistoryBody>({
+const form = reactive({
   cleaningHistoryStartedAt: null,
   cleaningHistoryEndedAt,
   cleaningHistoryStartedAtDate: onlyDate(currentDate),
@@ -56,16 +56,12 @@ const form = reactive<UpdateCleaningHistoryBody>({
   cleaningHistoryEndedAtTime,
   cleaningProgram: null,
   cleaningType: null,
-  cleaningValidations: [],
+  cleaningHistoryValidations: [],
 });
 
 const { validate, isInvalid, resetValidation } = useValidation({}, form);
 
-const cleaningHistory = computed(() =>
-  cleaningHistoryId.value
-    ? getCleaningHistoryById(cleaningHistoryId.value)
-    : null
-);
+const cleaningHistory = computed(() => getCleaningHistoryById(id.value));
 
 const swabAreaHistory = computed(() =>
   cleaningHistory.value
@@ -122,8 +118,6 @@ const init = async () => {
     );
 
     if (entity) {
-      cleaningHistoryId.value = Object.freeze(entity.id);
-
       if (entity.cleaningHistoryStartedAt) {
         form.cleaningHistoryStartedAtDate = onlyDate(
           entity.cleaningHistoryStartedAt
@@ -164,6 +158,12 @@ const init = async () => {
 
       if (entity.cleaningType) {
         form.cleaningType = entity.cleaningType;
+      }
+
+      if (entity.cleaningHistoryValidations?.length) {
+        form.cleaningHistoryValidations = [
+          ...entity.cleaningHistoryValidations,
+        ];
       }
     }
   } catch (e) {
@@ -285,7 +285,24 @@ onMounted(async () => {
           </b-col>
         </b-row>
 
-        <form-cleaning-history v-model="form"></form-cleaning-history>
+        <b-row class="mt-3">
+          <b-col>
+            <h6 class="fw-bold">ข้อมูลการทำความสะอาด:</h6>
+
+            <form-cleaning-history v-model="form"></form-cleaning-history>
+          </b-col>
+        </b-row>
+
+        <b-row class="mt-3">
+          <b-col>
+            <h6 class="fw-bold">รายการตรวจสอบ:</h6>
+
+            <form-cleaning-history-validation
+              :cleaning-history-id="id"
+              v-model="form"
+            />
+          </b-col>
+        </b-row>
 
         <b-row align-h="center" class="my-4">
           <b-col cols="auto">
