@@ -77,7 +77,7 @@ const form = ref({
       const entity: UpsertCleaningHistoryValidationData = {
         cleaningValidationId: cleaningValidation.id,
         cleaningHistoryId: props.cleaningHistoryId,
-        pass: false,
+        pass: null,
       };
 
       const mapEntity = mapCleaningHistoryValidation.value.get(
