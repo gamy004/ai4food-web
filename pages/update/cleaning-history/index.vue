@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 definePageMeta({
-  title: "Ai4FoodSafety - Swab Product Page",
+  title: "Ai4FoodSafety - Cleaning History Page",
   middleware: ["auth"],
   canGoBack: true,
   fallBackRedirect: "/",

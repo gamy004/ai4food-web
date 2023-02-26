@@ -37,10 +37,6 @@ export default class CleaningValidation extends Model {
   @Attr([])
   declare cleaningValidationIds: string[];
 
-  @HasManyBy(
-    () => CleaningHistoryValidation,
-    "cleaningValidationIds",
-    "cleaningValidationId"
-  )
+  @HasManyBy(() => CleaningHistoryValidation, "cleaningValidationIds")
   declare cleaningHistoryValidations: CleaningHistoryValidation[];
 }

@@ -50,15 +50,46 @@ export default class CleaningHistory extends Model {
   @Attr([])
   declare cleaningValidationIds: string[];
 
-  @HasManyBy(
-    () => CleaningHistoryValidation,
-    "cleaningValidationIds",
-    "cleaningHistoryId"
-  )
+  @HasManyBy(() => CleaningHistoryValidation, "cleaningValidationIds")
   declare cleaningHistoryValidations: CleaningHistoryValidation[];
 
   get isCompleted() {
-    let isCompleted = true;
+    const { loadCleaningHistoryValidationToCleaningHistory } = useCleaning();
+
+    const {
+      getSwabAreaHistoryById,
+      getSwabPeriodById,
+      loadCleaningValidationToSwabPeriod,
+    } = useSwab();
+
+    let isCompleted =
+      this.cleaningHistoryStartedAt !== null &&
+      this.cleaningHistoryEndedAt !== null &&
+      this.cleaningProgramId !== null &&
+      this.cleaningType !== null;
+
+    const cleaingHistoryWithValidations =
+      loadCleaningHistoryValidationToCleaningHistory(this);
+
+    const { cleaningHistoryValidations = [] } = cleaingHistoryWithValidations;
+
+    const swabAreaHistory = getSwabAreaHistoryById(this.swabAreaHistoryId);
+
+    if (swabAreaHistory) {
+      const swabPeriod = loadCleaningValidationToSwabPeriod(
+        getSwabPeriodById(swabAreaHistory.swabPeriodId)
+      );
+
+      if (swabPeriod && swabPeriod.cleaningValidations) {
+        const { cleaningValidations = [] } = swabPeriod;
+
+        if (cleaningValidations.length) {
+          isCompleted =
+            isCompleted &&
+            cleaningValidations.length === cleaningHistoryValidations.length; // cleaning valdiation must have the same record as cleaning history validation
+        }
+      }
+    }
 
     return isCompleted;
   }

@@ -61,47 +61,37 @@ const mapCleaningValidation = computed(() => {
   return map;
 });
 
-const mapCleaningHistoryValidation = computed(() => {
-  const map = new Map();
+// const form = ref({
+//   cleaningHistoryValidations: cleaningValidations.value.map(
+//     (cleaningValidation) => {
+//       const entity: UpsertCleaningHistoryValidationData = {
+//         cleaningValidationId: cleaningValidation.id,
+//         cleaningHistoryId: props.cleaningHistoryId,
+//         pass: null,
+//       };
 
-  props.modelValue.cleaningHistoryValidations.forEach((item) =>
-    map.set(item.cleaningValidationId, item)
-  );
+//       const mapEntity = mapCleaningHistoryValidation.value.get(
+//         cleaningValidation.id
+//       );
 
-  return map;
-});
+//       if (mapEntity) {
+//         entity.id = mapEntity.id;
+//         entity.pass = mapEntity.pass;
+//       }
 
-const form = ref({
-  cleaningHistoryValidations: cleaningValidations.value.map(
-    (cleaningValidation) => {
-      const entity: UpsertCleaningHistoryValidationData = {
-        cleaningValidationId: cleaningValidation.id,
-        cleaningHistoryId: props.cleaningHistoryId,
-        pass: null,
-      };
+//       return entity;
+//     }
+//   ),
+// });
 
-      const mapEntity = mapCleaningHistoryValidation.value.get(
-        cleaningValidation.id
-      );
+// const validationRules = computed(() => ({
+//   cleaningHistoryValidations: {
+//     required,
+//     $lazy: true,
+//   },
+// }));
 
-      if (mapEntity) {
-        entity.id = mapEntity.id;
-        entity.pass = mapEntity.pass;
-      }
-
-      return entity;
-    }
-  ),
-});
-
-const validationRules = computed(() => ({
-  cleaningHistoryValidations: {
-    required,
-    $lazy: true,
-  },
-}));
-
-const { isFormInvalid } = useValidation(validationRules, props.modelValue);
+// const { isFormInvalid } = useValidation(validationRules, props.modelValue);
 </script>
 
 <template>
@@ -111,7 +101,7 @@ const { isFormInvalid } = useValidation(validationRules, props.modelValue);
         <b-list-group-item
           v-for="(
             cleaningHistoryValidation, index
-          ) in form.cleaningHistoryValidations"
+          ) in modelValue.cleaningHistoryValidations"
           :key="`cleaning-history-validation-${cleaningHistoryValidation.cleaningValidationId}`"
           class="d-flex justify-content-between align-items-start"
         >
@@ -127,7 +117,8 @@ const { isFormInvalid } = useValidation(validationRules, props.modelValue);
             :cleaning-validation-id="
               cleaningHistoryValidation.cleaningValidationId
             "
-            v-model="form.cleaningHistoryValidations[index]"
+            v-model="modelValue.cleaningHistoryValidations[index]"
+            required
           ></radio-cleaning-history-validation>
         </b-list-group-item>
       </b-list-group>

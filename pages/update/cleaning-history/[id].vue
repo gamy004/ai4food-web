@@ -2,12 +2,11 @@
 import { ref } from "vue";
 import { useToast } from "vue-toastification";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
-import CarbonCheckmarkFilled from "~icons/carbon/checkmark-filled";
 import CleaningHistory from "~~/models/CleaningHistory";
-import { UpdateCleaningHistoryBody } from "~~/composables/useCleaning";
+import { UpsertCleaningHistoryValidationData } from "~~/composables/useCleaning";
 
 definePageMeta({
-  title: "Ai4FoodSafety - Update Swab Area History Page",
+  title: "Ai4FoodSafety - Update Cleaning History Page",
 
   middleware: ["auth"],
 
@@ -28,13 +27,13 @@ const {
 } = useSwab();
 const { getFacilityById, getFacilityItemById } = useFacility();
 const { getCleaningHistoryById, api: cleaningApi } = useCleaning();
+const { redirect } = useNavigation();
 const id = ref(route.params.id as string);
 
 const invalid = ref(false);
 const error = ref(false);
 const loading = ref(false);
 const submitting = ref(false);
-const cleaningHistoryId = ref<string | null>(null);
 const currentDate = today();
 
 const cleaningHistoryEndedAtDate = onlyDate(currentDate);
@@ -62,6 +61,10 @@ const form = reactive({
 const { validate, isInvalid, resetValidation } = useValidation({}, form);
 
 const cleaningHistory = computed(() => getCleaningHistoryById(id.value));
+
+const isCompleted = computed(() =>
+  cleaningHistory.value ? cleaningHistory.value.isCompleted : false
+);
 
 const swabAreaHistory = computed(() =>
   cleaningHistory.value
@@ -160,10 +163,38 @@ const init = async () => {
         form.cleaningType = entity.cleaningType;
       }
 
-      if (entity.cleaningHistoryValidations?.length) {
-        form.cleaningHistoryValidations = [
-          ...entity.cleaningHistoryValidations,
-        ];
+      const { cleaningHistoryValidations = [], swabAreaHistory } = entity;
+
+      const mapCleaningHistoryValidation = new Map();
+
+      cleaningHistoryValidations.forEach((item) =>
+        mapCleaningHistoryValidation.set(item.cleaningValidationId, item)
+      );
+
+      if (swabAreaHistory.swabPeriod) {
+        let { cleaningValidations = [] } = swabAreaHistory.swabPeriod;
+
+        cleaningValidations = cleaningValidations.filter((item) => item.active);
+
+        form.cleaningHistoryValidations = cleaningValidations.map(
+          (cleaningValidation) => {
+            const entity: UpsertCleaningHistoryValidationData = {
+              cleaningValidationId: cleaningValidation.id,
+              pass: null,
+            };
+
+            const mapEntity = mapCleaningHistoryValidation.get(
+              cleaningValidation.id
+            );
+
+            if (mapEntity) {
+              entity.id = mapEntity.id;
+              entity.pass = mapEntity.pass;
+            }
+
+            return entity;
+          }
+        );
       }
     }
   } catch (e) {
@@ -204,7 +235,7 @@ const submit = async () => {
     toast.success("อัพเดตข้อมูลการทำความสะอาดสำเร็จ", { timeout: 1000 });
 
     setTimeout(() => {
-      router.back();
+      redirect();
     }, 1000);
   } catch (error) {
     console.log(error);
@@ -236,9 +267,7 @@ onMounted(async () => {
             class="d-flex justify-content-between align-items-center"
           >
             <h5>
-              <icon-complete
-                :active="cleaningHistory.isCompleted"
-              ></icon-complete>
+              <icon-complete :active="isCompleted"></icon-complete>
 
               <b>{{ title }} : </b>
 
@@ -247,7 +276,7 @@ onMounted(async () => {
 
             <badge-complete-status
               class="me-2"
-              :is-completed="cleaningHistory.isCompleted"
+              :is-completed="isCompleted"
             ></badge-complete-status>
 
             <!-- <b-badge :variant="badgeVariant" pill>

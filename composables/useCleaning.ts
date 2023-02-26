@@ -56,7 +56,6 @@ export interface UpdateCleaningHistoryValidationBody {
 export interface UpsertCleaningHistoryValidationData {
   id?: string;
   cleaningValidationId: string;
-  cleaningHistoryId: string;
   pass: boolean;
 }
 
@@ -75,6 +74,16 @@ export const useCleaning = () => {
         return cleaningProgramRepo.where("cleaningProgramName", name).first();
       })
       .filter(Boolean);
+  };
+
+  const loadCleaningHistoryValidationToCleaningHistory = (
+    cleaningHistory: CleaningHistory
+  ): CleaningHistory => {
+    cleaningHistoryRepo
+      .with("cleaningHistoryValidations")
+      .load([cleaningHistory]);
+
+    return cleaningHistory;
   };
 
   const importCleaningRoomHistory = async (
@@ -179,6 +188,7 @@ export const useCleaning = () => {
   return {
     getCleaningProgramByNames,
     getCleaningHistoryById,
+    loadCleaningHistoryValidationToCleaningHistory,
     api() {
       return {
         importCleaningRoomHistory,
