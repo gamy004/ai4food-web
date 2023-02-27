@@ -33,7 +33,7 @@ export const useExportSwabHistory = () => {
   const swabAreaHistoryRepo = useRepo(SwabAreaHistory);
   const swabProductHistoryRepo = useRepo(SwabProductHistory);
   const { getProductById } = useProduct();
-  const { getSwabAreaById, getSwabPeriodById } = useSwab();
+  const { getSwabAreaById, getSwabPeriodById, getSwabTestById } = useSwab();
   const { getFacilityById, getFacilityItemById } = useFacility();
   const { onlyDate, formatThLocale, formatTimeThLocale, shiftToAbbreviation } =
     useDate();
@@ -121,7 +121,7 @@ export const useExportSwabHistory = () => {
 
     const facilityItem = getFacilityItemById(swabAreaHistory.facilityItemId);
 
-    const swabTest = swabAreaHistory.swabTest;
+    const swabTest = getSwabTestById(swabAreaHistory.swabTestId);
 
     let status = SwabStatus.NOT_RECORDED;
     let bacteriaSpecieNames = "";

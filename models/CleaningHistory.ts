@@ -4,6 +4,8 @@ import CleaningHistoryValidation from "./CleaningHistoryValidation";
 import CleaningProgram from "./CleaningProgram";
 import SwabAreaHistory from "./SwabAreaHistory";
 
+const { formatThLocale } = useDate();
+
 export enum CleaningType {
   DRY = "dry",
   WET = "wet",
@@ -19,6 +21,9 @@ export default class CleaningHistory extends Model {
 
   @Uid()
   declare id: string;
+
+  @Attr(null)
+  declare cleaningHistoryRecordedAt: string;
 
   @Attr(null)
   declare cleaningHistoryStartedAt: string;
@@ -52,6 +57,12 @@ export default class CleaningHistory extends Model {
 
   @HasManyBy(() => CleaningHistoryValidation, "cleaningValidationIds")
   declare cleaningHistoryValidations: CleaningHistoryValidation[];
+
+  get readableCleaningHistoryRecordedAt() {
+    return this.cleaningHistoryRecordedAt
+      ? formatThLocale(this.cleaningHistoryRecordedAt, "PP HH:mm น.")
+      : "";
+  }
 
   get isCompleted() {
     const { loadCleaningHistoryValidationToCleaningHistory } = useCleaning();

@@ -264,7 +264,7 @@ onMounted(async () => {
         <b-row v-if="cleaningHistory">
           <b-col
             cols="12"
-            class="d-flex justify-content-between align-items-center"
+            class="d-flex justify-content-between align-items-start"
           >
             <h5>
               <icon-complete :active="isCompleted"></icon-complete>
@@ -274,10 +274,20 @@ onMounted(async () => {
               <span v-if="swabArea">{{ swabArea.swabAreaName }}</span>
             </h5>
 
-            <badge-complete-status
-              class="me-2"
-              :is-completed="isCompleted"
-            ></badge-complete-status>
+            <div class="text-end">
+              <badge-complete-status
+                class="me-2"
+                :is-completed="isCompleted"
+              ></badge-complete-status>
+
+              <div
+                v-if="cleaningHistory.cleaningHistoryRecordedAt"
+                class="text__cleaning-history-recorded-at mx-2"
+              >
+                <b>บันทึกล่าสุด : </b
+                >{{ cleaningHistory.readableCleaningHistoryRecordedAt }}
+              </div>
+            </div>
 
             <!-- <b-badge :variant="badgeVariant" pill>
               {{ badgeText }}
