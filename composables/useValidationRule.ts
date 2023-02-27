@@ -7,13 +7,9 @@ export const useValidationRule = () => {
     helpers.withParams(
       { type: "duplicateFields", value: fields },
       (value: object[]) => {
-        console.log(value, fields);
-
         const isRequired = helpers.req(value);
 
         let isDuplicated = false;
-
-        console.log(isRequired);
 
         if (isRequired) {
           const validValue = value.filter((record) => {
