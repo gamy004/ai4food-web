@@ -97,7 +97,7 @@ export default class CleaningHistory extends Model {
         if (cleaningValidations.length) {
           isCompleted =
             isCompleted &&
-            cleaningValidations.length === cleaningHistoryValidations.length; // cleaning valdiation must have the same record as cleaning history validation
+            cleaningHistoryValidations.length >= cleaningValidations.length; // cleaning history validation must have records more than cleaning validation records
         }
       }
     }

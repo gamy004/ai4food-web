@@ -58,6 +58,8 @@ const form = reactive({
   cleaningHistoryValidations: [],
 });
 
+const cleaningValidations = ref([]);
+
 const { validate, isInvalid, resetValidation } = useValidation({}, form);
 
 const cleaningHistory = computed(() => getCleaningHistoryById(id.value));
@@ -172,11 +174,14 @@ const init = async () => {
       );
 
       if (swabAreaHistory.swabPeriod) {
-        let { cleaningValidations = [] } = swabAreaHistory.swabPeriod;
+        let { cleaningValidations: swabPeriodCleaningValidations = [] } =
+          swabAreaHistory.swabPeriod;
 
-        cleaningValidations = cleaningValidations.filter((item) => item.active);
+        cleaningValidations.value = swabPeriodCleaningValidations.filter(
+          (item) => item.active
+        );
 
-        form.cleaningHistoryValidations = cleaningValidations.map(
+        form.cleaningHistoryValidations = cleaningValidations.value.map(
           (cleaningValidation) => {
             const entity: UpsertCleaningHistoryValidationData = {
               cleaningValidationId: cleaningValidation.id,
@@ -332,7 +337,7 @@ onMounted(async () => {
           </b-col>
         </b-row>
 
-        <b-row class="mt-3">
+        <b-row v-if="cleaningValidations.length" class="mt-3">
           <b-col>
             <h6 class="fw-bold">รายการตรวจสอบ:</h6>
 
