@@ -111,19 +111,35 @@ export const useExportSwabHistory = () => {
   const tranformRawSwabAreaHistory = (swabAreaHistory: SwabAreaHistory) => {
     console.log(swabAreaHistory);
 
-    const swabArea = getSwabAreaById(swabAreaHistory.swabAreaId);
+    let swabArea = swabAreaHistory.swabArea;
+
+    if (!swabArea) {
+      swabArea = getSwabAreaById(swabAreaHistory.swabAreaId);
+    }
 
     const swabPeriod = getSwabPeriodById(swabAreaHistory.swabPeriodId);
 
     let facility = null;
 
     if (swabArea) {
-      facility = getFacilityById(swabArea.facilityId);
+      facility = swabArea.facility;
+
+      if (!facility) {
+        facility = getFacilityById(swabArea.facilityId);
+      }
     }
 
-    const facilityItem = getFacilityItemById(swabAreaHistory.facilityItemId);
+    let facilityItem = swabAreaHistory.facilityItem;
 
-    const swabTest = swabAreaHistory.swabTest;
+    if (!facilityItem) {
+      facilityItem = getFacilityItemById(swabAreaHistory.facilityItemId);
+    }
+
+    let swabTest = swabAreaHistory.swabTest;
+
+    if (!swabTest) {
+      swabTest = getSwabTestById(swabAreaHistory.swabTestId);
+    }
 
     let status = SwabStatus.NOT_RECORDED;
     let bacteriaSpecieNames = "";
@@ -136,10 +152,14 @@ export const useExportSwabHistory = () => {
 
         status = bacteria.length ? SwabStatus.DETECTED : SwabStatus.NORMAL;
 
-        if (bacteriaSpecies.length) {
-          bacteriaSpecieNames = bacteriaSpecies
-            .map(({ bacteriaSpecieName }) => bacteriaSpecieName)
-            .join(",");
+        if (bacteria.length) {
+          bacteriaSpecieNames = SwabStatusMapper[SwabStatus.PENDING];
+
+          if (bacteriaSpecies.length) {
+            bacteriaSpecieNames = bacteriaSpecies
+              .map(({ bacteriaSpecieName }) => bacteriaSpecieName)
+              .join(",");
+          }
         }
       }
     }
@@ -170,19 +190,39 @@ export const useExportSwabHistory = () => {
   const tranformRawSwabProductHistory = (
     swabProductHistory: SwabProductHistory
   ) => {
-    const product = getProductById(swabProductHistory.productId);
+    let product = swabProductHistory.product;
 
-    const swabPeriod = getSwabPeriodById(swabProductHistory.swabPeriodId);
+    if (!product) {
+      product = getProductById(swabProductHistory.productId);
+    }
 
-    const facilityItem = getFacilityItemById(swabProductHistory.facilityItemId);
+    let swabPeriod = swabProductHistory.swabPeriod;
+
+    if (!swabPeriod) {
+      swabPeriod = getSwabPeriodById(swabProductHistory.swabPeriodId);
+    }
+
+    let facilityItem = swabProductHistory.facilityItem;
+
+    if (!facilityItem) {
+      facilityItem = getFacilityItemById(swabProductHistory.facilityItemId);
+    }
 
     let facility = null;
 
     if (facilityItem) {
-      facility = getFacilityById(facilityItem.facilityId);
+      facility = facilityItem.facility;
+
+      if (!facility) {
+        facility = getFacilityById(facilityItem.facilityId);
+      }
     }
 
-    const swabTest = swabProductHistory.swabTest;
+    let swabTest = swabProductHistory.swabTest;
+
+    if (!swabTest) {
+      swabTest = getSwabTestById(swabProductHistory.swabTestId);
+    }
 
     let status = SwabStatus.NOT_RECORDED;
     let bacteriaSpecieNames = "";
@@ -195,10 +235,14 @@ export const useExportSwabHistory = () => {
 
         status = bacteria.length ? SwabStatus.DETECTED : SwabStatus.NORMAL;
 
-        if (bacteriaSpecies.length) {
-          bacteriaSpecieNames = bacteriaSpecies
-            .map(({ bacteriaSpecieName }) => bacteriaSpecieName)
-            .join(",");
+        if (bacteria.length) {
+          bacteriaSpecieNames = SwabStatusMapper[SwabStatus.PENDING];
+
+          if (bacteriaSpecies.length) {
+            bacteriaSpecieNames = bacteriaSpecies
+              .map(({ bacteriaSpecieName }) => bacteriaSpecieName)
+              .join(",");
+          }
         }
       }
     }
