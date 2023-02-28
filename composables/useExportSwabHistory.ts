@@ -109,6 +109,8 @@ export const useExportSwabHistory = () => {
   };
 
   const tranformRawSwabAreaHistory = (swabAreaHistory: SwabAreaHistory) => {
+    console.log(swabAreaHistory);
+
     const swabArea = getSwabAreaById(swabAreaHistory.swabAreaId);
 
     const swabPeriod = getSwabPeriodById(swabAreaHistory.swabPeriodId);
@@ -121,7 +123,7 @@ export const useExportSwabHistory = () => {
 
     const facilityItem = getFacilityItemById(swabAreaHistory.facilityItemId);
 
-    const swabTest = getSwabTestById(swabAreaHistory.swabTestId);
+    const swabTest = swabAreaHistory.swabTest;
 
     let status = SwabStatus.NOT_RECORDED;
     let bacteriaSpecieNames = "";
