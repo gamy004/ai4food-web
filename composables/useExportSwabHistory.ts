@@ -109,8 +109,6 @@ export const useExportSwabHistory = () => {
   };
 
   const tranformRawSwabAreaHistory = (swabAreaHistory: SwabAreaHistory) => {
-    console.log(swabAreaHistory);
-
     let swabArea = swabAreaHistory.swabArea;
 
     if (!swabArea) {
