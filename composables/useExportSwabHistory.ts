@@ -5,6 +5,8 @@ import SwabProductHistory from "~~/models/SwabProductHistory";
 import { useDate, Shift, DateRangeInterface } from "./useDate";
 import { SearchParams } from "./useRequest";
 import { SwabStatus } from "./useSwab";
+import SwabTestBacteria from "~~/models/SwabTestBacteria";
+import SwabTestBacteriaSpecie from "~~/models/SwabTestBacteriaSpecie";
 
 export interface ExportSwabHistoryFilter {
   date?: string;
@@ -32,6 +34,8 @@ export const useExportSwabHistory = () => {
   const { get } = useRequest();
   const swabAreaHistoryRepo = useRepo(SwabAreaHistory);
   const swabProductHistoryRepo = useRepo(SwabProductHistory);
+  const swabTestBacteriaRepo = useRepo(SwabTestBacteria);
+  const swabTestBacteriaSpecieRepo = useRepo(SwabTestBacteriaSpecie);
   const { getProductById } = useProduct();
   const { getSwabAreaById, getSwabPeriodById, getSwabTestById } = useSwab();
   const { getFacilityById, getFacilityItemById } = useFacility();
@@ -288,7 +292,27 @@ export const useExportSwabHistory = () => {
         } = swabPlanData;
 
         if (options.save) {
+          swabAreaHistories.forEach((swabAreaHistory) => {
+            swabTestBacteriaRepo
+              .where("swabTestId", swabAreaHistory.swabTestId)
+              .delete();
+
+            swabTestBacteriaSpecieRepo
+              .where("swabTestId", swabAreaHistory.swabTestId)
+              .delete();
+          });
+
           swabAreaHistories = swabAreaHistoryRepo.save(swabAreaHistories);
+
+          swabProductHistories.forEach((swabProductHistory) => {
+            swabTestBacteriaRepo
+              .where("swabTestId", swabProductHistory.swabTestId)
+              .delete();
+
+            swabTestBacteriaSpecieRepo
+              .where("swabTestId", swabProductHistory.swabTestId)
+              .delete();
+          });
 
           swabProductHistories =
             swabProductHistoryRepo.save(swabProductHistories);
