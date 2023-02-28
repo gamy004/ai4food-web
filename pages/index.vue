@@ -219,6 +219,7 @@ const pageImportProductSchedule = {
           </nuxt-link>
 
           <nuxt-link
+            v-if="authUser.isInSwabTeam"
             v-slot="{ navigate }"
             :to="pageUpdateCleaningHistory"
             custom
