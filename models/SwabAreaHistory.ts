@@ -9,6 +9,7 @@ import {
 } from "pinia-orm/dist/decorators";
 import { useDate, Shift } from "~~/composables/useDate";
 import { SwabStatus, SwabStatusMapper } from "~~/composables/useSwab";
+import CleaningHistory from "./CleaningHistory";
 import FacilityItem from "./FacilityItem";
 import Product from "./Product";
 import SwabArea from "./SwabArea";

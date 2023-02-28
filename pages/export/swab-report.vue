@@ -127,7 +127,7 @@ const tableFields = computed(() => {
       label: "รหัส",
       thClass: "text-center",
       tdClass: "text-center",
-      thStyle: { width: "5%" },
+      thStyle: { width: "10%" },
     },
     {
       key: "กะ",

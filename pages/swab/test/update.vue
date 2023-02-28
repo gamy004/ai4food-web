@@ -14,6 +14,9 @@ const route = useRoute();
 const { today, onlyDate, stringToShift } = useDate();
 const { isPage, goTo } = useNavigation();
 const { getCurrentQuery } = useQueryParams();
+const { api: labApi } = useLab();
+const loading = ref(false);
+const error = ref(false);
 const currentDate = today();
 const form = reactive({
   date: (route.query.date as string) || onlyDate(currentDate),
@@ -44,6 +47,23 @@ const switchPage = async (name: string) => {
 
   await goTo({ name, query });
 };
+
+const fetch = async () => {
+  error.value = false;
+  loading.value = true;
+
+  try {
+    await labApi().loadAllBacteriaWithSpecie();
+  } catch (e) {
+    console.log(e);
+
+    error.value = true;
+  } finally {
+    loading.value = false;
+  }
+};
+
+onBeforeMount(fetch);
 </script>
 
 <template>
@@ -72,43 +92,57 @@ const switchPage = async (name: string) => {
     </b-row>
 
     <b-row class="mt-4">
-      <b-col>
-        <swab-test-filter
-          v-model="form"
-          :hidden-state="{
-            mainSwabArea: isPage('swab-test-update-product'),
-            product: isPage('swab-test-update-area'),
-            swabStatus: false,
-          }"
-          :col-state="{
-            date: 'sm-6 md-4',
-            shift: 'sm-6 md-3',
-            swabPeriod: 'sm-12 md-5',
-            facility: 'sm-12 md-6',
-            facilityItem: 'sm-12 md-6',
-            mainSwabArea: 'sm-12 md-6',
-            product: 'sm-12 md-6',
-            swabStatus: 'sm-12 md-6',
-            swabTestCode: '12',
-          }"
-          :clearable-state="{
-            swabPeriod: true,
-            facility: true,
-            facilityItem: true,
-            mainSwabArea: true,
-            product: true,
-          }"
-          :pagination-state="pagination.$state"
-          :swab-status-options="[
-            SwabStatus.PENDING,
-            SwabStatus.NORMAL,
-            SwabStatus.DETECTED,
-          ]"
-        />
+      <b-col v-if="error" class="text-center">
+        <p>พบข้อผิดพลาดในการโหลดข้อมูล</p>
 
-        <hr />
+        <b-button variant="dark" @click="fetch"> โหลดข้อมูลใหม่ </b-button>
+      </b-col>
 
-        <NuxtPage v-model="form" :pagination="pagination" />
+      <b-col v-else>
+        <b-row>
+          <b-col v-if="loading" class="text-center">
+            <line-md-loading-twotone-loop :style="{ fontSize: '2em' }" />
+          </b-col>
+
+          <b-col v-else>
+            <swab-test-filter
+              v-model="form"
+              :hidden-state="{
+                mainSwabArea: isPage('swab-test-update-product'),
+                product: isPage('swab-test-update-area'),
+                swabStatus: false,
+              }"
+              :col-state="{
+                date: 'sm-6 md-4',
+                shift: 'sm-6 md-3',
+                swabPeriod: 'sm-12 md-5',
+                facility: 'sm-12 md-6',
+                facilityItem: 'sm-12 md-6',
+                mainSwabArea: 'sm-12 md-6',
+                product: 'sm-12 md-6',
+                swabStatus: 'sm-12 md-6',
+                swabTestCode: '12',
+              }"
+              :clearable-state="{
+                swabPeriod: true,
+                facility: true,
+                facilityItem: true,
+                mainSwabArea: true,
+                product: true,
+              }"
+              :pagination-state="pagination.$state"
+              :swab-status-options="[
+                SwabStatus.PENDING,
+                SwabStatus.NORMAL,
+                SwabStatus.DETECTED,
+              ]"
+            />
+
+            <hr />
+
+            <NuxtPage v-model="form" :pagination="pagination" />
+          </b-col>
+        </b-row>
       </b-col>
     </b-row>
   </div>

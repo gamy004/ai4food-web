@@ -1,5 +1,5 @@
 import { parseISO } from "date-fns";
-import { format, utcToZonedTime } from "date-fns-tz";
+import { format, utcToZonedTime, zonedTimeToUtc } from "date-fns-tz";
 import { th } from "date-fns/locale";
 
 export enum Shift {
@@ -42,6 +42,10 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     return utcToZonedTime(new Date(), timeZone);
   }
 
+  function timezone() {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  }
+
   function parseDate(date) {
     return typeof date === "string" ? parseISO(date) : date;
   }
@@ -60,6 +64,32 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     return format(parseDate(date), timeFormat, { timeZone });
   }
 
+  function toObject(dateString, timeObject = null) {
+    let dateObject = new Date(dateString);
+
+    dateObject.setMinutes(0, 0, 0);
+
+    if (timeObject) {
+      dateObject.setHours(
+        timeObject.hours,
+        timeObject.minutes,
+        timeObject.seconds
+      );
+    }
+
+    return dateObject;
+  }
+
+  function toTimestamp(dateString, timeObject): Date {
+    let dateObject = toObject(dateString, timeObject);
+
+    if (timezone) {
+      dateObject = zonedTimeToUtc(dateObject, timeZone);
+    }
+
+    return dateObject;
+  }
+
   function timePickerToTimeString(
     timePickerTime: TimePickerTimeInterface,
     includeSeconds = true
@@ -75,7 +105,10 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     return onlyTime(mockDate, includeSeconds);
   }
 
-  function timeStringToTimePicker(timeString: string): TimePickerData {
+  function timeStringToTimePicker(
+    timeString: string,
+    includeSeconds = true
+  ): TimePickerData {
     const splittedTimeString = timeString.split(":");
 
     if (splittedTimeString.length !== 3) {
@@ -87,7 +120,7 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     return {
       hours: Number(splittedTimeString[0]),
       minutes: Number(splittedTimeString[1]),
-      seconds: Number(splittedTimeString[2]),
+      seconds: includeSeconds ? Number(splittedTimeString[2]) : 0,
     };
   }
 
@@ -167,8 +200,11 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
 
   return {
     today,
+    timezone,
     onlyDate,
     onlyTime,
+    toObject,
+    toTimestamp,
     parseDate,
     timePickerToTimeString,
     timeStringToTimePicker,

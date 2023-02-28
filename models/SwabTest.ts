@@ -1,5 +1,11 @@
 import { Model } from "pinia-orm";
-import { Attr, Str, BelongsToMany, Uid } from "pinia-orm/dist/decorators";
+import {
+  Attr,
+  Str,
+  BelongsToMany,
+  Uid,
+  HasManyBy,
+} from "pinia-orm/dist/decorators";
 import Bacteria from "./Bacteria";
 import BacteriaSpecie from "./BacteriaSpecie";
 import SwabTestBacteria from "./SwabTestBacteria";

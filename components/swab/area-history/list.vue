@@ -22,24 +22,30 @@ const {
 
 const loading = ref(false);
 const error = ref(false);
-const swapAreaHistoryIds = ref([]);
+const mainSwapAreaHistoryIds = ref([]);
 
-const historyWithSwabAreas = computed(() => {
-  const swabAreaHistories = getSwabAreaHistoriesByIds(swapAreaHistoryIds.value);
+const mainAreaHistories = computed(() => {
+  const swabAreaHistories = getSwabAreaHistoriesByIds(
+    mainSwapAreaHistoryIds.value
+  );
 
   return loadSwabAreaToSwabAreaHistory(swabAreaHistories);
 });
 
-const mainAreaHistories = computed((): SwabAreaHistory[] => {
-  return historyWithSwabAreas.value.filter(
-    ({ swabArea: SwabArea }) => SwabArea.isMainArea
-  );
-});
+const subAreaHistories = computed(() => {
+  console.log(mainAreaHistories.value);
 
-const subAreaHistories = computed((): SwabAreaHistory[] => {
-  return historyWithSwabAreas.value.filter(
-    ({ swabArea: SwabArea }) => SwabArea.isSubArea
-  );
+  return mainAreaHistories.value.reduce((acc, mainAreaHistory) => {
+    console.log(mainAreaHistory);
+
+    const { subSwabAreaHistoryIds = [] } = mainAreaHistory;
+
+    if (subSwabAreaHistoryIds.length) {
+      acc = [...acc, ...getSwabAreaHistoriesByIds(subSwabAreaHistoryIds)];
+    }
+
+    return acc;
+  }, []);
 });
 
 const isPropInvalid = (props): boolean => {
@@ -51,7 +57,7 @@ const isPropInvalid = (props): boolean => {
 };
 
 const fetch = async function fetch(props) {
-  swapAreaHistoryIds.value = [];
+  mainSwapAreaHistoryIds.value = [];
 
   if (isPropInvalid(props)) {
     return;
@@ -62,11 +68,10 @@ const fetch = async function fetch(props) {
   loading.value = true;
 
   try {
-    const swapAreaHistoryData: SwabAreaHistory[] =
-      await swabApi().loadSwabAreaHistory(props);
+    const { swabAreaHistories } = await swabApi().loadSwabAreaHistoryV2(props);
 
-    if (swapAreaHistoryData && swapAreaHistoryData.length) {
-      swapAreaHistoryIds.value = swapAreaHistoryData.map(({ id }) => id);
+    if (swabAreaHistories && swabAreaHistories.length) {
+      mainSwapAreaHistoryIds.value = swabAreaHistories.map(({ id }) => id);
     }
   } catch (e) {
     console.log(e);
@@ -100,7 +105,7 @@ watch(() => props, fetch, { immediate: true, deep: true });
 
       <b-col v-else>
         <b-list-group
-          v-if="historyWithSwabAreas.length"
+          v-if="mainAreaHistories.length"
           class="list-group__swab-area-history"
         >
           <swab-area-history-list-item
