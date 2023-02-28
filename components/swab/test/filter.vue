@@ -99,8 +99,6 @@ const formSwabTestCode = computed({
     return swabTestCode.value;
   },
   set: (value) => {
-    console.log(value);
-
     swabTestCode.value = value;
   },
 });

@@ -3,9 +3,12 @@ import {
   Attr,
   Str,
   Uid,
-  HasManyBy
+  HasManyBy,
+  BelongsToMany,
 } from "pinia-orm/dist/decorators";
+import CleaningValidation from "./CleaningValidation";
 import SwabAreaHistory from "./SwabAreaHistory";
+import SwabPeriodCleaningValidation from "./SwabPeriodCleaningValidation";
 import SwabProductHistory from "./SwabProductHistory";
 
 export default class SwabPeriod extends Model {
@@ -28,4 +31,12 @@ export default class SwabPeriod extends Model {
 
   @HasManyBy(() => SwabProductHistory, "swabProductHistoryIds", "swabPeriodId")
   declare swabProductHistories: SwabProductHistory[];
+
+  @BelongsToMany(
+    () => CleaningValidation,
+    () => SwabPeriodCleaningValidation,
+    "swabPeriodId",
+    "cleaningValidationId"
+  )
+  declare cleaningValidations: CleaningValidation[];
 }
