@@ -1,14 +1,15 @@
 <script lang="ts" setup>
-import { required } from "@vuelidate/validators";
+import { useToast } from "vue-toastification";
 import {
   UpdateCleaningHistoryValidationBody,
   UpsertCleaningHistoryValidationData,
 } from "~~/composables/useCleaning";
-import CleaningHistoryValidation from "~~/models/CleaningHistoryValidation";
-import CleaningValidation from "~~/models/CleaningValidation";
+import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 
 export interface Props {
   cleaningHistoryId: string;
+  swabPeriodId: string;
+  swabAreaId: string;
   modelValue: UpdateCleaningHistoryValidationBody;
   disabled?: boolean;
 }
@@ -17,40 +18,31 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
 });
 
-const { getCleaningHistoryById } = useCleaning();
+const toast = useToast();
 const {
-  getSwabAreaHistoryById,
-  getSwabPeriodById,
-  loadCleaningValidationToSwabPeriod,
-} = useSwab();
+  getCleaningHistoryById,
+  loadCleaningHistoryValidationToCleaningHistory,
+} = useCleaning();
+const { api: swabApi } = useSwab();
+
+const loading = ref(false);
+const error = ref(false);
+const cleaningValidations = ref([]);
 
 const cleaningHistory = computed(() =>
-  getCleaningHistoryById(props.cleaningHistoryId)
+  loadCleaningHistoryValidationToCleaningHistory(
+    getCleaningHistoryById(props.cleaningHistoryId)
+  )
 );
 
-const swabAreaHistory = computed(() =>
-  cleaningHistory.value
-    ? getSwabAreaHistoryById(cleaningHistory.value.swabAreaHistoryId)
-    : null
-);
+const mapCleaningHistoryValidation = computed(() => {
+  const map = new Map();
 
-const cleaningValidations = computed(() => {
-  let cleaningValidations: CleaningValidation[] = [];
+  cleaningHistory.value.cleaningHistoryValidations.forEach((item) =>
+    map.set(item.cleaningValidationId, item)
+  );
 
-  if (swabAreaHistory.value) {
-    const swabPeriodWithCleaningValidations =
-      loadCleaningValidationToSwabPeriod(
-        getSwabPeriodById(swabAreaHistory.value.swabPeriodId)
-      );
-
-    if (swabPeriodWithCleaningValidations?.cleaningValidations.length) {
-      cleaningValidations = [
-        ...swabPeriodWithCleaningValidations.cleaningValidations,
-      ];
-    }
-  }
-
-  return cleaningValidations;
+  return map;
 });
 
 const mapCleaningValidation = computed(() => {
@@ -92,11 +84,76 @@ const mapCleaningValidation = computed(() => {
 // }));
 
 // const { isFormInvalid } = useValidation(validationRules, props.modelValue);
+
+const init = async () => {
+  error.value = false;
+
+  loading.value = true;
+
+  try {
+    const { swabPeriodId, swabAreaId } = props;
+
+    const swabCleaningValidations = await swabApi().loadSwabCleaningValidation({
+      swabPeriodId,
+      swabAreaId,
+    });
+
+    if (swabCleaningValidations.length) {
+      const cleaningValidationsEntity = swabCleaningValidations.map(
+        ({ cleaningValidation }) => cleaningValidation
+      );
+
+      if (cleaningValidationsEntity.length) {
+        cleaningValidations.value = cleaningValidationsEntity;
+
+        props.modelValue.cleaningHistoryValidations =
+          cleaningValidationsEntity.map((cleaningValidation) => {
+            const entity: UpsertCleaningHistoryValidationData = {
+              cleaningValidationId: cleaningValidation.id,
+              pass: null,
+            };
+
+            const mapEntity = mapCleaningHistoryValidation.value.get(
+              cleaningValidation.id
+            );
+
+            if (mapEntity) {
+              entity.id = mapEntity.id;
+              entity.pass = mapEntity.pass;
+            }
+
+            return entity;
+          });
+      }
+    }
+  } catch (e) {
+    console.log(e);
+
+    error.value = true;
+
+    toast.error(
+      "โหลดข้อมูลรายการตรวจสอบความสะอาดไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
+      {
+        timeout: 1000,
+      }
+    );
+  } finally {
+    loading.value = false;
+  }
+};
+
+onBeforeMount(async () => {
+  await init();
+});
 </script>
 
 <template>
   <b-row>
-    <b-col>
+    <b-col v-if="loading" class="text-center mt-5">
+      <line-md-loading-twotone-loop :style="{ fontSize: '2em' }" />
+    </b-col>
+
+    <b-col v-else>
       <b-list-group class="list-group__cleaning-validation">
         <b-list-group-item
           v-for="(
@@ -122,6 +179,12 @@ const mapCleaningValidation = computed(() => {
           ></radio-cleaning-history-validation>
         </b-list-group-item>
       </b-list-group>
+    </b-col>
+
+    <b-col v-if="error" class="text-center mt-3">
+      <p>พบข้อผิดพลาดในการโหลดข้อมูลรายการตรวจสอบความสะอาด</p>
+
+      <b-button variant="dark" @click="init"> โหลดข้อมูลใหม่ </b-button>
     </b-col>
   </b-row>
 </template>
