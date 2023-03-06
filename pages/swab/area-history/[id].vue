@@ -217,7 +217,7 @@ const imageDirectory = computed(
   () => `swab-area-history-image/${kebabCase(swabTest.value?.swabTestCode)}`
 );
 
-const init = async function init() {
+const init = async () => {
   error.value = false;
 
   loading.value = true;
@@ -294,14 +294,13 @@ const init = async function init() {
         }
       }
 
-      console.log(cleaningHistory.value);
-
       if (cleaningHistory.value) {
         const cleaningHistoryEndedAtDate = onlyDate(currentDate);
         const cleaningHistoryEndedAtTime = timeStringToTimePicker(
           onlyTime(currentDate),
           false
         );
+
         const cleaningHistoryEndedAt = toTimestamp(
           cleaningHistoryEndedAtDate,
           cleaningHistoryEndedAtTime
@@ -331,8 +330,8 @@ const init = async function init() {
             );
 
           cleaningHistoryData.cleaningHistoryStartedAt = toTimestamp(
-            cleaningHistory.value.cleaningHistoryStartedAtDate,
-            cleaningHistory.value.cleaningHistoryStartedAtTime
+            cleaningHistoryData.cleaningHistoryStartedAtDate,
+            cleaningHistoryData.cleaningHistoryStartedAtTime
           );
         }
 
@@ -348,8 +347,8 @@ const init = async function init() {
             );
 
           cleaningHistoryData.cleaningHistoryEndedAt = toTimestamp(
-            cleaningHistory.value.cleaningHistoryEndedAtDate,
-            cleaningHistory.value.cleaningHistoryEndedAtTime
+            cleaningHistoryData.cleaningHistoryEndedAtDate,
+            cleaningHistoryData.cleaningHistoryEndedAtTime
           );
         }
 
@@ -362,8 +361,6 @@ const init = async function init() {
         if (cleaningHistory.value.cleaningType) {
           cleaningHistoryData.cleaningType = cleaningHistory.value.cleaningType;
         }
-
-        console.log(cleaningHistoryData);
 
         form.cleaningHistory = { ...cleaningHistoryData };
       }
