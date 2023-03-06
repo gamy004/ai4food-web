@@ -299,8 +299,6 @@ onMounted(async () => {
 
         <b-row v-if="swabArea && swabPeriod" class="mt-3">
           <b-col>
-            <h6 class="fw-bold">รายการตรวจสอบ:</h6>
-
             <form-cleaning-history-validation
               :cleaning-history-id="id"
               :swab-area-id="swabArea.id"

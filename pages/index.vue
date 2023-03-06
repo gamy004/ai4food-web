@@ -83,7 +83,7 @@ const pageImportProductSchedule = {
           <h4 class="font-weight-bold">รายการข้อมูลพื้นฐาน</h4>
 
           <nuxt-link
-            v-if="authUser.isInProductionTeam || authUser.isInAdminTeam"
+            v-if="authUser.isInAdminTeam"
             v-slot="{ navigate }"
             :to="pageManageProduct"
             custom
@@ -115,7 +115,7 @@ const pageImportProductSchedule = {
           </nuxt-link>
 
           <nuxt-link
-            v-if="authUser.isInSwabTeam || authUser.isInAdminTeam"
+            v-if="authUser.isInAdminTeam"
             v-slot="{ navigate }"
             :to="pageManageSwabArea"
             custom

@@ -68,6 +68,13 @@ export const useCleaning = () => {
     return cleaningHistoryRepo.find(id);
   };
 
+  const getCleaningHistoryBySwabAreaHistoryId = (swabAreaHistoryId) => {
+    return cleaningHistoryRepo
+      .query()
+      .where("swabAreaHistoryId", swabAreaHistoryId)
+      .first();
+  };
+
   const getCleaningProgramByNames = (names: string[]) => {
     return names
       .map((name) => {
@@ -188,6 +195,7 @@ export const useCleaning = () => {
   return {
     getCleaningProgramByNames,
     getCleaningHistoryById,
+    getCleaningHistoryBySwabAreaHistoryId,
     loadCleaningHistoryValidationToCleaningHistory,
     api() {
       return {

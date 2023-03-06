@@ -154,7 +154,11 @@ onBeforeMount(async () => {
     </b-col>
 
     <b-col v-else>
-      <b-list-group class="list-group__cleaning-validation">
+      <div v-if="modelValue.cleaningHistoryValidations.length">
+        <h6 class="fw-bold">รายการตรวจสอบความสะอาด :</h6>
+      </div>
+
+      <b-list-group class="list-group__cleaning-validation px-3">
         <b-list-group-item
           v-for="(
             cleaningHistoryValidation, index
