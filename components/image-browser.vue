@@ -8,35 +8,32 @@ import { ReadImageAsBase64Output } from "~~/composables/useFileReader";
 import { UpsertFileData } from "~~/composables/useUpload";
 
 export interface DisplayedImage {
-    id?: string;
-    parentId?: string;
-    src: string;
-    uploadedImage?: boolean;
-    originalIndex?: number;
+  id?: string;
+  parentId?: string;
+  src: string;
+  uploadedImage?: boolean;
+  originalIndex?: number;
 }
 
 export interface Props {
-    directory?: string;
-    disabled?: boolean;
-    settings?: object;
-    itemsToShow?: number;
-    modelValue?: DisplayedImage[];
+  directory?: string;
+  disabled?: boolean;
+  settings?: object;
+  itemsToShow?: number;
+  modelValue?: DisplayedImage[];
 }
 
 // export interface Events {
 //     (e: 'click'): void
 // }
 
-const props = withDefaults(
-  defineProps<Props>(),
-  {
-    directory: "",
-    disabled: false,
-    settings: () => ({}),
-    itemsToShow: 3,
-    modelValue: () => []
-  }
-);
+const props = withDefaults(defineProps<Props>(), {
+  directory: "",
+  disabled: false,
+  settings: () => ({}),
+  itemsToShow: 3,
+  modelValue: () => [],
+});
 
 const emit = defineEmits(["update:modelValue"]);
 
@@ -61,10 +58,7 @@ const onImageAdded = async (event) => {
 
     reading.value = false;
 
-    addedImages.value = [
-      ...fileOutput,
-      ...addedImages.value
-    ];
+    addedImages.value = [...fileOutput, ...addedImages.value];
 
     event.target.value = "";
   }
@@ -83,14 +77,13 @@ const currentDisplayedImage = computed(() => {
 const hasPendingUploadImages = computed(() => addedImages.value.length > 0);
 
 const displayedImages: ComputedRef<DisplayedImage[]> = computed(() => {
-  const addedImageSrcs = addedImages.value.map(
-    (image, index) => ({ src: image.dataURL as string, uploadedImage: true, originalIndex: index })
-  );
+  const addedImageSrcs = addedImages.value.map((image, index) => ({
+    src: image.dataURL as string,
+    uploadedImage: true,
+    originalIndex: index,
+  }));
 
-  return [
-    ...addedImageSrcs,
-    ...props.modelValue
-  ];
+  return [...addedImageSrcs, ...props.modelValue];
 });
 
 const upload = async (): Promise<UpsertFileData[]> => {
@@ -104,7 +97,7 @@ const upload = async (): Promise<UpsertFileData[]> => {
         const fileEntity = await uploadFile({
           file: addedImage.originalImage,
           uploadObject: addedImage.compressedImage,
-          prefix: props.directory
+          prefix: props.directory,
         });
 
         return fileEntity;
@@ -123,7 +116,9 @@ const removeImageByIndex = (index) => {
   if (isPersistedImage(targetImage)) {
     const modelValue = props.modelValue;
 
-    const targetIndex = modelValue.findIndex(record => record.id === targetImage.id);
+    const targetIndex = modelValue.findIndex(
+      (record) => record.id === targetImage.id
+    );
 
     modelValue.splice(targetIndex, 1);
 
@@ -145,7 +140,7 @@ const onClickSlide = (index) => {
   currentSlide.value = index;
 };
 
-const generateBackgroupStyle = src => ({
+const generateBackgroupStyle = (src) => ({
   backgroundImage: `url(${src})`,
 
   /* Background image is centered vertically and horizontally at all times */
@@ -164,27 +159,35 @@ const generateBackgroupStyle = src => ({
 
   /* Set a background color that will be displayed
     while the background image is loading */
-  backgroundColor: "#464646"
+  backgroundColor: "#464646",
 });
 
-const isPersistedImage = image => image.id !== undefined;
+const isPersistedImage = (image) => image.id !== undefined;
 
-const showNavigation = computed(() => displayedImages.value.length > props.itemsToShow);
+const showNavigation = computed(
+  () => displayedImages.value.length > props.itemsToShow
+);
 
-const itemsToScroll = computed(() => showNavigation.value ? 1 : 0);
+const itemsToScroll = computed(() => (showNavigation.value ? 1 : 0));
 
 defineExpose({
   hasPendingUploadImages,
   upload,
-  removeImageByIndex
+  removeImageByIndex,
 });
 </script>
 
 <template>
   <div class="container__image-browser">
-    <b-row align-h="center" class="mt-3">
+    <b-row align-h="center">
       <b-col>
-        <b-img v-if="currentDisplayedImage" :src="currentDisplayedImage.src" fluid rounded class="w-100 mb-2" />
+        <b-img
+          v-if="currentDisplayedImage"
+          :src="currentDisplayedImage.src"
+          fluid
+          rounded
+          class="w-100 mb-2"
+        />
 
         <carousel
           v-if="displayedImages.length"
@@ -199,13 +202,24 @@ defineExpose({
             :key="`slide-${index}`"
             class="carousel__slide me-1"
           >
-            <b-overlay :show="(image.uploadedImage && uploading)" class="w-100" variant="dark">
+            <b-overlay
+              :show="image.uploadedImage && uploading"
+              class="w-100"
+              variant="dark"
+            >
               <a href="javascript:void(0)" @click="onClickSlide(index)">
-                <div class="w-100 carousel__item rounded" :style="generateBackgroupStyle(image.src)" />
+                <div
+                  class="w-100 carousel__item rounded"
+                  :style="generateBackgroupStyle(image.src)"
+                />
               </a>
 
               <div class="d-grid mt-2">
-                <b-button block variant="outline-danger" @click="removeImageByIndex(index)">
+                <b-button
+                  block
+                  variant="outline-danger"
+                  @click="removeImageByIndex(index)"
+                >
                   ลบ
                 </b-button>
               </div>
@@ -214,9 +228,11 @@ defineExpose({
                 <div
                   v-if="image.uploadedImage && uploading"
                   class="d-flex justify-content-center align-items-center"
-                  style="width: 5em; height: 5em;"
+                  style="width: 5em; height: 5em"
                 >
-                  <line-md-loading-twotone-loop :style="{ fontSize: '5em', height: '10vh' }" />
+                  <line-md-loading-twotone-loop
+                    :style="{ fontSize: '5em', height: '10vh' }"
+                  />
                 </div>
               </template>
             </b-overlay>
@@ -238,15 +254,23 @@ defineExpose({
               <!-- <line-md-loading-twotone-loop v-if="reading || uploading"
                                 :style="{ color: '#6c757d', fontSize: '5em', height: '20vh' }" /> -->
 
-              <carbon-image :style="{ color: '#6c757d', fontSize: '6em', height: '12vh' }" />
+              <carbon-image
+                :style="{ color: '#6c757d', fontSize: '6em', height: '12vh' }"
+              />
 
               <!-- <p v-if="uploading">กำลังอัพโหลด...</p> -->
             </b-card-text>
           </b-card>
 
           <template #overlay>
-            <div class="h-100 d-flex flex-column justify-content-end align-items-start ps-3 pb-3">
-              <h5 id="attach-swab-area-image-label" class="fw-bold text-light" for="image">
+            <div
+              class="h-100 d-flex flex-column justify-content-end align-items-start ps-3 pb-3"
+            >
+              <h5
+                id="attach-swab-area-image-label"
+                class="fw-bold text-light"
+                for="image"
+              >
                 เพิ่มรูปภาพ
               </h5>
 
@@ -293,7 +317,7 @@ defineExpose({
           hidden
           multiple
           @change="onImageAdded"
-        >
+        />
       </b-col>
     </b-row>
   </div>
@@ -301,44 +325,44 @@ defineExpose({
 
 <style lang="scss">
 .container__image-browser {
-    .carousel__track {
-        align-items: flex-start;
+  .carousel__track {
+    align-items: flex-start;
+  }
+
+  .carousel__slide {
+    .carousel__item {
+      width: 100%;
+      height: 120px;
+      max-height: 150px;
+      transform: scale(1);
+      opacity: 0.5;
+      transition: 0.5s;
     }
 
-    .carousel__slide {
-        .carousel__item {
-            width: 100%;
-            height: 120px;
-            max-height: 150px;
-            transform: scale(1);
-            opacity: 0.5;
-            transition: 0.5s;
-        }
+    // &--visible {
+    //     >.carousel__item {
+    //         opacity: 1;
+    //         // transform: rotateY(0);
+    //     }
+    // }
 
-        // &--visible {
-        //     >.carousel__item {
-        //         opacity: 1;
-        //         // transform: rotateY(0);
-        //     }
-        // }
+    // &--next {
+    //     >.carousel__item {
+    //         opacity: 0.8;
+    //     }
+    // }
 
-        // &--next {
-        //     >.carousel__item {
-        //         opacity: 0.8;
-        //     }
-        // }
+    // &--prev {
+    //     >.carousel__item {
+    //         opacity: 0.8;
+    //     }
+    // }
 
-        // &--prev {
-        //     >.carousel__item {
-        //         opacity: 0.8;
-        //     }
-        // }
-
-        &--active {
-            .carousel__item {
-                opacity: 1;
-            }
-        }
+    &--active {
+      .carousel__item {
+        opacity: 1;
+      }
     }
+  }
 }
 </style>

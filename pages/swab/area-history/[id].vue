@@ -295,16 +295,20 @@ const init = async () => {
       }
 
       if (cleaningHistory.value) {
+        let cleaningHistoryEndedAt = null;
+
         const cleaningHistoryEndedAtDate = onlyDate(currentDate);
         const cleaningHistoryEndedAtTime = timeStringToTimePicker(
           onlyTime(currentDate),
           false
         );
 
-        const cleaningHistoryEndedAt = toTimestamp(
+        // if (swabArea.value.isMainArea) {
+        cleaningHistoryEndedAt = toTimestamp(
           cleaningHistoryEndedAtDate,
           cleaningHistoryEndedAtTime
         );
+        // }
 
         let cleaningHistoryData = {
           cleaningHistoryStartedAt: null,
@@ -434,6 +438,8 @@ const updateSwabPlan = async () => {
     await swabApi().updateSwabPlanById(swabAreaHistoryId.value, form);
 
     if (cleaningHistory.value && form.cleaningHistory) {
+      console.log(cleaningHistory.value);
+
       await cleaningApi().updateCleaningHistory(
         cleaningHistory.value.id,
         form.cleaningHistory
@@ -446,6 +452,8 @@ const updateSwabPlan = async () => {
       router.back();
     }, 1000);
   } catch (error) {
+    console.log(error);
+
     toast.error("อัพเดตข้อมูลจุดตรวจ swab ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
   } finally {
     submitting.value = false;
@@ -604,6 +612,32 @@ onMounted(async () => {
           </b-col>
         </b-row>
 
+        <b-row v-if="cleaningHistory && form.cleaningHistory" class="mt-4">
+          <b-col>
+            <b-row>
+              <h6 class="fw-bold">ข้อมูลการทำความสะอาด :</h6>
+
+              <b-col>
+                <form-cleaning-history
+                  v-model="form.cleaningHistory"
+                  class="px-3"
+                ></form-cleaning-history>
+              </b-col>
+            </b-row>
+
+            <b-row v-if="cleaningHistory && swabAreaHistory">
+              <b-col>
+                <form-cleaning-history-validation
+                  :cleaning-history-id="cleaningHistory.id"
+                  :swab-area-id="swabAreaHistory.swabAreaId"
+                  :swab-period-id="swabAreaHistory.swabPeriodId"
+                  v-model="form.cleaningHistory"
+                />
+              </b-col>
+            </b-row>
+          </b-col>
+        </b-row>
+
         <b-row v-if="swabArea && swabArea.shouldRecordImage" class="mt-4">
           <b-col>
             <h6 class="fw-bold">รูปภาพประกอบ :</h6>
@@ -624,31 +658,6 @@ onMounted(async () => {
                 >
                   กรุณาอัพโหลดรูปภาพประกอบ อย่างน้อย 1 รูป
                 </b-form-invalid-feedback>
-              </b-col>
-            </b-row>
-          </b-col>
-        </b-row>
-
-        <b-row v-if="cleaningHistory && form.cleaningHistory" class="mt-4">
-          <b-col>
-            <h6 class="fw-bold">ข้อมูลการทำความสะอาด :</h6>
-
-            <b-row class="px-3">
-              <b-col>
-                <form-cleaning-history
-                  v-model="form.cleaningHistory"
-                ></form-cleaning-history>
-              </b-col>
-            </b-row>
-
-            <b-row>
-              <b-col>
-                <form-cleaning-history-validation
-                  :cleaning-history-id="cleaningHistory.id"
-                  :swab-area-id="swabAreaHistory.swabAreaId"
-                  :swab-period-id="swabAreaHistory.swabPeriodId"
-                  v-model="form.cleaningHistory"
-                />
               </b-col>
             </b-row>
           </b-col>

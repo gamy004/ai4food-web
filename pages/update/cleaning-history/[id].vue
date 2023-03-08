@@ -289,7 +289,7 @@ onMounted(async () => {
           </b-col>
         </b-row>
 
-        <b-row class="mt-3">
+        <b-row v-if="swabArea && swabArea.isMainArea" class="mt-3">
           <b-col>
             <h6 class="fw-bold">ข้อมูลการทำความสะอาด:</h6>
 
