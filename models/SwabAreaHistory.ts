@@ -6,6 +6,7 @@ import {
   BelongsTo,
   BelongsToMany,
   HasManyBy,
+  HasOne,
 } from "pinia-orm/dist/decorators";
 import { useDate, Shift } from "~~/composables/useDate";
 import { SwabStatus, SwabStatusMapper } from "~~/composables/useSwab";
@@ -113,6 +114,9 @@ export default class SwabAreaHistory extends Model {
 
   @BelongsTo(() => SwabAreaHistory, "mainSwabAreaHistoryId")
   declare mainSwabAreaHistory: SwabAreaHistory;
+
+  @HasOne(() => CleaningHistory, "swabAreaHistoryId")
+  declare cleaningHistory: CleaningHistory;
 
   get readableSwabAreaDate() {
     return this.swabAreaDate ? formatThLocale(new Date(this.swabAreaDate)) : "";

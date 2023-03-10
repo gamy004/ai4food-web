@@ -68,6 +68,13 @@ export const useCleaning = () => {
     return cleaningHistoryRepo.find(id);
   };
 
+  const getCleaningHistoryBySwabAreaHistoryId = (swabAreaHistoryId) => {
+    return cleaningHistoryRepo
+      .query()
+      .where("swabAreaHistoryId", swabAreaHistoryId)
+      .first();
+  };
+
   const getCleaningProgramByNames = (names: string[]) => {
     return names
       .map((name) => {
@@ -162,20 +169,38 @@ export const useCleaning = () => {
   ): Promise<any> => {
     return new Promise((resolve, reject) => {
       const {
-        cleaningHistoryStartedAt,
-        cleaningHistoryEndedAt,
-        cleaningProgram,
-        cleaningType,
-        cleaningHistoryValidations,
+        cleaningHistoryStartedAt = null,
+        cleaningHistoryEndedAt = null,
+        cleaningProgram = null,
+        cleaningType = null,
+        cleaningHistoryValidations = [],
       } = body;
 
-      const { data, error } = put<any>(`/cleaning-history/${id}`, {
-        cleaningHistoryStartedAt,
-        cleaningHistoryEndedAt,
-        cleaningProgramId: cleaningProgram.id,
-        cleaningType,
-        cleaningHistoryValidations,
-      });
+      const requestBody: any = {};
+
+      if (cleaningHistoryStartedAt) {
+        requestBody.cleaningHistoryStartedAt = cleaningHistoryStartedAt;
+      }
+
+      if (cleaningHistoryEndedAt) {
+        requestBody.cleaningHistoryEndedAt = cleaningHistoryEndedAt;
+      }
+
+      if (cleaningProgram) {
+        requestBody.cleaningProgramId = cleaningProgram.id;
+      }
+
+      if (cleaningType) {
+        requestBody.cleaningType = cleaningType;
+      }
+
+      if (cleaningHistoryValidations.length) {
+        requestBody.cleaningHistoryValidations = [
+          ...cleaningHistoryValidations,
+        ];
+      }
+
+      const { data, error } = put<any>(`/cleaning-history/${id}`, requestBody);
 
       watch(data, (responseData) => {
         resolve(responseData);
@@ -188,6 +213,7 @@ export const useCleaning = () => {
   return {
     getCleaningProgramByNames,
     getCleaningHistoryById,
+    getCleaningHistoryBySwabAreaHistoryId,
     loadCleaningHistoryValidationToCleaningHistory,
     api() {
       return {

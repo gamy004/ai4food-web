@@ -3,7 +3,6 @@ import { ref } from "vue";
 import { useToast } from "vue-toastification";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import CleaningHistory from "~~/models/CleaningHistory";
-import { UpsertCleaningHistoryValidationData } from "~~/composables/useCleaning";
 
 definePageMeta({
   title: "Ai4FoodSafety - Update Cleaning History Page",
@@ -57,8 +56,6 @@ const form = reactive({
   cleaningType: null,
   cleaningHistoryValidations: [],
 });
-
-const cleaningValidations = ref([]);
 
 const { validate, isInvalid, resetValidation } = useValidation({}, form);
 
@@ -163,43 +160,6 @@ const init = async () => {
 
       if (entity.cleaningType) {
         form.cleaningType = entity.cleaningType;
-      }
-
-      const { cleaningHistoryValidations = [], swabAreaHistory } = entity;
-
-      const mapCleaningHistoryValidation = new Map();
-
-      cleaningHistoryValidations.forEach((item) =>
-        mapCleaningHistoryValidation.set(item.cleaningValidationId, item)
-      );
-
-      if (swabAreaHistory.swabPeriod) {
-        let { cleaningValidations: swabPeriodCleaningValidations = [] } =
-          swabAreaHistory.swabPeriod;
-
-        cleaningValidations.value = swabPeriodCleaningValidations.filter(
-          (item) => item.active
-        );
-
-        form.cleaningHistoryValidations = cleaningValidations.value.map(
-          (cleaningValidation) => {
-            const entity: UpsertCleaningHistoryValidationData = {
-              cleaningValidationId: cleaningValidation.id,
-              pass: null,
-            };
-
-            const mapEntity = mapCleaningHistoryValidation.get(
-              cleaningValidation.id
-            );
-
-            if (mapEntity) {
-              entity.id = mapEntity.id;
-              entity.pass = mapEntity.pass;
-            }
-
-            return entity;
-          }
-        );
       }
     }
   } catch (e) {
@@ -329,7 +289,7 @@ onMounted(async () => {
           </b-col>
         </b-row>
 
-        <b-row class="mt-3">
+        <b-row v-if="swabArea && swabArea.isMainArea" class="mt-3">
           <b-col>
             <h6 class="fw-bold">ข้อมูลการทำความสะอาด:</h6>
 
@@ -337,12 +297,12 @@ onMounted(async () => {
           </b-col>
         </b-row>
 
-        <b-row v-if="cleaningValidations.length" class="mt-3">
+        <b-row v-if="swabArea && swabPeriod" class="mt-3">
           <b-col>
-            <h6 class="fw-bold">รายการตรวจสอบ:</h6>
-
             <form-cleaning-history-validation
               :cleaning-history-id="id"
+              :swab-area-id="swabArea.id"
+              :swab-period-id="swabPeriod.id"
               v-model="form"
             />
           </b-col>

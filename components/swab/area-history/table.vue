@@ -65,13 +65,14 @@ const getRouteUpdateSwabAreaHistory = (item) => {
 
 const getRouteUpdateMainSwabAreaHistory = (item) => {
   const routeParam = {
-    name: "swab-area-history-name",
+    name: "swab-area-history-id",
     params: {
-      name: item.swabAreaName,
+      // name: item.swabAreaName,
+      id: item.id,
     },
     query: {
-      areaTitle: `จุดหลัก (${item.code}): ${item.swabAreaName}`,
-      id: item.id,
+      // areaTitle: `จุดหลัก (${item.code}): ${item.swabAreaName}`,
+      // id: item.id,
       redirect: route.fullPath,
     },
   };
