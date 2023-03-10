@@ -22,6 +22,8 @@ import {
   LoadAllSwabAreaHistoryFilter,
   useFilterSwabAreaHistory,
 } from "./useFilterSwabAreaHistory";
+import SwabCleaningValidation from "~~/models/SwabCleaningValidation";
+import { LoadSwabCleaningValidationFilter } from "./useFilterSwabCleaningValidation";
 
 // export interface LoadSwabAreaHistoryData {
 //   date: string;
@@ -167,6 +169,7 @@ export const useSwab = () => {
   const swabEnvironmentRepo = useRepo(SwabEnvironment);
   const swabAreaHistoryEnvironmentRepo = useRepo(SwabAreaHistoryEnvironment);
   const swabProductHistoryRepo = useRepo(SwabProductHistory);
+  const swabCleaningValidationRepo = useRepo(SwabCleaningValidation);
   const { today } = useDate();
 
   const loadAllSwabPeriod = async (): Promise<SwabPeriod[]> => {
@@ -751,6 +754,33 @@ export const useSwab = () => {
     });
   };
 
+  const loadSwabCleaningValidation = (
+    filter: LoadSwabCleaningValidationFilter
+  ): Promise<SwabCleaningValidation[]> => {
+    return new Promise((resolve, reject) => {
+      const { toDto } = useFilterSwabCleaningValidation();
+
+      const params: SearchParams = toDto(filter);
+
+      const { data, error } = get<SwabCleaningValidation[]>(
+        `/swab/cleaning-validation`,
+        { params }
+      );
+
+      watch(data, (swabCleaningValidationData: SwabCleaningValidation[]) => {
+        const updatedSwabCleaningValidation = swabCleaningValidationRepo.save(
+          swabCleaningValidationData
+        );
+
+        resolve(updatedSwabCleaningValidation);
+      });
+
+      watch(error, (e: ResponseErrorT) => {
+        reject(e);
+      });
+    });
+  };
+
   const updateLabTestById = (
     swabTestId: number,
     hasBacteria: boolean
@@ -894,6 +924,7 @@ export const useSwab = () => {
         loadSwabPlanForUpdateById,
         loadSwabProductHistory,
         loadSwabProductHistoryById,
+        loadSwabCleaningValidation,
         updateSwabPlanById,
         updateLabTestById,
         createSwabProductHistory,

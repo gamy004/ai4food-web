@@ -27,9 +27,9 @@ const pageSwabProduct = {
   name: "swab-product",
 };
 
-const pageUpdateCleaningHistory = {
-  name: "update-cleaning-history",
-};
+// const pageUpdateCleaningHistory = {
+//   name: "update-cleaning-history",
+// };
 
 const pageUpdateSwabTestArea = {
   name: "swab-test-update-area",
@@ -83,7 +83,7 @@ const pageImportProductSchedule = {
           <h4 class="font-weight-bold">รายการข้อมูลพื้นฐาน</h4>
 
           <nuxt-link
-            v-if="authUser.isInProductionTeam || authUser.isInAdminTeam"
+            v-if="authUser.isInAdminTeam"
             v-slot="{ navigate }"
             :to="pageManageProduct"
             custom
@@ -115,7 +115,7 @@ const pageImportProductSchedule = {
           </nuxt-link>
 
           <nuxt-link
-            v-if="authUser.isInSwabTeam || authUser.isInAdminTeam"
+            v-if="authUser.isInAdminTeam"
             v-slot="{ navigate }"
             :to="pageManageSwabArea"
             custom
@@ -181,13 +181,17 @@ const pageImportProductSchedule = {
         </div>
 
         <div
-          v-if="authUser.isInSwabTeam || authUser.isInLabTeam"
+          v-if="
+            authUser.isInAdminTeam ||
+            authUser.isInSwabTeam ||
+            authUser.isInLabTeam
+          "
           class="d-grid gap-2 mt-4"
         >
           <h4 class="font-weight-bold">ระบบบันทึกข้อมูล</h4>
 
           <nuxt-link
-            v-if="authUser.isInSwabTeam"
+            v-if="authUser.isInAdminTeam || authUser.isInSwabTeam"
             v-slot="{ navigate }"
             :to="pageSwabArea"
             custom
@@ -203,7 +207,7 @@ const pageImportProductSchedule = {
           </nuxt-link>
 
           <nuxt-link
-            v-if="authUser.isInSwabTeam"
+            v-if="authUser.isInAdminTeam || authUser.isInSwabTeam"
             v-slot="{ navigate }"
             :to="pageSwabProduct"
             custom
@@ -218,8 +222,8 @@ const pageImportProductSchedule = {
             </button-arrow-right>
           </nuxt-link>
 
-          <nuxt-link
-            v-if="authUser.isInSwabTeam"
+          <!-- <nuxt-link
+            v-if="authUser.isInAdminTeam || authUser.isInSwabTeam"
             v-slot="{ navigate }"
             :to="pageUpdateCleaningHistory"
             custom
@@ -232,10 +236,10 @@ const pageImportProductSchedule = {
             >
               บันทึกการทำความสะอาด
             </button-arrow-right>
-          </nuxt-link>
+          </nuxt-link> -->
 
           <nuxt-link
-            v-if="authUser.isInLabTeam"
+            v-if="authUser.isInAdminTeam || authUser.isInLabTeam"
             v-slot="{ navigate }"
             :to="pageUpdateSwabTestArea"
             custom
@@ -251,7 +255,7 @@ const pageImportProductSchedule = {
           </nuxt-link>
 
           <nuxt-link
-            v-if="authUser.isInLabTeam"
+            v-if="authUser.isInAdminTeam || authUser.isInLabTeam"
             v-slot="{ navigate }"
             :to="pageUpdateSwabTestProduct"
             custom
@@ -267,7 +271,7 @@ const pageImportProductSchedule = {
           </nuxt-link>
 
           <nuxt-link
-            v-if="authUser.isInLabTeam"
+            v-if="authUser.isInAdminTeam || authUser.isInLabTeam"
             v-slot="{ navigate }"
             :to="pageUpdateBacteriaSpecieArea"
             custom
@@ -283,7 +287,7 @@ const pageImportProductSchedule = {
           </nuxt-link>
 
           <nuxt-link
-            v-if="authUser.isInLabTeam"
+            v-if="authUser.isInAdminTeam || authUser.isInLabTeam"
             v-slot="{ navigate }"
             :to="pageUpdateBacteriaSpecieProduct"
             custom

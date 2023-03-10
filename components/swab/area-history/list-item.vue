@@ -48,14 +48,15 @@ const itemTitle: ComputedRef<string> = computed(() => {
 
 const pageUpdateSwabAreaHistory: ComputedRef<object> = computed(() => {
   const routeParam = {
-    name: "swab-area-history-name",
+    name: "swab-area-history-id",
     // name: props.routeName,
     params: {
-      name: historySwabAreaName.value,
+      id: props.history.id,
+      // name: historySwabAreaName.value,
     },
     query: {
-      areaTitle: itemTitle.value,
-      id: props.history.id,
+      // areaTitle: itemTitle.value,
+      // id: props.history.id,
       redirect: route.fullPath,
     },
   };

@@ -16,8 +16,8 @@ export interface Props {
 const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   required: false,
-  passLabel: "ผ่าน",
-  notPassLabel: "ไม่ผ่าน",
+  passLabel: "ทำ",
+  notPassLabel: "ไม่ทำ",
 });
 
 const validationRules = {
