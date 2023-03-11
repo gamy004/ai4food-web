@@ -58,6 +58,10 @@ const pageManageProduct = {
 const pageImportProductSchedule = {
   name: "import-product-schedule",
 };
+
+const pageImportSwabTest = {
+  name: "import-swab-test",
+};
 </script>
 
 <template>
