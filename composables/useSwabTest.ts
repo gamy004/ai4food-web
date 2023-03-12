@@ -31,7 +31,6 @@ export const useSwabTest = () => {
 
   const getSwabTestById = (id: string): SwabTest => {
     const query = swabTestRepo.find(id);
-    console.log(query);
 
     return query;
   };
@@ -74,6 +73,28 @@ export const useSwabTest = () => {
     });
   };
 
+  const loadSwabTestByCodes = async (
+    swabTestCodes = []
+  ): Promise<SwabTest[]> => {
+    return new Promise((resolve, reject) => {
+      const { data, error } = post<SwabTest[]>("/swab-test/codes", {
+        swabTestCodes,
+      });
+
+      watch(data, (swabTestData) => {
+        const swabTests = swabTestRepo.save(swabTestData);
+
+        resolve(swabTests);
+      });
+
+      watch(error, (e) => {
+        console.log(e);
+
+        reject("Load swab test failed");
+      });
+    });
+  };
+
   const importSwabTest = async (body: BodyImportSwabTest): Promise<any> => {
     return new Promise((resolve, reject) => {
       const { data, error } = post<any>(`/swab-test/import`, {
@@ -96,6 +117,7 @@ export const useSwabTest = () => {
       return {
         loadSwabTest,
         importSwabTest,
+        loadSwabTestByCodes,
       };
     },
   };

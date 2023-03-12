@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { chunk } from "lodash";
+import { chunk, groupBy } from "lodash";
 import { format } from "date-fns-tz";
 import { useToast } from "vue-toastification";
 import { utils } from "xlsx";
@@ -17,8 +17,9 @@ const toast = useToast();
 const { readFile, workbook } = useXlsx();
 const { getAuth } = useAuth();
 const { api: importApi } = useImport();
-const { getSwabTestByCode, api: swabTestApi } = useSwabTest();
+const { api: swabTestApi } = useSwabTest();
 const { getBacterias } = useBacteria();
+const { today } = useDate();
 
 const props = withDefaults(defineProps<Props>(), {
   showValue: false,
@@ -32,6 +33,8 @@ const submitting = ref(false);
 const error: Ref<ResponseErrorT | null> = ref(null);
 const loading = ref(false);
 const hasImportedData = ref(false);
+const hasnotAvailableData = ref(false);
+const renderData = ref([]);
 const importedDate = ref([]);
 const selectedImportedDate = ref(null);
 const importedData = ref(null);
@@ -43,6 +46,8 @@ const keys_to_keep = [
   "swabTestCode",
   "swabTestRecordedAt",
   "bacteriaRecordedAt",
+  "recordedUser",
+  "bacteriaRecordedUser",
 ];
 
 const redux = (array) =>
@@ -81,7 +86,7 @@ const tableFields = computed(() => {
 });
 
 const filteredImportedData = computed(() => {
-  let data = importedData.value;
+  let data = renderData.value;
 
   if (selectedImportedDate.value) {
     data = data.filter((record) => {
@@ -104,6 +109,8 @@ const clearState = () => {
   error.value = null;
   selectedImportedDate.value = null;
   hasImportedData.value = false;
+  hasnotAvailableData.value = false;
+  renderData.value = [];
   importedDate.value = [];
   importedData.value = [];
 };
@@ -154,15 +161,21 @@ const onWorkbookRead = async (workbook) => {
       const { Sheets = {} } = workbook.value;
       const sheetNames = workbook.value.SheetNames;
       const bacteriaData = getBacterias();
+      const swabTestMap = [];
       let results = [];
+      let availableData = [];
+      let notAvailableData = [];
 
       /* loop foreach sheetName */
       const sheetResult = [];
+
+      const currentDate = today();
 
       for (const x in sheetNames) {
         const sheetName = sheetNames[x];
         const sheetDatas = utils.sheet_to_json(Sheets[sheetName]);
 
+        let records = [];
         if (sheetDatas && sheetDatas.length) {
           const swabTestCodeStartIndex = await findSwabTestCodeIndex(
             sheetDatas
@@ -183,7 +196,7 @@ const onWorkbookRead = async (workbook) => {
           ) {
             const data = sheetDatas[index];
             const positiveKey = ["positive", "POSITIVE", "Positive"];
-            const swabTestCode = data[swabTestCodeKey];
+            let swabTestCode = data[swabTestCodeKey];
             const resultBacteria = data[bacteriaKey];
             let bacteria = [];
 
@@ -194,34 +207,64 @@ const onWorkbookRead = async (workbook) => {
               });
             }
 
-            // if (swabTestCode !== undefined) {
-            const swabTest = getSwabTestByCode(swabTestCode);
+            records.push({
+              bacteria,
+              swabTestCode: swabTestCode ? swabTestCode.trim() : swabTestCode,
+            });
+          }
+        }
 
-            if (!swabTest) console.log("Error code:", swabTestCode);
+        const swabTestCodes = records.map((r) => r.swabTestCode);
 
+        const response = await swabTestApi().loadSwabTestByCodes(swabTestCodes);
+
+        const swabTestGroupByCode = groupBy(response, "swabTestCode");
+
+        //merge swab test
+        const availableSwabTest = [];
+        const notAvailableSwabTest = [];
+        for (let index = 0; index < records.length; index++) {
+          const record = records[index];
+          const { swabTestCode } = record;
+
+          if (swabTestGroupByCode[swabTestCode]) {
             sheetResult.push({
-              ...swabTest,
+              ...record,
+              ...swabTestGroupByCode[swabTestCode][0],
+              status: "available",
+            });
+            availableSwabTest.push({
+              ...record,
+              ...swabTestGroupByCode[swabTestCode][0],
               recordedUser: {
                 id: user.getUserId(),
               },
               bacteriaRecordedUser: {
                 id: user.getUserId(),
               },
-              swabTestRecordedAt: new Date(),
-              bacteriaRecordedAt: new Date(),
-              bacteria,
-              swabTestCode,
+              swabTestRecordedAt: currentDate,
+              bacteriaRecordedAt: currentDate,
+            });
+          } else {
+            sheetResult.push({
+              ...record,
+              status: "notAvailable",
+            });
+            notAvailableSwabTest.push({
+              ...record,
             });
           }
         }
-        // }
-
         results = [...results, ...sheetResult];
+        availableData = [...availableData, ...availableSwabTest];
+        notAvailableData = [...notAvailableData, ...notAvailableSwabTest];
       }
 
       hasImportedData.value = true;
-
-      importedData.value = results;
+      hasnotAvailableData.value =
+        notAvailableData && notAvailableData.length ? true : false;
+      importedData.value = availableData;
+      renderData.value = results;
     } catch (error) {
       toast.error("ไม่สามารถดึงข้อมูลได้ กรุญาลองใหม่อีกครั้ง", {
         timeout: 1000,
@@ -261,37 +304,25 @@ const onSubmit = async () => {
         const records = redux(data);
         console.log(records);
 
-        // await swabTestApi().importSwabTest({
-        //   importTransaction: {
-        //     id: importTransaction.id,
-        //   },
-        //   records: redux(data),
-        // });
+        await swabTestApi().importSwabTest({
+          importTransaction: {
+            id: importTransaction.id,
+          },
+          records: redux(data),
+        });
       }
 
-      // importApi().completeTransaction(importTransaction.id);
+      importApi().completeTransaction(importTransaction.id);
 
-      // setTimeout(() => {
-      //   toast.success("นำเข้าข้อมูลแผลการผลิตสำเร็จ", { timeout: 1000 });
+      setTimeout(() => {
+        toast.success("นำเข้าข้อมูลแผลการผลิตสำเร็จ", { timeout: 1000 });
 
-      //   showValue.value = false;
+        showValue.value = false;
 
-      //   const firstImportedDate = importedDate.value[0].value; // dd/MM/yyyy
-      //   const lastImportedDate =
-      //     importedDate.value[importedDate.value.length - 1].value; // dd/MM/yyyy
-      //   const fromDate = firstImportedDate
-      //     .split("/")
-      //     .reduceRight((acc, val) => {
-      //       return acc.length ? `${acc}-${val}` : val;
-      //     }, "");
-      //   const toDate = lastImportedDate.split("/").reduceRight((acc, val) => {
-      //     return acc.length ? `${acc}-${val}` : val;
-      //   }, "");
+        clearState();
 
-      //   clearState();
-
-      //   emit("success", { fromDate, toDate });
-      // }, 1000);
+        emit("success");
+      }, 1000);
     }
   } catch (error) {
     if (importTransaction) {
