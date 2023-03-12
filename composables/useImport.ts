@@ -76,12 +76,14 @@ export const useImport = () => {
     });
   };
 
-  const completeTransaction = (id: string): Promise<any> => {
+  const completeTransaction = (
+    id: string,
+    body: BodyImportTransaction
+  ): Promise<any> => {
     return new Promise((resolve, reject) => {
-      const { data, error } = put<any>(
-        `/import-transaction/${id}/complete`,
-        {}
-      );
+      const { data, error } = put<any>(`/import-transaction/${id}/complete`, {
+        ...body,
+      });
 
       watch(data, (responseData) => {
         resolve(responseData);

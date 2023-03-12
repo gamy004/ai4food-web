@@ -6,6 +6,7 @@ export interface LoadImportTransactionFilter {
   dateRange?: DateRangeInterface;
   importSource?: ImportSource;
   importType?: ImportType;
+  importedFileName?: string;
   skip?: number;
   take?: number;
 }
@@ -14,7 +15,14 @@ export const useFilterImportTransaction = () => {
   const { onlyDate } = useDate();
 
   const toDto = (data: LoadImportTransactionFilter): SearchParams => {
-    const { dateRange, importSource, importType, skip, take } = data;
+    const {
+      dateRange,
+      importSource,
+      importType,
+      skip,
+      take,
+      importedFileName,
+    } = data;
 
     const params: any = {};
 
@@ -36,6 +44,9 @@ export const useFilterImportTransaction = () => {
     }
     if (take !== undefined) {
       params.take = take;
+    }
+    if (importedFileName) {
+      params.importedFileName = importedFileName;
     }
 
     return params;

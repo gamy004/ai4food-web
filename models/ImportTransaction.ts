@@ -56,6 +56,9 @@ export default class ImportTransaction extends Model {
   @Attr(null)
   declare updatedAt: string | null;
 
+  @Attr(null)
+  declare importedFileName: string | null;
+
   get readableCreatedAtTime() {
     return this.createdAt ? formatThLocale(this.createdAt, "PP HH:mm น.") : "";
   }

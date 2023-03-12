@@ -7,6 +7,8 @@ import { Ref } from "vue";
 import UploadIcon from "~icons/carbon/upload";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import { ResponseErrorT } from "~~/composables/useRequest";
+import { UpsertFileData } from "~~/composables/useUpload";
+import { ReadFileAsBase64Output } from "~~/composables/useFileReader";
 
 export interface Props {
   showValue?: boolean;
@@ -19,6 +21,8 @@ const { api: importApi } = useImport();
 const { api: swabTestApi } = useSwabTest();
 const { getBacterias } = useBacteria();
 const { today } = useDate();
+const { uploadFile } = useUpload();
+const { readFileAsBase64 } = useFileReader();
 
 const props = withDefaults(defineProps<Props>(), {
   showValue: false,
@@ -39,6 +43,8 @@ const selectedImportedDate = ref(null);
 const importedData = ref(null);
 const user = getAuth();
 const showConfirmModal = ref(false);
+const fileInput: Ref<ReadFileAsBase64Output> = ref(null);
+const uploading = ref(false);
 
 const keys_to_keep = [
   "id",
@@ -105,6 +111,8 @@ const filteredImportedData = computed(() => {
   return data;
 });
 
+const hasPendingUploadFile = computed(() => fileInput.value);
+
 const clearState = () => {
   error.value = null;
   selectedImportedDate.value = null;
@@ -113,6 +121,7 @@ const clearState = () => {
   renderData.value = [];
   importedDate.value = [];
   importedData.value = [];
+  fileInput.value = null;
 };
 
 const onCancel = () => {
@@ -157,11 +166,16 @@ const onWorkbookRead = async (workbook) => {
     importedDate.value = [];
     selectedImportedDate.value = null;
 
+    if (workbook.file) {
+      const fileOutput = await readFileAsBase64(workbook.file);
+      fileInput.value = fileOutput;
+      console.log(fileInput.value);
+    }
+
     try {
       const { Sheets = {} } = workbook.value;
       const sheetNames = workbook.value.SheetNames;
       const bacteriaData = getBacterias();
-      const swabTestMap = [];
       let results = [];
       let availableData = [];
       let notAvailableData = [];
@@ -279,6 +293,22 @@ const onWorkbookRead = async (workbook) => {
   fileInputRef.value.value = null;
 };
 
+const upload = async (): Promise<UpsertFileData> => {
+  let uploadResult: UpsertFileData = {};
+  if (hasPendingUploadFile.value) {
+    uploading.value = true;
+
+    uploadResult = await uploadFile({
+      file: fileInput.value.original,
+      uploadObject: fileInput.value.compressed,
+      prefix: "import/swab-test",
+    });
+
+    uploading.value = false;
+  }
+  return uploadResult;
+};
+
 const importSwabTest = async () => {
   submitting.value = true;
 
@@ -286,24 +316,32 @@ const importSwabTest = async () => {
 
   try {
     if (importedData.value && importedData.value.length) {
-      importTransaction = await importApi().createTransaction({
-        importType: "swab_test",
-        importSource: "web",
-        importedFileUrl: "-",
-        importedFileName: "-",
-        importedUser: {
-          id: user.getUserId(),
-        },
-      });
+      if (fileInput.value) {
+        const { importTransactions } = await importApi().loadTransactions({
+          importedFileName: fileInput.value.original.name,
+        });
+        if (importTransactions && importTransactions.length) {
+          importTransaction = importTransactions[0];
+        }
+      }
+
+      if (!importTransaction) {
+        importTransaction = await importApi().createTransaction({
+          importType: "swab_test",
+          importSource: "web",
+          importedFileUrl: "-",
+          importedFileName: "-",
+          importedUser: {
+            id: user.getUserId(),
+          },
+        });
+      }
 
       const chunkedImportedData = chunk(importedData.value, 50);
-
       for (let index = 0; index < chunkedImportedData.length; index++) {
         const data = chunkedImportedData[index];
-
         const records = redux(data);
         console.log(records);
-
         await swabTestApi().importSwabTest({
           importTransaction: {
             id: importTransaction.id,
@@ -312,15 +350,19 @@ const importSwabTest = async () => {
         });
       }
 
-      importApi().completeTransaction(importTransaction.id);
+      const uploadFile = await upload();
+      console.log(uploadFile);
+
+      importApi().completeTransaction(importTransaction.id, {
+        ...importTransaction,
+        importedFileName: uploadFile.fileName,
+        importedFile: uploadFile,
+      });
 
       setTimeout(() => {
         toast.success("นำเข้าข้อมูลแผลการผลิตสำเร็จ", { timeout: 1000 });
-
         showValue.value = false;
-
         clearState();
-
         emit("success");
       }, 1000);
     }
