@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { chunk, groupBy } from "lodash";
-import { format } from "date-fns-tz";
 import { useToast } from "vue-toastification";
 import { utils } from "xlsx";
 import { useXlsx } from "~~/composables/useXlsx";
@@ -33,12 +32,13 @@ const submitting = ref(false);
 const error: Ref<ResponseErrorT | null> = ref(null);
 const loading = ref(false);
 const hasImportedData = ref(false);
-const hasnotAvailableData = ref(false);
+const hasNotAvailableData = ref(false);
 const renderData = ref([]);
 const importedDate = ref([]);
 const selectedImportedDate = ref(null);
 const importedData = ref(null);
 const user = getAuth();
+const showConfirmModal = ref(false);
 
 const keys_to_keep = [
   "id",
@@ -66,14 +66,14 @@ const showValue = computed({
 
 const tableFields = computed(() => {
   return [
-    { key: "swabTestCode", label: "รหัสตัวอย่าง", thStyle: { width: "50%" } },
+    { key: "swabTestCode", label: "รหัสตัวอย่าง", thStyle: { width: "40%" } },
     {
       key: "result",
       label: "ผลการตรวจเชื้อ",
-      thStyle: { width: "50%" },
+      thStyle: { width: "40%" },
     },
 
-    // { key: "productScheduleStartedAt", label: "เวลาเริ่ม", thStyle: { width: "5%" } },
+    { key: "status", label: "สถานะ", thStyle: { width: "20%" } },
     // { key: "productScheduleEndedAt", label: "เวลาสิ้นสุด", thStyle: { width: "5%" } },
     // {
     //   key: "action",
@@ -109,7 +109,7 @@ const clearState = () => {
   error.value = null;
   selectedImportedDate.value = null;
   hasImportedData.value = false;
-  hasnotAvailableData.value = false;
+  hasNotAvailableData.value = false;
   renderData.value = [];
   importedDate.value = [];
   importedData.value = [];
@@ -261,7 +261,7 @@ const onWorkbookRead = async (workbook) => {
       }
 
       hasImportedData.value = true;
-      hasnotAvailableData.value =
+      hasNotAvailableData.value =
         notAvailableData && notAvailableData.length ? true : false;
       importedData.value = availableData;
       renderData.value = results;
@@ -279,7 +279,7 @@ const onWorkbookRead = async (workbook) => {
   fileInputRef.value.value = null;
 };
 
-const onSubmit = async () => {
+const importSwabTest = async () => {
   submitting.value = true;
 
   let importTransaction;
@@ -336,6 +336,14 @@ const onSubmit = async () => {
     setTimeout(() => {
       submitting.value = false;
     }, 1000);
+  }
+};
+
+const onSubmit = async () => {
+  if (hasNotAvailableData) {
+    return (showConfirmModal.value = true);
+  } else {
+    importSwabTest();
   }
 };
 
@@ -402,6 +410,23 @@ watch(() => workbook, onWorkbookRead, { deep: true });
               :fields="tableFields"
               :items="filteredImportedData"
             >
+              <template #cell(status)="{ item, index }">
+                <b-badge
+                  v-if="item.status == 'available'"
+                  variant="success"
+                  pill
+                >
+                  พบข้อมูลในระบบ
+                </b-badge>
+
+                <b-badge
+                  v-if="item.status == 'notAvailable'"
+                  variant="danger"
+                  pill
+                >
+                  ไม่พบข้อมูลในระบบ
+                </b-badge>
+              </template>
             </b-table>
           </b-col>
 
@@ -436,4 +461,9 @@ watch(() => workbook, onWorkbookRead, { deep: true });
       </template>
     </modal>
   </b-form>
+
+  <swab-test-modal-confirm
+    v-model:show-value="showConfirmModal"
+    @confirm="importSwabTest"
+  />
 </template>
