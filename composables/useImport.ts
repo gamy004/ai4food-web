@@ -8,6 +8,10 @@ export type ConnectUser = {
   id: string;
 };
 
+export type ConnectFile = {
+  id: string;
+};
+
 export interface LoadTransactionsResponse {
   total: number;
   importTransactions: ImportTransaction[];
@@ -18,16 +22,50 @@ export type BodyImportTransaction = {
   importSource: string;
   importedFileUrl: string;
   importedFileName: string;
-  importedFile?: File;
+  importedFile?: ConnectFile;
   importedUser: ConnectUser;
+};
+
+export type BodyUpdateTransaction = {
+  importedFileUrl?: string;
+  importedFileName?: string;
+  importedFile?: ConnectFile;
+};
+
+export type BodyCreateFile = {
+  fileKey: string;
+  fileName: string;
+  fileSource: string;
+  fileContentType: string;
+  fileSize: number;
+  user: ConnectUser;
 };
 
 export const useImport = () => {
   const { get, post, put } = useRequest();
+  const fileRepo = useRepo(File);
   const importTransactionRepo = useRepo(ImportTransaction);
 
   const getImportTransactionById = (id: string): ImportTransaction | null => {
     return importTransactionRepo.find(id);
+  };
+
+  const createFile = (body: BodyCreateFile): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const { data, error } = post<File>(`/file`, {
+        ...body,
+      });
+
+      watch(data, (responseData: File) => {
+        const file = fileRepo.save(responseData);
+
+        resolve(file);
+      });
+
+      watch(error, (e) => {
+        reject(e);
+      });
+    });
   };
 
   const loadTransactions = (
@@ -76,14 +114,36 @@ export const useImport = () => {
     });
   };
 
-  const completeTransaction = (
+  const updateTransaction = (
     id: string,
-    body: BodyImportTransaction
-  ): Promise<any> => {
+    body: BodyUpdateTransaction
+  ): Promise<ImportTransaction> => {
     return new Promise((resolve, reject) => {
-      const { data, error } = put<any>(`/import-transaction/${id}/complete`, {
-        ...body,
+      const { data, error } = put<ImportTransaction>(
+        `/import-transaction/${id}`,
+        {
+          ...body,
+        }
+      );
+
+      watch(data, (responseData: ImportTransaction) => {
+        const importTransaction = importTransactionRepo.save(responseData);
+
+        resolve(importTransaction);
       });
+
+      watch(error, (e) => {
+        reject(e);
+      });
+    });
+  };
+
+  const completeTransaction = (id: string): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const { data, error } = put<any>(
+        `/import-transaction/${id}/complete`,
+        {}
+      );
 
       watch(data, (responseData) => {
         resolve(responseData);
@@ -113,8 +173,10 @@ export const useImport = () => {
     getImportTransactionById,
     api() {
       return {
+        createFile,
         loadTransactions,
         createTransaction,
+        updateTransaction,
         completeTransaction,
         cancelTransaction,
       };

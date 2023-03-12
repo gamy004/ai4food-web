@@ -531,6 +531,18 @@ export const useSwab = () => {
     return swabPeriod;
   };
 
+  const loadBacteriaToSwabTest = (swabTest: SwabTest): SwabTest => {
+    swabTestRepo.with("bacteria").load([swabTest]);
+
+    return swabTest;
+  };
+
+  const loadBacteriaSpeciesToSwabTest = (swabTest: SwabTest): SwabTest => {
+    swabTestRepo.with("bacteriaSpecies").load([swabTest]);
+
+    return swabTest;
+  };
+
   const mapPivotSwabAreaEnvironment = (swabAreaHistory) => {
     if (swabAreaHistory.swabEnvironments?.length) {
       swabAreaHistory.swabEnvironments = swabAreaHistory.swabEnvironments.map(
@@ -908,6 +920,10 @@ export const useSwab = () => {
     loadProductToSwabProductHistory,
 
     loadCleaningValidationToSwabPeriod,
+
+    loadBacteriaToSwabTest,
+
+    loadBacteriaSpeciesToSwabTest,
 
     api() {
       return {

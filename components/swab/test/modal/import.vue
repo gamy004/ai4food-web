@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { chunk, groupBy } from "lodash";
+import { chunk, keyBy } from "lodash";
 import { useToast } from "vue-toastification";
 import { utils } from "xlsx";
 import { useXlsx } from "~~/composables/useXlsx";
@@ -8,7 +8,7 @@ import UploadIcon from "~icons/carbon/upload";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import { ResponseErrorT } from "~~/composables/useRequest";
 import { UpsertFileData } from "~~/composables/useUpload";
-import { ReadFileAsBase64Output } from "~~/composables/useFileReader";
+import SwabTest from "~~/models/SwabTest";
 
 export interface Props {
   showValue?: boolean;
@@ -19,10 +19,9 @@ const { readFile, workbook } = useXlsx();
 const { getAuth } = useAuth();
 const { api: importApi } = useImport();
 const { api: swabTestApi } = useSwabTest();
-const { getBacterias } = useBacteria();
+const { getBacterias, api: bacteriaApi } = useBacteria();
 const { today } = useDate();
 const { uploadFile } = useUpload();
-const { readFileAsBase64 } = useFileReader();
 
 const props = withDefaults(defineProps<Props>(), {
   showValue: false,
@@ -43,7 +42,7 @@ const selectedImportedDate = ref(null);
 const importedData = ref(null);
 const user = getAuth();
 const showConfirmModal = ref(false);
-const fileInput: Ref<ReadFileAsBase64Output> = ref(null);
+const fileInput: Ref<File> = ref(null);
 const uploading = ref(false);
 
 const keys_to_keep = [
@@ -111,8 +110,6 @@ const filteredImportedData = computed(() => {
   return data;
 });
 
-const hasPendingUploadFile = computed(() => fileInput.value);
-
 const clearState = () => {
   error.value = null;
   selectedImportedDate.value = null;
@@ -130,7 +127,7 @@ const onCancel = () => {
   showValue.value = false;
 };
 
-const findSwabTestCodeIndex = async (sheetDatas = []) => {
+const findSwabTestCodeIndex = (sheetDatas = []) => {
   let swabTestCodeIndex = null;
   const keyOfSwabTestCode = "Sample ID";
   for (let index = 0; index < sheetDatas.length; index++) {
@@ -167,15 +164,19 @@ const onWorkbookRead = async (workbook) => {
     selectedImportedDate.value = null;
 
     if (workbook.file) {
-      const fileOutput = await readFileAsBase64(workbook.file);
-      fileInput.value = fileOutput;
+      fileInput.value = workbook.file;
+
       console.log(fileInput.value);
     }
 
     try {
       const { Sheets = {} } = workbook.value;
       const sheetNames = workbook.value.SheetNames;
+
+      await bacteriaApi().loadAllBacteria();
+
       const bacteriaData = getBacterias();
+
       let results = [];
       let availableData = [];
       let notAvailableData = [];
@@ -191,12 +192,13 @@ const onWorkbookRead = async (workbook) => {
 
         let records = [];
         if (sheetDatas && sheetDatas.length) {
-          const swabTestCodeStartIndex = await findSwabTestCodeIndex(
-            sheetDatas
-          );
+          const swabTestCodeStartIndex = findSwabTestCodeIndex(sheetDatas);
 
-          if (swabTestCodeStartIndex === null)
-            throw Error(`Can't found index of swab-test code`);
+          if (swabTestCodeStartIndex === null) {
+            return toast.error(
+              "ไม่พบตำแหน่งของคอลัมน์ Sample ID กรุณาตรวจสอบไฟล์"
+            );
+          }
 
           const [swabTestCodeKey, bacteriaKey] = findKey(
             ["Sample ID", "Result"],
@@ -209,13 +211,30 @@ const onWorkbookRead = async (workbook) => {
             index++
           ) {
             const data = sheetDatas[index];
-            const positiveKey = ["positive", "POSITIVE", "Positive"];
+
             let swabTestCode = data[swabTestCodeKey];
-            const resultBacteria = data[bacteriaKey];
+            let resultBacteria = data[bacteriaKey];
+
+            if (!swabTestCode || !resultBacteria) {
+              continue;
+            }
+
+            swabTestCode = swabTestCode.toUpperCase().trim().replace(/\s/g, "");
+            resultBacteria = resultBacteria.toUpperCase().trim();
+
+            if (
+              !swabTestCode.length ||
+              !resultBacteria.length ||
+              (resultBacteria !== "POSITIVE" && resultBacteria !== "NEGATIVE")
+            ) {
+              continue;
+            }
+
             let bacteria = [];
 
-            const rule = (x) => x === resultBacteria;
-            if (positiveKey.some(rule)) {
+            // const rule = (x) => x === resultBacteria;
+
+            if (resultBacteria === "POSITIVE") {
               bacteria = bacteriaData.map((b) => {
                 return { id: b.id };
               });
@@ -232,24 +251,31 @@ const onWorkbookRead = async (workbook) => {
 
         const response = await swabTestApi().loadSwabTestByCodes(swabTestCodes);
 
-        const swabTestGroupByCode = groupBy(response, "swabTestCode");
+        const swabTestKeyByCode: Record<string, SwabTest> = keyBy(
+          response,
+          "swabTestCode"
+        );
 
         //merge swab test
         const availableSwabTest = [];
         const notAvailableSwabTest = [];
+
         for (let index = 0; index < records.length; index++) {
           const record = records[index];
           const { swabTestCode } = record;
 
-          if (swabTestGroupByCode[swabTestCode]) {
+          const loadedSwabTest = swabTestKeyByCode[swabTestCode];
+
+          if (loadedSwabTest) {
             sheetResult.push({
               ...record,
-              ...swabTestGroupByCode[swabTestCode][0],
               status: "available",
             });
+
             availableSwabTest.push({
               ...record,
-              ...swabTestGroupByCode[swabTestCode][0],
+              id: loadedSwabTest.id,
+              swabTestCode: loadedSwabTest.swabTestCode,
               recordedUser: {
                 id: user.getUserId(),
               },
@@ -264,23 +290,30 @@ const onWorkbookRead = async (workbook) => {
               ...record,
               status: "notAvailable",
             });
+
             notAvailableSwabTest.push({
               ...record,
             });
           }
         }
+
         results = [...results, ...sheetResult];
         availableData = [...availableData, ...availableSwabTest];
         notAvailableData = [...notAvailableData, ...notAvailableSwabTest];
       }
 
       hasImportedData.value = true;
+
       hasNotAvailableData.value =
         notAvailableData && notAvailableData.length ? true : false;
+
       importedData.value = availableData;
+
       renderData.value = results;
-    } catch (error) {
-      toast.error("ไม่สามารถดึงข้อมูลได้ กรุญาลองใหม่อีกครั้ง", {
+    } catch (e) {
+      console.log(e);
+
+      toast.error("พบข้อผิดพลาดในการอ่านข้อมูนำเข้า กรุญาลองใหม่อีกครั้ง", {
         timeout: 1000,
       });
     } finally {
@@ -293,20 +326,43 @@ const onWorkbookRead = async (workbook) => {
   fileInputRef.value.value = null;
 };
 
-const upload = async (): Promise<UpsertFileData> => {
-  let uploadResult: UpsertFileData = {};
-  if (hasPendingUploadFile.value) {
+const upload = async (importTransaction, file): Promise<void> => {
+  try {
     uploading.value = true;
 
-    uploadResult = await uploadFile({
-      file: fileInput.value.original,
-      uploadObject: fileInput.value.compressed,
+    let uploadedFile: UpsertFileData = await uploadFile({
+      file,
+      uploadObject: file,
       prefix: "import/swab-test",
     });
 
+    if (uploadedFile) {
+      const fileEntity = await importApi().createFile({
+        fileKey: uploadedFile.fileKey,
+        fileName: uploadedFile.fileName,
+        fileSource: uploadedFile.fileSource,
+        fileContentType: uploadedFile.fileContentType,
+        fileSize: uploadedFile.fileSize,
+        user: {
+          id: user.getUserId(),
+        },
+      });
+
+      if (fileEntity) {
+        await importApi().updateTransaction(importTransaction.id, {
+          importedFileName: fileEntity.fileName,
+          importedFileUrl: fileEntity.fileSource,
+          importedFile: {
+            id: fileEntity.id,
+          },
+        });
+      }
+    }
+  } catch (e) {
+    toast.error("ไม่สามารถอัพโหลดไฟล์นำเข้าข้อมูลได้");
+  } finally {
     uploading.value = false;
   }
-  return uploadResult;
 };
 
 const importSwabTest = async () => {
@@ -317,9 +373,14 @@ const importSwabTest = async () => {
   try {
     if (importedData.value && importedData.value.length) {
       if (fileInput.value) {
+        console.log(fileInput.value.name);
+
         const { importTransactions } = await importApi().loadTransactions({
-          importedFileName: fileInput.value.original.name,
+          importedFileName: fileInput.value.name,
         });
+
+        console.log(importTransactions);
+
         if (importTransactions && importTransactions.length) {
           importTransaction = importTransactions[0];
         }
@@ -337,11 +398,16 @@ const importSwabTest = async () => {
         });
       }
 
+      if (fileInput.value) {
+        upload(importTransaction, fileInput.value);
+      }
+
       const chunkedImportedData = chunk(importedData.value, 50);
+
       for (let index = 0; index < chunkedImportedData.length; index++) {
         const data = chunkedImportedData[index];
         const records = redux(data);
-        console.log(records);
+
         await swabTestApi().importSwabTest({
           importTransaction: {
             id: importTransaction.id,
@@ -350,28 +416,26 @@ const importSwabTest = async () => {
         });
       }
 
-      const uploadFile = await upload();
-      console.log(uploadFile);
-
-      importApi().completeTransaction(importTransaction.id, {
-        ...importTransaction,
-        importedFileName: uploadFile.fileName,
-        importedFile: uploadFile,
-      });
+      await importApi().completeTransaction(importTransaction.id);
 
       setTimeout(() => {
-        toast.success("นำเข้าข้อมูลแผลการผลิตสำเร็จ", { timeout: 1000 });
+        toast.success("นำเข้าข้อมูลผลการตรวจเชื้อสำเร็จ", { timeout: 1000 });
+
         showValue.value = false;
+
         clearState();
+
         emit("success");
       }, 1000);
     }
   } catch (error) {
+    console.log(error);
+
     if (importTransaction) {
       importApi().cancelTransaction(importTransaction.id);
     }
 
-    toast.error("นำเข้าข้อมูลแผลการผลิตไม่สำเร็จ", { timeout: 1000 });
+    toast.error("นำเข้าข้อมูลผลการตรวจเชื้อไม่สำเร็จ", { timeout: 1000 });
 
     emit("error", error);
   } finally {
@@ -381,9 +445,9 @@ const importSwabTest = async () => {
   }
 };
 
-const onSubmit = async () => {
-  if (hasNotAvailableData) {
-    return (showConfirmModal.value = true);
+const onSubmit = () => {
+  if (hasNotAvailableData.value) {
+    showConfirmModal.value = true;
   } else {
     importSwabTest();
   }

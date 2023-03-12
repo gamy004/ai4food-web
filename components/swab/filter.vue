@@ -115,13 +115,11 @@ const formDate = computed({
 const formDateRange = computed({
   get: () => form.value.dateRange,
   set: (value) => {
-    let updatedQuery: any = getUpdatedQuery();
-
     updatePaginateState();
 
     form.value.dateRange = value;
 
-    updateDateRangeQueryParams(value, updatedQuery);
+    updateDateRangeQueryParams(value, { currentPage: 1 });
   },
 });
 
