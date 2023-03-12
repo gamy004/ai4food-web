@@ -178,23 +178,42 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
   }
 
   function updateDateRangeQueryParams(
-    dateRangeValue: DateRangeInterface
+    dateRangeValue: DateRangeInterface,
+    additionalParams = {}
   ): void {
     const { getCurrentQuery, updateQueryParams } = useQueryParams();
 
-    const fromDate = dateRangeValue.from ? onlyDate(dateRangeValue.from) : null;
+    let fromDate = null,
+      toDate = null;
 
-    const toDate = dateRangeValue.to ? onlyDate(dateRangeValue.to) : null;
+    if (dateRangeValue) {
+      if (dateRangeValue.from) {
+        fromDate = onlyDate(dateRangeValue.from);
+      }
+
+      if (dateRangeValue.to) {
+        toDate = onlyDate(dateRangeValue.to);
+      }
+    }
 
     const updatedQuery = { ...getCurrentQuery() };
 
     if (fromDate) {
       updatedQuery.from = fromDate;
       updatedQuery.to = !toDate ? fromDate : toDate;
+    } else {
+      if (updatedQuery.from) {
+        delete updatedQuery.from;
+      }
+
+      if (updatedQuery.to) {
+        delete updatedQuery.to;
+      }
     }
 
     updateQueryParams({
       ...updatedQuery,
+      ...additionalParams,
     });
   }
 

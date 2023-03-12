@@ -1,14 +1,15 @@
 <script lang="ts" setup>
-import { useToast } from "vue-toastification";
+// import { useToast } from "vue-toastification";
 import UploadIcon from "~icons/carbon/upload";
-import CarbonEdit from "~icons/carbon/edit";
-import CarbonTrashCan from "~icons/carbon/trash-can";
-import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
-import { LoadProductScheduleParams } from "~~/composables/useProduct";
+import { ImportType } from "~/models/ImportTransaction";
+// import CarbonEdit from "~icons/carbon/edit";
+// import CarbonTrashCan from "~icons/carbon/trash-can";
+// import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
+// import { LoadProductScheduleParams } from "~~/composables/useProduct";
 import { DateRangeInterface } from "~~/composables/useDate";
 
 export type FormType = {
-  date: DateRangeInterface | null;
+  dateRange: DateRangeInterface | null;
 };
 
 definePageMeta({
@@ -18,70 +19,72 @@ definePageMeta({
   fallBackRedirect: "/",
 });
 const route = useRoute();
-const toast = useToast();
-const { getSwabTestById, api: swabTestApi } = useSwabTest();
-const { api: bacteriaApi } = useBacteria();
-const {
-  today,
-  onlyDate,
-  formatThLocale,
-  formatTimeThLocale,
-  updateDateRangeQueryParams,
-} = useDate();
+// const toast = useToast();
+// const { api: importTransactionApi } = useImport();
+// const { api: bacteriaApi } = useBacteria();
+const { updateQueryParams, getCurrentQuery } = useQueryParams();
+const { today, onlyDate, updateDateRangeQueryParams } = useDate();
 const currentDate = today();
 const form = reactive<FormType>({
-  date: {
-    from: (route.query.from as string) || onlyDate(currentDate),
-    to: (route.query.to as string) || onlyDate(currentDate),
-  },
+  dateRange:
+    route.query.from && route.query.to
+      ? {
+          from: (route.query.from as string) || onlyDate(currentDate),
+          to: (route.query.to as string) || onlyDate(currentDate),
+        }
+      : null,
 });
-const loading = ref(false);
+const listGroupImportTransactionRef = ref(null);
+// const loading = ref(false);
 const showImportModal = ref(false);
-const showManageModal = ref(false);
-const showDeleteModal = ref(false);
+// const showManageModal = ref(false);
+// const showDeleteModal = ref(false);
 const pagination = usePagination({
-  perPage: parseInt(route.query.perPage as string) || 25,
+  perPage: parseInt(route.query.perPage as string) || 5,
   currentPage: parseInt(route.query.currentPage as string) || 1,
 });
-const hasResult = ref(false);
-const swabTestIds = ref([]);
-const swabTestId = ref(null);
-const deletedSwabTestId = ref(null);
 
-const tableFields = computed(() => {
-  return [
-    { key: "swabTestCode", label: "รหัสตัวอย่าง", thStyle: { width: "50%" } },
-    {
-      key: "result",
-      label: "ผลการตรวจเชื้อ",
-      thStyle: { width: "50%" },
-    },
+const listGroupImportTransactionRefProps = computed(() => ({
+  dateRange: form.dateRange,
+  importType: ImportType.SWAB_TEST,
+  pagination,
+}));
+// const hasResult = ref(false);
 
-    // { key: "productScheduleStartedAt", label: "เวลาเริ่ม", thStyle: { width: "5%" } },
-    // { key: "productScheduleEndedAt", label: "เวลาสิ้นสุด", thStyle: { width: "5%" } },
-    // {
-    //   key: "action",
-    //   label: "แก้ไข/ลบ",
-    //   thClass: "text-end",
-    //   tdClass: "text-end",
-    //   thStyle: { width: "20%" },
-    // },
-  ];
-});
+// const tableFields = computed(() => {
+//   return [
+//     { key: "swabTestCode", label: "รหัสตัวอย่าง", thStyle: { width: "50%" } },
+//     {
+//       key: "result",
+//       label: "ผลการตรวจเชื้อ",
+//       thStyle: { width: "50%" },
+//     },
 
-const tableData = computed(() => {
-  return swabTestIds.value.map((swabTestId) => {
-    const swabTest = getSwabTestById(swabTestId);
-    return {
-      ...swabTest,
-      result: swabTest.swabTestRecordedAt
-        ? swabTest.bacteria && swabTest.bacteria.length
-          ? "Positive"
-          : "Negative"
-        : "-",
-    };
-  });
-});
+//     // { key: "productScheduleStartedAt", label: "เวลาเริ่ม", thStyle: { width: "5%" } },
+//     // { key: "productScheduleEndedAt", label: "เวลาสิ้นสุด", thStyle: { width: "5%" } },
+//     // {
+//     //   key: "action",
+//     //   label: "แก้ไข/ลบ",
+//     //   thClass: "text-end",
+//     //   tdClass: "text-end",
+//     //   thStyle: { width: "20%" },
+//     // },
+//   ];
+// });
+
+// const tableData = computed(() => {
+//   return swabTestIds.value.map((swabTestId) => {
+//     const swabTest = getSwabTestById(swabTestId);
+//     return {
+//       ...swabTest,
+//       result: swabTest.swabTestRecordedAt
+//         ? swabTest.bacteria && swabTest.bacteria.length
+//           ? "Positive"
+//           : "Negative"
+//         : "-",
+//     };
+//   });
+// });
 
 // const tableData = computed(() => {
 //   return productScheduleIds.value
@@ -107,67 +110,86 @@ const tableData = computed(() => {
 //     });
 // });
 
-const filteredData = computed(() => pagination.paginate(tableData.value));
+// const filteredData = computed(() => pagination.paginate(tableData.value));
 
-const fetch = async (formValue) => {
-  loading.value = true;
-  hasResult.value = true;
-  swabTestIds.value = [];
+// const fetch = async (formValue) => {
+//   loading.value = true;
+//   hasResult.value = true;
+//   swabTestIds.value = [];
 
-  try {
-    await bacteriaApi().loadAllBacteria();
+//   try {
+//     await bacteriaApi().loadAllBacteria();
 
-    const swabTests = await swabTestApi().loadAllSwabTest();
+//     const swabTests = await swabTestApi().loadSwabTest({
+//       skip: pagination.offset.value,
+//       take: pagination.$state.perPage,
+//     });
 
-    if (swabTests && swabTests.length) {
-      swabTestIds.value = swabTests.map(({ id }) => id);
-    } else {
-      hasResult.value = false;
-    }
-  } catch (error) {
-    toast.error("ไม่สามรถโหลดข้อมูลแผนการผลิตได้ กรุณาลองใหม่อีกครั้ง", {
-      timeout: 1000,
+//     if (swabTests && swabTests.length) {
+//       swabTestIds.value = swabTests.map(({ id }) => id);
+//     } else {
+//       hasResult.value = false;
+//     }
+//   } catch (error) {
+//     toast.error("ไม่สามรถโหลดข้อมูลแผนการผลิตได้ กรุณาลองใหม่อีกครั้ง", {
+//       timeout: 1000,
+//     });
+//   } finally {
+//     setTimeout(() => {
+//       loading.value = false;
+//     }, 1000);
+//   }
+// };
+
+const onImportedSuccess = () => {
+  form.dateRange = null;
+
+  if (form.dateRange !== null) {
+    form.dateRange = null;
+  } else if (pagination.$state.currentPage !== 1) {
+    const updatedQuery = getCurrentQuery();
+
+    pagination.resetPage();
+
+    updateQueryParams({
+      ...updatedQuery,
+      currentPage: 1,
     });
-  } finally {
-    setTimeout(() => {
-      loading.value = false;
-    }, 1000);
+  } else {
+    listGroupImportTransactionRef.value?.fetch(
+      listGroupImportTransactionRefProps.value
+    );
   }
 };
 
-const onImportedSuccess = ({ fromDate, toDate }) => {
-  form.date = {
-    from: fromDate,
-    to: toDate,
-  };
-};
+// const onManagedSuccess = async () => {
+//   await fetch(form);
+// };
 
-const onManagedSuccess = async () => {
-  await fetch(form);
-};
+// const promptEdit = (id) => {
+//   showManageModal.value = true;
+//   productScheduleId.value = id;
+// };
 
-const promptEdit = (id) => {
-  showManageModal.value = true;
-  productScheduleId.value = id;
-};
+// const promptDelete = (id) => {
+//   showDeleteModal.value = true;
+//   deletedProductScheduleId.value = id;
+// };
 
-const promptDelete = (id) => {
-  showDeleteModal.value = true;
-  deletedProductScheduleId.value = id;
-};
-
-watch(
-  () => form,
-  (formValue) => {
-    fetch(formValue);
-  },
-  { immediate: true, deep: true }
-);
+// watch(
+//   () => form,
+//   (formValue) => {
+//     fetch(formValue);
+//   },
+//   { immediate: true, deep: true }
+// );
 
 watch(
-  () => form.date,
-  (formDateValue) => {
-    updateDateRangeQueryParams(formDateValue);
+  () => form.dateRange,
+  (value) => {
+    pagination.resetPage();
+
+    updateDateRangeQueryParams(value, { currentPage: 1 });
   },
   { deep: true }
 );
@@ -207,42 +229,25 @@ watch(
                 >วันที่</label
               >
 
-              <date-picker-range v-model="form.date" class="col" />
+              <date-picker-range
+                v-model="form.dateRange"
+                class="col"
+                clearable
+              />
             </div>
           </b-col>
         </b-row>
 
         <b-row class="mt-3">
-          <b-col v-if="loading" cols="12" class="text-center">
+          <!-- <b-col v-if="loading" cols="12" class="text-center">
             <line-md-loading-twotone-loop :style="{ fontSize: '2em' }" />
-          </b-col>
+          </b-col> -->
 
-          <b-col v-else>
-            <div v-if="hasResult">
-              <b-table
-                id="swabTestTable"
-                hover
-                small
-                caption-top
-                responsive
-                :fields="tableFields"
-                :items="filteredData"
-              >
-              </b-table>
-
-              <base-pagination
-                v-model="pagination.$state.currentPage"
-                :per-page="pagination.$state.perPage"
-                :total-rows="tableData.length"
-                aria-controls="swabTestTable"
-              />
-            </div>
-
-            <b-card v-else bg-variant="light">
-              <b-card-text class="text-center">
-                ไม่พบรายงานการตรวจเชื้อ'
-              </b-card-text>
-            </b-card>
+          <b-col>
+            <list-group-import-transaction
+              ref="listGroupImportTransactionRef"
+              v-bind="listGroupImportTransactionRefProps"
+            ></list-group-import-transaction>
           </b-col>
         </b-row>
 

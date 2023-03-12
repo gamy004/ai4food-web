@@ -292,7 +292,7 @@ export const useSwab = () => {
   };
 
   // const loadAllLabSwabAreaHistory = async (
-  //   loadAllSwabTestForUpdateData: LoadAllSwabTestForUpdateData
+  //   loadSwabTestForUpdateData: LoadAllSwabTestForUpdateData
   // ): Promise<SwabAreaHistory[]> => {
   //   return new Promise((resolve, reject) => {
   //     const {
@@ -303,7 +303,7 @@ export const useSwab = () => {
   //       mainSwabAreaId,
   //       swabPeriodId,
   //       swabTestCode,
-  //     } = loadAllSwabTestForUpdateData;
+  //     } = loadSwabTestForUpdateData;
   //     const { onlyDate } = useDate();
 
   //     const params: any = {

@@ -1,5 +1,7 @@
 import { useRepo } from "pinia-orm";
 import SwabTest from "~~/models/SwabTest";
+import { LoadSwabTestFilter } from "./useFilterSwabTest";
+import { SearchParams } from "./useRequest";
 
 export type ConnectImportTransaction = {
   id: string;
@@ -52,21 +54,23 @@ export const useSwabTest = () => {
     return query.orderBy("swabTestCode", "asc").get();
   };
 
-  const loadAllSwabTest = async (): Promise<SwabTest[]> => {
+  const loadSwabTest = async (
+    filter: LoadSwabTestFilter
+  ): Promise<SwabTest[]> => {
     return new Promise((resolve, reject) => {
-      const { data, error } = get<SwabTest[]>("/swab-test");
+      const { toDto } = useFilterSwabTest();
 
-      watch(data, (swabTestData) => {
-        const swabTests = swabTestRepo.save(swabTestData);
+      const params: SearchParams = toDto(filter);
+
+      const { data, error } = get<SwabTest[]>("/swab-test", { params });
+
+      watch(data, (dataResponse) => {
+        const swabTests = swabTestRepo.save(dataResponse);
 
         resolve(swabTests);
       });
 
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Load swab test failed");
-      });
+      watch(error, reject);
     });
   };
 
@@ -90,7 +94,7 @@ export const useSwabTest = () => {
     getSwabTestByCodes,
     api() {
       return {
-        loadAllSwabTest,
+        loadSwabTest,
         importSwabTest,
       };
     },

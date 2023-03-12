@@ -8,6 +8,7 @@ export interface Props {
   hideFooter?: boolean;
   closable?: boolean;
   fullscreen?: boolean;
+  size?: "sm" | "lg" | "xl";
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -23,9 +24,17 @@ const { registerModal, showModal, hideModal } = useModal();
 
 const modalRef = ref();
 
-const modalDialogClasses = computed(() => ({
-  "modal-fullscreen": props.fullscreen,
-}));
+const modalDialogClasses = computed(() => {
+  const classObj: any = {
+    "modal-fullscreen": props.fullscreen,
+  };
+
+  if (props.size) {
+    classObj[`modal-${props.size}`] = true;
+  }
+
+  return classObj;
+});
 
 onMounted(() => {
   registerModal(modalRef);

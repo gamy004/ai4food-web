@@ -12,6 +12,8 @@ import SwabTestBacteria from "./SwabTestBacteria";
 import SwabTestBacteriaSpecie from "./SwabTestBacteriaSpecie";
 import { SwabStatusMapper } from "@/composables/useSwab";
 
+const { formatThLocale } = useDate();
+
 export default class SwabTest extends Model {
   static entity = "swab_test";
 
@@ -52,6 +54,12 @@ export default class SwabTest extends Model {
 
   get isBacteriaRecorded() {
     return this.bacteriaRecordedAt !== null;
+  }
+
+  get readableBacteriaRecordedAt() {
+    return this.bacteriaRecordedAt
+      ? formatThLocale(this.bacteriaRecordedAt, "PP HH:mm น.")
+      : "";
   }
 
   get hasBacteria() {
