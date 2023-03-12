@@ -8,7 +8,7 @@ import DatePicker from "@vuepic/vue-datepicker";
 import SwabTest from "~~/models/SwabTest";
 
 export interface Props {
-  importTransactionIdValue: string;
+  importTransactionIdValue: string | null;
   showValue?: boolean;
   clearable?: boolean;
   disabled?: boolean;
@@ -51,10 +51,10 @@ const showValue = computed({
 
 const tableFields = [
   // { key: 'date', label: 'วันที่' },
-  { key: "code", label: "รหัส" },
+  { key: "code", label: "รหัสตัวอย่าง" },
   {
     key: "isPositive",
-    label: "สถานะ",
+    label: "ผลการตรวจเชื้อ",
     thClass: "text-center",
     tdClass: "text-center",
   },
@@ -139,7 +139,7 @@ watch(
           ข้อมูลนำเข้าทั้งหมด
           {{ data.length }} รายการ
         </div>
-        <small>
+        <small v-if="importTransaction">
           อัพเดตล่าสุด:
           {{ importTransaction.readableUpdatedAtTime }}
         </small>
