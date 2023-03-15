@@ -78,7 +78,7 @@ export const useImport = () => {
 
       const { data, error } = get<LoadTransactionsResponse>(
         "/import-transaction",
-        { params }
+        { params: { ...params, timezone: "Asia/Bangkok" } }
       );
 
       watch(data, (responseData: LoadTransactionsResponse) => {

@@ -142,6 +142,8 @@ const listGroupImportTransactionRefProps = computed(() => ({
 // };
 
 const onImportedSuccess = () => {
+  console.log("on import success!!");
+
   form.dateRange = null;
 
   if (form.dateRange !== null) {

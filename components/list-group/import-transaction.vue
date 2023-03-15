@@ -45,12 +45,10 @@ const displayData = computed(() => {
   return importTransactions.value.reduce((acc, importTransaction) => {
     const { importedFile } = importTransaction;
 
-    console.log(importedFile);
-
     const tableRecord = {
       id: importTransaction.id,
       createdTime: importTransaction.readableCreatedAtTime,
-      updatedTime: importTransaction.readableCreatedAtTime,
+      updatedTime: importTransaction.readableUpdatedAtTime,
       // isPending: importTransaction.importStatus === ImportStatus.Pending,
       isCompleted: importTransaction.isCompleted,
       file: importedFile || null,
@@ -65,8 +63,6 @@ const displayData = computed(() => {
 // const paginatedData = computed(() => pagination.paginate(displayData.value));
 
 const fetch = async function fetch(props) {
-  console.log(props);
-
   loading.value = true;
   error.value = false;
   hasData.value = true;
@@ -145,7 +141,7 @@ defineExpose({ fetch });
 
               <div class="ms-2 me-auto">
                 <div class="fw-bold mb-1 d-flex align-items-center">
-                  <span class="me-2">{{ item.createdTime }}</span>
+                  <span class="me-2">{{ item.updatedTime }}</span>
 
                   <badge-complete-status
                     :is-completed="item.isCompleted"
@@ -155,11 +151,11 @@ defineExpose({ fetch });
                   ></badge-complete-status>
                 </div>
 
-                <small>
+                <!-- <small>
                   <span v-if="item.createdTime !== item.updatedTime"
                     >อัพเดตล่าสุด: {{ item.updatedTime }}</span
                   >
-                </small>
+                </small> -->
 
                 <div
                   v-if="item.file"

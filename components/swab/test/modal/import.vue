@@ -418,14 +418,14 @@ const importSwabTest = async () => {
 
       await importApi().completeTransaction(importTransaction.id);
 
+      emit("success");
+
       setTimeout(() => {
         toast.success("นำเข้าข้อมูลผลการตรวจเชื้อสำเร็จ", { timeout: 1000 });
 
         showValue.value = false;
 
         clearState();
-
-        emit("success");
       }, 1000);
     }
   } catch (error) {
