@@ -58,6 +58,10 @@ const pageManageProduct = {
 const pageImportProductSchedule = {
   name: "import-product-schedule",
 };
+
+const pageImportSwabTest = {
+  name: "import-swab-test",
+};
 </script>
 
 <template>
@@ -76,6 +80,7 @@ const pageImportProductSchedule = {
           v-if="
             authUser.isInProductionTeam ||
             authUser.isInSwabTeam ||
+            authUser.isInLabTeam ||
             authUser.isInAdminTeam
           "
           class="d-grid gap-2 mt-4"
@@ -111,6 +116,22 @@ const pageImportProductSchedule = {
               @click="navigate"
             >
               จัดการแผนการผลิต
+            </button-arrow-right>
+          </nuxt-link>
+
+          <nuxt-link
+            v-if="authUser.isInLabTeam || authUser.isInAdminTeam"
+            v-slot="{ navigate }"
+            :to="pageImportSwabTest"
+            custom
+          >
+            <button-arrow-right
+              variant="outline-primary"
+              size="lg"
+              class="w-100"
+              @click="navigate"
+            >
+              นำเข้าข้อมูลผลตรวจ lab
             </button-arrow-right>
           </nuxt-link>
 
