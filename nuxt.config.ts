@@ -14,11 +14,11 @@ export default defineNuxtConfig({
         title: "Ai4FoodSafety",
         name: "viewport",
         content:
-          "width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes, ie=edge"
+          "width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes, ie=edge",
       },
       {
         charset: "utf-8",
-      }
+      },
     ],
   },
 
@@ -28,30 +28,31 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBaseUrl: "http://localhost:3001/api"
-    }
+      apiBaseUrl: "http://localhost:3001/api",
+      cdnUrl: "",
+    },
   },
 
   modules: [
     "bootstrap-vue-3/nuxt",
     "cookie-universal-nuxt",
     "@pinia/nuxt",
-    "@pinia-orm/nuxt"
+    "@pinia-orm/nuxt",
   ],
 
   nitro: {
     externals: {
-      inline: ["uuid"]
-    }
+      inline: ["uuid"],
+    },
   },
 
   vite: {
     plugins: [
       Icons({
         // the feature below is experimental ⬇️
-        autoInstall: true
-      })
+        autoInstall: true,
+      }),
       // eslintPlugin()
-    ]
-  }
+    ],
+  },
 });

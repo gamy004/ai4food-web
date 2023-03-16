@@ -28,6 +28,7 @@ const props = withDefaults(defineProps<Props>(), {
 const toast = useToast();
 
 const { api: importTransactionApi } = useImport();
+const filePresenter = useFilePresenter();
 const countTotal = ref(0);
 const hasData = ref(false);
 const loading = ref(false);
@@ -163,7 +164,7 @@ defineExpose({ fetch });
                 >
                   <a
                     class="list-group-item__import-transaction-file-link"
-                    :href="item.file.fileSource"
+                    :href="filePresenter.getFileSource(item.file)"
                     :download="item.file.fileName"
                     >{{ item.file.fileName }}</a
                   >
