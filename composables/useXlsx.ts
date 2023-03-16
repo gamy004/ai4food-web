@@ -14,6 +14,8 @@ export const useXlsx = () => {
       /* data is an ArrayBuffer */
       workbook.value = read(data);
 
+      workbook.file = file;
+
       return workbook;
     },
 

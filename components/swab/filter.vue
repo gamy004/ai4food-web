@@ -119,7 +119,7 @@ const formDateRange = computed({
 
     form.value.dateRange = value;
 
-    updateDateRangeQueryParams(value);
+    updateDateRangeQueryParams(value, { currentPage: 1 });
   },
 });
 

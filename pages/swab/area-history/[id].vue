@@ -27,6 +27,7 @@ const {
   formatThLocale,
 } = useDate();
 const { getFacilityById } = useFacility();
+const filePresenter = useFilePresenter();
 const {
   api: swabApi,
   getSwabAreaById,
@@ -202,7 +203,7 @@ const displayedImages = computed({
   get: () => {
     return swabAreaHistoryImages.value.map(({ id, file }) => ({
       id: file.id,
-      src: file.fileSource,
+      src: filePresenter.getFileSource(file),
       parentId: id,
     }));
   },

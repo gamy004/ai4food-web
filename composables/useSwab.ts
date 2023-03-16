@@ -292,7 +292,7 @@ export const useSwab = () => {
   };
 
   // const loadAllLabSwabAreaHistory = async (
-  //   loadAllSwabTestForUpdateData: LoadAllSwabTestForUpdateData
+  //   loadSwabTestForUpdateData: LoadAllSwabTestForUpdateData
   // ): Promise<SwabAreaHistory[]> => {
   //   return new Promise((resolve, reject) => {
   //     const {
@@ -303,7 +303,7 @@ export const useSwab = () => {
   //       mainSwabAreaId,
   //       swabPeriodId,
   //       swabTestCode,
-  //     } = loadAllSwabTestForUpdateData;
+  //     } = loadSwabTestForUpdateData;
   //     const { onlyDate } = useDate();
 
   //     const params: any = {
@@ -529,6 +529,18 @@ export const useSwab = () => {
     swabPeriodRepo.with("cleaningValidations").load([swabPeriod]);
 
     return swabPeriod;
+  };
+
+  const loadBacteriaToSwabTest = (swabTest: SwabTest): SwabTest => {
+    swabTestRepo.with("bacteria").load([swabTest]);
+
+    return swabTest;
+  };
+
+  const loadBacteriaSpeciesToSwabTest = (swabTest: SwabTest): SwabTest => {
+    swabTestRepo.with("bacteriaSpecies").load([swabTest]);
+
+    return swabTest;
   };
 
   const mapPivotSwabAreaEnvironment = (swabAreaHistory) => {
@@ -908,6 +920,10 @@ export const useSwab = () => {
     loadProductToSwabProductHistory,
 
     loadCleaningValidationToSwabPeriod,
+
+    loadBacteriaToSwabTest,
+
+    loadBacteriaSpeciesToSwabTest,
 
     api() {
       return {
