@@ -1,9 +1,12 @@
-import { defineNuxtConfig } from "nuxt";
 import Icons from "unplugin-icons/vite";
 // import eslintPlugin from "vite-plugin-eslint";
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
+  typescript: {
+    shim: true,
+  },
+
   ssr: false,
 
   target: "static",
@@ -33,12 +36,7 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: [
-    "bootstrap-vue-3/nuxt",
-    "cookie-universal-nuxt",
-    "@pinia/nuxt",
-    "@pinia-orm/nuxt",
-  ],
+  modules: ["bootstrap-vue-3/nuxt", "@pinia/nuxt", "@pinia-orm/nuxt"],
 
   nitro: {
     externals: {
