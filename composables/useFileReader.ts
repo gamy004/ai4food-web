@@ -1,4 +1,3 @@
-// import Compressor from "compressorjs";
 import ImageCompressor from "js-image-compressor";
 
 export interface ReadImageAsBase64Output {

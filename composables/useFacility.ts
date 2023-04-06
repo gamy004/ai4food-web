@@ -14,83 +14,43 @@ export const useFacility = () => {
   const roomRepo = useRepo(Room);
 
   const loadAllFacility = async (): Promise<Facility[]> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = get<Facility[]>("/facility");
+    const data = await get<Facility[]>("/facility");
 
-      watch(data, (facilityData) => {
-        const facilities = facilityRepo.save(facilityData);
+    const facilities = facilityRepo.save(data);
 
-        resolve(facilities);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Load facility failed");
-      });
-    });
+    return facilities;
   };
 
   const loadAllSwabFacility = async (): Promise<Facility[]> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = get<Facility[]>("/facility/swab-item");
+    const data = await get<Facility[]>("/facility/swab-item");
 
-      watch(data, (facilityData) => {
-        const facilities = facilityRepo.save(facilityData);
+    const facilities = facilityRepo.save(data);
 
-        resolve(facilities);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Load swab facility failed");
-      });
-    });
+    return facilities;
   };
 
   const loadAllFacilityItem = async (
-    facilityId: string = null
+    facilityId?: string
   ): Promise<FacilityItem[]> => {
-    return new Promise((resolve, reject) => {
-      const params: ParamLoadAllFacilityItem = {};
+    const params: ParamLoadAllFacilityItem = {};
 
-      if (facilityId) {
-        params.facilityId = facilityId;
-      }
+    if (facilityId) {
+      params.facilityId = facilityId;
+    }
 
-      const { data, error } = get<FacilityItem[]>(`/facility/item`, { params });
+    const data = await get<FacilityItem[]>(`/facility/item`, { params });
 
-      watch(data, (facilityItemData) => {
-        const facilityItems = facilityItemRepo.save(facilityItemData);
+    const facilityItems = facilityItemRepo.save(data);
 
-        resolve(facilityItems);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Load facility item failed");
-      });
-    });
+    return facilityItems;
   };
 
   const loadAllRoom = async (): Promise<Room[]> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = get<Room[]>("/room");
+    const data = await get<Room[]>("/room");
 
-      watch(data, (roomData) => {
-        const rooms = roomRepo.save(roomData);
+    const rooms = roomRepo.save(data);
 
-        resolve(rooms);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Load room failed");
-      });
-    });
+    return rooms;
   };
 
   const getFacilityByIds = (ids: string[]): Facility[] => {

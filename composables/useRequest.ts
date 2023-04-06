@@ -66,6 +66,8 @@ export const useRequest = () => {
     //   path: "/",
     // });
 
+    console.log(authCookie.value);
+
     if (authCookie.value) {
       const authData = JSON.parse(authCookie.value);
 
@@ -130,7 +132,7 @@ export const useRequest = () => {
         requestUrl += `?${serialize(params)}`;
       }
 
-      return useFetch<T, ResponseErrorT>(requestUrl, {
+      return $fetch<T>(requestUrl, {
         method: "get",
         ...getRequestOptions(),
         ...otherFetchOptions,

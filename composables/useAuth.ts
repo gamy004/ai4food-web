@@ -1,5 +1,4 @@
 import { useRepo } from "pinia-orm";
-import { Ref } from "vue";
 import Auth from "~~/models/Auth";
 import User from "~~/models/User";
 
@@ -93,25 +92,19 @@ export const useAuth = () => {
   }
 
   async function loadProfile(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const { data, error } = get<User>("/auth/profile");
+    const auth = getAuth();
 
-      watch(data, (userData) => {
-        const auth = getAuth();
+    if (auth) {
+      const data = await get<User>("/auth/profile");
 
-        const user = userRepo.save({ ...userData });
+      const user = userRepo.save(data);
 
-        auth.setUserId(user.id);
+      auth.setUserId(user.id);
 
-        auth.setUser(user);
+      auth.setUser(user);
 
-        saveAuth(auth);
-
-        resolve();
-      });
-
-      watch(error, reject);
-    });
+      saveAuth(auth);
+    }
   }
 
   return {

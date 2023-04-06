@@ -2,7 +2,7 @@ import { useRepo } from "pinia-orm";
 import Bacteria from "~~/models/Bacteria";
 
 export const useBacteria = () => {
-  const { get, post, put, destroy } = useRequest();
+  const { get } = useRequest();
 
   const bacteriaRepo = useRepo(Bacteria);
 
@@ -19,21 +19,11 @@ export const useBacteria = () => {
   };
 
   const loadAllBacteria = async (): Promise<Bacteria[]> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = get<Bacteria[]>("/bacteria");
+    const data = await get<Bacteria[]>("/bacteria");
 
-      watch(data, (BacteriaData) => {
-        const Bacterias = bacteriaRepo.save(BacteriaData);
+    const bacterias = bacteriaRepo.save(data);
 
-        resolve(Bacterias);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Load swab test failed");
-      });
-    });
+    return bacterias;
   };
 
   return {

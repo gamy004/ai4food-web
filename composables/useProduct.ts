@@ -158,17 +158,13 @@ export const useProduct = () => {
     id: string,
     body: BodyManageProduct
   ): Promise<Product> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = put<Product>(`/product/${id}`, body);
+    const data = await put<Product>(`/product/${id}`, body);
 
-      watch(data, (productData) => {
-        const product = productRepo.save(productData);
+    console.log(data);
 
-        resolve(product);
-      });
+    const product = productRepo.save(data);
 
-      watch(error, reject);
-    });
+    return product;
   };
 
   const deleteProduct: deleteProductInterface = async (

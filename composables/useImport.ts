@@ -50,123 +50,66 @@ export const useImport = () => {
     return importTransactionRepo.find(id);
   };
 
-  const createFile = (body: BodyCreateFile): Promise<File> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = post<File>(`/file`, {
-        ...body,
-      });
-
-      watch(data, (responseData: File) => {
-        const file = fileRepo.save(responseData);
-
-        resolve(file);
-      });
-
-      watch(error, (e) => {
-        reject(e);
-      });
+  const createFile = async (body: BodyCreateFile): Promise<File> => {
+    const data = await post<File>(`/file`, {
+      ...body,
     });
+
+    const file = fileRepo.save(data);
+
+    return file;
   };
 
-  const loadTransactions = (
+  const loadTransactions = async (
     filter: LoadImportTransactionFilter
   ): Promise<LoadTransactionsResponse> => {
-    return new Promise((resolve, reject) => {
-      const { toDto } = useFilterImportTransaction();
+    const { toDto } = useFilterImportTransaction();
 
-      const params: SearchParams = toDto(filter);
+    const params: SearchParams = toDto(filter);
 
-      const { data, error } = get<LoadTransactionsResponse>(
-        "/import-transaction",
-        { params: { ...params, timezone: "Asia/Bangkok" } }
-      );
-
-      watch(data, (responseData: LoadTransactionsResponse) => {
-        let { total = 0, importTransactions = [] } = responseData;
-
-        importTransactions = importTransactionRepo.save(importTransactions);
-
-        resolve({
-          total,
-          importTransactions,
-        });
+    let { total = 0, importTransactions: data = [] } =
+      await get<LoadTransactionsResponse>("/import-transaction", {
+        params: { ...params, timezone: "Asia/Bangkok" },
       });
 
-      watch(error, (e) => {
-        reject(e);
-      });
-    });
+    const importTransactions = importTransactionRepo.save(data);
+
+    return {
+      total,
+      importTransactions,
+    };
   };
 
-  const createTransaction = (body: BodyImportTransaction): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = post<any>(`/import-transaction`, {
-        ...body,
-      });
+  const createTransaction = async (
+    body: BodyImportTransaction
+  ): Promise<ImportTransaction> => {
+    const data = await post<ImportTransaction>(`/import-transaction`, body);
 
-      watch(data, (responseData) => {
-        resolve(responseData);
-      });
+    const importTransaction = importTransactionRepo.save(data);
 
-      watch(error, (e) => {
-        reject(e);
-      });
-    });
+    return importTransaction;
   };
 
-  const updateTransaction = (
+  const updateTransaction = async (
     id: string,
     body: BodyUpdateTransaction
   ): Promise<ImportTransaction> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = put<ImportTransaction>(
-        `/import-transaction/${id}`,
-        {
-          ...body,
-        }
-      );
+    const data = await put<ImportTransaction>(
+      `/import-transaction/${id}`,
+      body
+    );
 
-      watch(data, (responseData: ImportTransaction) => {
-        const importTransaction = importTransactionRepo.save(responseData);
+    const importTransaction = importTransactionRepo.save(data);
 
-        resolve(importTransaction);
-      });
-
-      watch(error, (e) => {
-        reject(e);
-      });
-    });
+    return importTransaction;
   };
 
-  const completeTransaction = (id: string): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = put<any>(
-        `/import-transaction/${id}/complete`,
-        {}
-      );
-
-      watch(data, (responseData) => {
-        resolve(responseData);
-      });
-
-      watch(error, (e) => {
-        reject(e);
-      });
-    });
+  const completeTransaction = async (id: string): Promise<void> => {
+    await put<void>(`/import-transaction/${id}/complete`, {});
   };
 
-  const cancelTransaction = (id: string): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = put<any>(`/import-transaction/${id}/cancel`, {});
-
-      watch(data, (responseData) => {
-        resolve(responseData);
-      });
-
-      watch(error, (e) => {
-        reject(e);
-      });
-    });
+  const cancelTransaction = async (id: string): Promise<void> => {
+    await put<void>(`/import-transaction/${id}/cancel`, {});
   };
 
   return {

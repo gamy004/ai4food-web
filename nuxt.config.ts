@@ -25,7 +25,7 @@ export default defineNuxtConfig({
     ],
   },
 
-  css: ["~/assets/scss/main.scss"],
+  css: ["bootstrap/dist/css/bootstrap.min.css", "~/assets/scss/main.scss"],
 
   plugins: ["~/plugins/useToast.client.ts"],
 
@@ -36,7 +36,7 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ["bootstrap-vue-3/nuxt", "@pinia/nuxt", "@pinia-orm/nuxt"],
+  modules: ["@bootstrap-vue-next/nuxt", "@pinia/nuxt", "@pinia-orm/nuxt"],
 
   nitro: {
     externals: {
