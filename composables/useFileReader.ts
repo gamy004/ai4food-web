@@ -35,7 +35,7 @@ export const useFileReader = () => {
           convertSize: Infinity,
           loose: true,
           redressOrientation: false,
-          success: function (result) {
+          success: function (result: Blob) {
             console.log("result:", result);
             console.log("Image size after compression:", result.size);
             console.log("mime type:", result.type);
@@ -46,11 +46,11 @@ export const useFileReader = () => {
 
             const reader = new FileReader();
 
-            reader.onload = (e) => {
+            reader.onload = (e: ProgressEvent<FileReader>) => {
               output.push({
                 originalImage: file,
                 compressedImage: result,
-                dataURL: e.target.result,
+                dataURL: e.target?.result || "",
               });
 
               if (output.length === fileList.length) {
@@ -75,11 +75,11 @@ export const useFileReader = () => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
-      reader.onload = function (e) {
+      reader.onload = function (e: ProgressEvent<FileReader>) {
         resolve({
           original: file,
           compressed: new Blob([file], { type: file.type }),
-          dataURL: e.target.result,
+          dataURL: e.target?.result || "",
         });
       };
       reader.onerror = (e) => {

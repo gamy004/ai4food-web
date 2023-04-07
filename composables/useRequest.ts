@@ -66,8 +66,6 @@ export const useRequest = () => {
     //   path: "/",
     // });
 
-    console.log(authCookie.value);
-
     if (authCookie.value) {
       const authData = JSON.parse(authCookie.value);
 
@@ -97,7 +95,7 @@ export const useRequest = () => {
     };
   }
 
-  function serialize(obj, prefix = null) {
+  function serialize(obj, prefix = null): string {
     var str = [],
       p;
     for (p in obj) {

@@ -1,4 +1,4 @@
-import { useRepo } from "pinia-orm";
+import { Collection, Item, useRepo } from "pinia-orm";
 import { Shift, TimePickerData } from "./useDate";
 import { UpsertFileData } from "./useUpload";
 import LabTest from "~~/models/LabTest";
@@ -157,9 +157,6 @@ export interface BodyUpdateSwabProductHistory
 export const useSwab = () => {
   const { get, post, put, destroy } = useRequest();
   const { timePickerToTimeString } = useDate();
-  const facilityRepo = useRepo(Facility);
-  const facilityItemRepo = useRepo(FacilityItem);
-  const productRepo = useRepo(Product);
   const swabAreaRepo = useRepo(SwabArea);
   const swabPeriodRepo = useRepo(SwabPeriod);
   const swabAreaHistoryRepo = useRepo(SwabAreaHistory);
@@ -173,122 +170,66 @@ export const useSwab = () => {
   const { today } = useDate();
 
   const loadAllSwabPeriod = async (): Promise<SwabPeriod[]> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = get<SwabPeriod[]>("/swab-period");
+    const data = await get<SwabPeriod[]>("/swab-period");
 
-      watch(data, (swabPeriodData) => {
-        const swabPeriods = swabPeriodRepo.save(swabPeriodData);
+    const swabPeriods = swabPeriodRepo.save(data);
 
-        resolve(swabPeriods);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Load swab periods failed");
-      });
-    });
+    return swabPeriods;
   };
 
   const loadAllSwabEnvironment = async (): Promise<SwabEnvironment[]> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = get<SwabEnvironment[]>("/swab-environment");
+    const data = await get<SwabEnvironment[]>("/swab-environment");
 
-      watch(data, (swabEnvironmentData) => {
-        const swabEnvironments = swabEnvironmentRepo.save(swabEnvironmentData);
+    const swabEnvironments = swabEnvironmentRepo.save(data);
 
-        resolve(swabEnvironments);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Load swab environments failed");
-      });
-    });
+    return swabEnvironments;
   };
 
   const loadAllMainSwabArea = async (
     params: ParamLoadAllMainSwabArea = {}
   ): Promise<SwabArea[]> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = get<SwabArea[]>(`/swab/area/main`, { params });
+    const data = await get<SwabArea[]>(`/swab/area/main`, { params });
 
-      watch(data, (swabAreaData) => {
-        const swabAreas = swabAreaRepo.save(swabAreaData);
+    const swabAreas = swabAreaRepo.save(data);
 
-        resolve(swabAreas);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Load main swab area failed");
-      });
-    });
+    return swabAreas;
   };
 
-  const loadDeletePermissionSwabArea = (
+  const loadDeletePermissionSwabArea = async (
     id: string
   ): Promise<ResponseSwabAreaDeletePermission> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = get<ResponseSwabAreaDeletePermission>(
-        `/swab/area/${id}/delete-permission`
-      );
+    const data = await get<ResponseSwabAreaDeletePermission>(
+      `/swab/area/${id}/delete-permission`
+    );
 
-      watch(data, resolve);
-
-      watch(error, reject);
-    });
+    return data;
   };
 
-  const createMainSwabArea = (body: BodyManageSwabArea): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = post<any>(`/swab/area`, {
-        ...body,
-      });
-
-      watch(data, (responseData) => {
-        resolve(responseData);
-      });
-
-      watch(error, (e) => {
-        reject(e);
-      });
+  const createMainSwabArea = async (body: BodyManageSwabArea): Promise<any> => {
+    const data = await post<any>(`/swab/area`, {
+      ...body,
     });
+
+    return data;
   };
 
-  const upadateMainSwabArea = (
+  const upadateMainSwabArea = async (
     id: string,
     body: BodyManageSwabArea
   ): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = put<any>(`/swab/area/${id}`, body);
-      watch(data, (responseData) => {
-        resolve(responseData);
-      });
+    const data = await put<any>(`/swab/area/${id}`, body);
 
-      watch(error, (e) => {
-        reject(e);
-      });
-    });
+    return data;
   };
 
-  const deleteMainSwabArea = (id: string): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = destroy<any>(`/swab/area/${id}`);
-      watch(data, (responseData) => {
-        const swabAreaId: string = responseData.id;
-        const swabAreas = swabAreaRepo.destroy(swabAreaId);
-        resolve(swabAreas);
-      });
+  const deleteMainSwabArea = async (id: string): Promise<Item<SwabArea>> => {
+    const data = await destroy<any>(`/swab/area/${id}`);
 
-      watch(error, (e) => {
-        console.log(e);
+    const swabAreaId: string = data.id;
 
-        reject("Update swab area failed");
-      });
-    });
+    const swabArea = swabAreaRepo.destroy(swabAreaId);
+
+    return swabArea;
   };
 
   // const loadAllLabSwabAreaHistory = async (
@@ -396,7 +337,7 @@ export const useSwab = () => {
     return query.orderBy("createdAt", "asc").get();
   };
 
-  const getSwabAreaById = (id: string): SwabArea => {
+  const getSwabAreaById = (id: string): Item<SwabArea> => {
     return swabAreaRepo.find(id);
   };
 
@@ -413,8 +354,8 @@ export const useSwab = () => {
     return swabAreaHistoryRepo.find(id);
   };
 
-  const getSubSwabAreaHistories = (id: string): SwabAreaHistory[] => {
-    let subSwabAreaHistories = [];
+  const getSubSwabAreaHistories = (id: string): Item<SwabAreaHistory>[] => {
+    let subSwabAreaHistories: Item<SwabAreaHistory>[] = [];
 
     const mainSwabAreaHistory = getSwabAreaHistoryById(id);
 
@@ -460,7 +401,9 @@ export const useSwab = () => {
     return query.get();
   };
 
-  const getSwabEnvironmentByName = (name: string): SwabEnvironment => {
+  const getSwabEnvironmentByName = (
+    name: string
+  ): Item<SwabEnvironment> | null => {
     const query = swabEnvironmentRepo.where("swabEnvironmentName", name);
 
     return query.first();
@@ -469,8 +412,8 @@ export const useSwab = () => {
   const getSwabEnvironmentBySwabAreaHistoryId = (
     swabAreaHistoryId: string,
     filters: any = {}
-  ): SwabEnvironment[] => {
-    let result = [];
+  ): Collection<SwabEnvironment> => {
+    let result: Collection<SwabEnvironment> = [];
 
     const mapping = swabAreaHistoryEnvironmentRepo
       .query()
@@ -543,10 +486,10 @@ export const useSwab = () => {
     return swabTest;
   };
 
-  const mapPivotSwabAreaEnvironment = (swabAreaHistory) => {
+  const mapPivotSwabAreaEnvironment = (swabAreaHistory: any) => {
     if (swabAreaHistory.swabEnvironments?.length) {
       swabAreaHistory.swabEnvironments = swabAreaHistory.swabEnvironments.map(
-        (swabEnvironment) => ({
+        (swabEnvironment: any) => ({
           ...swabEnvironment,
           pivot: {
             swabEnvironmentId: swabEnvironment.id,
@@ -559,241 +502,159 @@ export const useSwab = () => {
     return swabAreaHistory;
   };
 
-  const loadSwabAreaHistory = (
+  const loadSwabAreaHistory = async (
     filter: LoadAllSwabAreaHistoryFilter
   ): Promise<SwabAreaHistory[]> => {
-    return new Promise((resolve, reject) => {
-      const { toDto } = useFilterSwabAreaHistory();
+    const { toDto } = useFilterSwabAreaHistory();
 
-      const params: SearchParams = toDto(filter);
+    const params: SearchParams = toDto(filter);
 
-      const { data, error } = get<SwabAreaHistory[]>("/swab/area-history", {
-        params,
-      });
-
-      watch(data, (swabHistoryForUpdateData) => {
-        swabHistoryForUpdateData = swabHistoryForUpdateData.map(
-          (swabAreaHistoryData) => {
-            swabAreaHistoryEnvironmentRepo
-              .where("swabAreaHistoryId", swabAreaHistoryData.id)
-              .delete();
-
-            swabAreaHistoryData =
-              mapPivotSwabAreaEnvironment(swabAreaHistoryData);
-
-            return swabAreaHistoryData;
-          }
-        );
-
-        const updatedSwabAreaHistories = swabAreaHistoryRepo.save(
-          swabHistoryForUpdateData
-        );
-
-        resolve(updatedSwabAreaHistories);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Load swab plan for updating failed");
-      });
+    let data = await get<SwabAreaHistory[]>("/swab/area-history", {
+      params,
     });
+
+    data = data.map((swabAreaHistoryData) => {
+      swabAreaHistoryEnvironmentRepo
+        .where("swabAreaHistoryId", swabAreaHistoryData.id)
+        .delete();
+
+      swabAreaHistoryData = mapPivotSwabAreaEnvironment(swabAreaHistoryData);
+
+      return swabAreaHistoryData;
+    });
+
+    const updatedSwabAreaHistories = swabAreaHistoryRepo.save(data);
+
+    return updatedSwabAreaHistories;
   };
 
-  const loadSwabAreaHistoryV2 = (
+  const loadSwabAreaHistoryV2 = async (
     filter: LoadAllSwabAreaHistoryFilter
   ): Promise<LoadSwabAreaHistoryResponse> => {
-    return new Promise((resolve, reject) => {
-      const { toDto } = useFilterSwabAreaHistory();
+    const { toDto } = useFilterSwabAreaHistory();
 
-      const params: SearchParams = toDto(filter);
+    const params: SearchParams = toDto(filter);
 
-      const { data, error } = get<LoadSwabAreaHistoryResponse>(
-        "/swab/area-history/v2",
-        { params }
-      );
+    const data = await get<LoadSwabAreaHistoryResponse>(
+      "/swab/area-history/v2",
+      { params }
+    );
 
-      watch(data, (swabAreaHistoryData: LoadSwabAreaHistoryResponse) => {
-        let {
-          total = 0,
-          // facilities = [],
-          // swabAreas = [],
-          // facilityItems = [],
-          swabAreaHistories = [],
-          // subSwabAreaHistories = [],
-        } = swabAreaHistoryData;
+    let {
+      total = 0,
+      // facilities = [],
+      // swabAreas = [],
+      // facilityItems = [],
+      swabAreaHistories = [],
+      // subSwabAreaHistories = [],
+    } = data;
 
-        // facilities = facilityRepo.save(facilities);
+    // facilities = facilityRepo.save(facilities);
 
-        // swabAreas = swabAreaRepo.save(swabAreas);
+    // swabAreas = swabAreaRepo.save(swabAreas);
 
-        // facilityItems = facilityItemRepo.save(facilityItems);
+    // facilityItems = facilityItemRepo.save(facilityItems);
 
-        swabAreaHistories = swabAreaHistoryRepo.save(swabAreaHistories);
+    swabAreaHistories = swabAreaHistoryRepo.save(swabAreaHistories);
 
-        // subSwabAreaHistories = swabAreaHistoryRepo.save(subSwabAreaHistories);
+    // subSwabAreaHistories = swabAreaHistoryRepo.save(subSwabAreaHistories);
 
-        resolve({
-          total,
-          // facilities,
-          // swabAreas,
-          // facilityItems,
-          swabAreaHistories,
-          // subSwabAreaHistories,
-        });
-      });
-
-      watch(error, (e) => {
-        reject(e);
-      });
-    });
+    return {
+      total,
+      // facilities,
+      // swabAreas,
+      // facilityItems,
+      swabAreaHistories,
+      // subSwabAreaHistories,
+    };
   };
 
-  const loadSwabPlanForUpdateById = (id: string): Promise<SwabAreaHistory> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = get<SwabAreaHistory>(`/swab/area-history/${id}`);
+  const loadSwabPlanForUpdateById = async (
+    id: string
+  ): Promise<SwabAreaHistory> => {
+    let data = await get<SwabAreaHistory>(`/swab/area-history/${id}`);
 
-      watch(data, (swabHistoryForUpdateData) => {
-        swabAreaHistoryEnvironmentRepo
-          .where("swabAreaHistoryId", swabHistoryForUpdateData.id)
-          .delete();
+    swabAreaHistoryEnvironmentRepo.where("swabAreaHistoryId", data.id).delete();
 
-        swabHistoryForUpdateData = mapPivotSwabAreaEnvironment(
-          swabHistoryForUpdateData
-        );
+    data = mapPivotSwabAreaEnvironment(data);
 
-        const updatedSwabAreaHistory = swabAreaHistoryRepo.save(
-          swabHistoryForUpdateData
-        );
+    const updatedSwabAreaHistory = swabAreaHistoryRepo.save(data);
 
-        resolve(updatedSwabAreaHistory);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Load swab plan for updating failed");
-      });
-    });
+    return updatedSwabAreaHistory;
   };
 
-  const updateSwabPlanById = (
+  const updateSwabPlanById = async (
     swabAreaHistoryId: string,
     body: BodyUpdateSwabPlanByIdData
   ): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = put<any>(
-        `/swab/area-history/${swabAreaHistoryId}`,
-        {
-          ...body,
-          swabAreaSwabedAt: timePickerToTimeString(body.swabAreaSwabedAt),
-        }
-      );
-
-      watch(data, (responseData) => {
-        resolve(responseData);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Update swab plan failed");
-      });
+    const data = await put<any>(`/swab/area-history/${swabAreaHistoryId}`, {
+      ...body,
+      swabAreaSwabedAt: timePickerToTimeString(body.swabAreaSwabedAt),
     });
+
+    return data;
   };
 
-  const loadSwabProductHistory = (
+  const loadSwabProductHistory = async (
     filter: LoadAllSwabProductHistoryFilter
   ): Promise<[SwabProductHistory[], number]> => {
-    return new Promise((resolve, reject) => {
-      const { toDto } = useFilterSwabProductHistory();
+    const { toDto } = useFilterSwabProductHistory();
 
-      const params: SearchParams = toDto(filter);
+    const params: SearchParams = toDto(filter);
 
-      const { data, error } = get<LoadSwabProductHistoryResponse>(
-        "/swab/product-history",
-        { params }
-      );
+    const data = await get<LoadSwabProductHistoryResponse>(
+      "/swab/product-history",
+      { params }
+    );
 
-      watch(data, (swabProductHistoryData: LoadSwabProductHistoryResponse) => {
-        const {
-          // facilities = [],
-          // facilityItems = [],
-          // products = [],
-          swabProductHistories = [],
-          total = 0,
-        } = swabProductHistoryData;
+    const {
+      // facilities = [],
+      // facilityItems = [],
+      // products = [],
+      swabProductHistories = [],
+      total = 0,
+    } = data;
 
-        // facilityRepo.save(facilities);
+    // facilityRepo.save(facilities);
 
-        // facilityItemRepo.save(facilityItems);
+    // facilityItemRepo.save(facilityItems);
 
-        // productRepo.save(products);
+    // productRepo.save(products);
 
-        const updatedSwabProductHistories =
-          swabProductHistoryRepo.save(swabProductHistories);
+    const updatedSwabProductHistories =
+      swabProductHistoryRepo.save(swabProductHistories);
 
-        resolve([updatedSwabProductHistories, total]);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Load swab product history failed");
-      });
-    });
+    return [updatedSwabProductHistories, total];
   };
 
-  const loadSwabProductHistoryById = (
+  const loadSwabProductHistoryById = async (
     id: string
   ): Promise<SwabProductHistory> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = get<SwabProductHistory>(
-        `/swab/product-history/${id}`
-      );
+    const data = await get<SwabProductHistory>(`/swab/product-history/${id}`);
 
-      watch(data, (swabProductHistoryData: SwabProductHistory) => {
-        const updatedSwabProductHistory = swabProductHistoryRepo.save(
-          swabProductHistoryData
-        );
+    const updatedSwabProductHistory = swabProductHistoryRepo.save(data);
 
-        resolve(updatedSwabProductHistory);
-      });
-
-      watch(error, (e: ResponseErrorT) => {
-        reject(e);
-      });
-    });
+    return updatedSwabProductHistory;
   };
 
-  const loadSwabCleaningValidation = (
+  const loadSwabCleaningValidation = async (
     filter: LoadSwabCleaningValidationFilter
   ): Promise<SwabCleaningValidation[]> => {
-    return new Promise((resolve, reject) => {
-      const { toDto } = useFilterSwabCleaningValidation();
+    const { toDto } = useFilterSwabCleaningValidation();
 
-      const params: SearchParams = toDto(filter);
+    const params: SearchParams = toDto(filter);
 
-      const { data, error } = get<SwabCleaningValidation[]>(
-        `/swab/cleaning-validation`,
-        { params }
-      );
+    const data = await get<SwabCleaningValidation[]>(
+      `/swab/cleaning-validation`,
+      { params }
+    );
 
-      watch(data, (swabCleaningValidationData: SwabCleaningValidation[]) => {
-        const updatedSwabCleaningValidation = swabCleaningValidationRepo.save(
-          swabCleaningValidationData
-        );
+    const updatedSwabCleaningValidation = swabCleaningValidationRepo.save(data);
 
-        resolve(updatedSwabCleaningValidation);
-      });
-
-      watch(error, (e: ResponseErrorT) => {
-        reject(e);
-      });
-    });
+    return updatedSwabCleaningValidation;
   };
 
-  const updateLabTestById = (
+  const updateLabTestById = async (
     swabTestId: number,
     hasBacteria: boolean
   ): Promise<any> => {
@@ -803,79 +664,41 @@ export const useSwab = () => {
       bacteriaSpecies.push({ bacteriaName: "Listeria" });
     }
 
-    return new Promise((resolve, reject) => {
-      const { data, error } = put<any>(`/swab-test/${swabTestId}`, {
-        swabTestRecordedAt: today().toISOString(),
-        bacteriaSpecies,
-      });
-
-      watch(data, (responseData) => {
-        resolve(responseData);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Update lab test failed");
-      });
+    const data = await put<any>(`/swab-test/${swabTestId}`, {
+      swabTestRecordedAt: today().toISOString(),
+      bacteriaSpecies,
     });
+
+    return data;
   };
 
-  const createSwabProductHistory = (
+  const createSwabProductHistory = async (
     body: BodyCreateSwabProductHistory
   ): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = post<any>(`/swab/product-history`, {
-        ...body,
-        swabProductSwabedAt: timePickerToTimeString(body.swabProductSwabedAt),
-      });
-
-      watch(data, (responseData) => {
-        resolve(responseData);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Create swab product history failed");
-      });
+    const data = await post<any>(`/swab/product-history`, {
+      ...body,
+      swabProductSwabedAt: timePickerToTimeString(body.swabProductSwabedAt),
     });
+
+    return data;
   };
 
-  const updateSwabProductHistory = (
+  const updateSwabProductHistory = async (
     id: string,
     body: BodyUpdateSwabProductHistory
   ): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = put<any>(`/swab/product-history/${id}`, {
-        ...body,
-        swabProductSwabedAt: timePickerToTimeString(body.swabProductSwabedAt),
-      });
-
-      watch(data, (responseData) => {
-        resolve(responseData);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Update swab product history failed");
-      });
+    const data = await put<any>(`/swab/product-history/${id}`, {
+      ...body,
+      swabProductSwabedAt: timePickerToTimeString(body.swabProductSwabedAt),
     });
+
+    return data;
   };
 
-  const deleteSwabProductHistory = (id: string): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = destroy<any>(`/swab/product-history/${id}`);
+  const deleteSwabProductHistory = async (id: string): Promise<any> => {
+    const data = await destroy<any>(`/swab/product-history/${id}`);
 
-      watch(data, (responseData) => {
-        resolve(responseData);
-      });
-
-      watch(error, (e) => {
-        reject(e);
-      });
-    });
+    return data;
   };
 
   return {

@@ -13,27 +13,30 @@ export const useSwabAreaHistoryStatus = () => {
       countComplete += 1;
     }
 
-    const swabArea = getSwabAreaById(swabAreaHistory.swabAreaId);
+    if (swabAreaHistory.swabAreaId) {
+      const swabArea = getSwabAreaById(swabAreaHistory.swabAreaId);
 
-    if (swabArea.isMainArea) {
-      // get related sub swab area history on the same swab period and shift
-      const relatedSubSwabAreaHistories = getSubSwabAreaHistories(
-        swabAreaHistory.id
-      );
-
-      isCompleted =
-        isCompleted &&
-        relatedSubSwabAreaHistories.every(
-          (subSwabAreaHistory) => subSwabAreaHistory.isCompleted
+      if (swabArea && swabArea.isMainArea) {
+        // get related sub swab area history on the same swab period and shift
+        const relatedSubSwabAreaHistories = getSubSwabAreaHistories(
+          swabAreaHistory.id
         );
 
-      relatedSubSwabAreaHistories.forEach((subSwabAreaHistory) => {
-        countArea += 1;
+        isCompleted =
+          isCompleted &&
+          relatedSubSwabAreaHistories.every(
+            (subSwabAreaHistory) =>
+              subSwabAreaHistory && subSwabAreaHistory.isCompleted
+          );
 
-        if (subSwabAreaHistory.isCompleted) {
-          countComplete += 1;
-        }
-      });
+        relatedSubSwabAreaHistories.forEach((subSwabAreaHistory) => {
+          countArea += 1;
+
+          if (subSwabAreaHistory && subSwabAreaHistory.isCompleted) {
+            countComplete += 1;
+          }
+        });
+      }
     }
 
     return { isCompleted, countComplete, countArea };
