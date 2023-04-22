@@ -85,6 +85,7 @@ const fetch = async () => {
 
       const swabAreaData: SwabArea[] = await swabApi().loadAllMainSwabArea({
         subSwabAreas: true,
+        contactZone: true,
       });
 
       if (swabAreaData.length) {

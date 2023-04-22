@@ -17,6 +17,7 @@ const { isErrorDataExists, isErrorDataDuplicate } = useRequest();
 const {
   getSwabAreaById,
   getSwabAreaByMainSwabAreaId,
+  getContactZoneByName,
   api: swabApi,
 } = useSwab();
 
@@ -36,6 +37,7 @@ const form = reactive({
   mainSwabAreaName: "",
   subSwabAreas: [],
   facility: null,
+  contactZone: null,
 });
 
 const { duplicateFields } = useValidationRule();
@@ -58,7 +60,7 @@ const submitting = ref(false);
 const error: Ref<ResponseErrorT | null> = ref(null);
 
 const addSubSwabArea = () => {
-  form.subSwabAreas.push({ subSwabAreaName: "" });
+  form.subSwabAreas.push({ subSwabAreaName: "", contactZone: null });
 };
 
 const removeSubSwabArea = (subIndex) => {
@@ -73,6 +75,7 @@ const clearState = () => {
   form.mainSwabAreaName = "";
   form.subSwabAreas = [];
   form.facility = null;
+  form.contactZone = null;
 };
 
 const onCancel = () => {
@@ -97,41 +100,48 @@ const onSubmit = async () => {
   submitting.value = true;
 
   try {
-    const body: BodyManageSwabArea = {
-      swabAreaName: form.mainSwabAreaName,
-      subSwabAreas: form.subSwabAreas.map(({ id, subSwabAreaName }) => {
-        const payload: any = { swabAreaName: subSwabAreaName };
+    const { facility, contactZone } = form;
 
-        if (id) {
-          payload.id = id;
-        }
+    if (facility) {
+      const body: BodyManageSwabArea = {
+        swabAreaName: form.mainSwabAreaName,
+        subSwabAreas: form.subSwabAreas.map(
+          ({ id, subSwabAreaName, contactZone }) => {
+            const payload: any = { swabAreaName: subSwabAreaName, contactZone };
 
-        return payload;
-      }),
-      facility: form.facility,
-    };
+            if (id) {
+              payload.id = id;
+            }
 
-    let swabArea;
+            return payload;
+          }
+        ),
+        facility,
+        contactZone,
+      };
 
-    if (idValue.value) {
-      swabArea = await swabApi().upadateMainSwabArea(idValue.value, body);
-    } else {
-      swabArea = await swabApi().createMainSwabArea(body);
-    }
-
-    setTimeout(() => {
-      showValue.value = false;
+      let swabArea;
 
       if (idValue.value) {
-        idValue.value = null;
+        swabArea = await swabApi().upadateMainSwabArea(idValue.value, body);
       } else {
-        clearState();
+        swabArea = await swabApi().createMainSwabArea(body);
       }
 
-      toast.success("บันทึกพื้นที่ swab สำเร็จ", { timeout: 1000 });
+      setTimeout(() => {
+        showValue.value = false;
 
-      emit("success", swabArea);
-    }, 1000);
+        if (idValue.value) {
+          idValue.value = null;
+        } else {
+          clearState();
+        }
+
+        toast.success("บันทึกพื้นที่ swab สำเร็จ", { timeout: 1000 });
+
+        emit("success", swabArea);
+      }, 1000);
+    }
   } catch (errorResponse) {
     error.value = errorResponse;
 
@@ -144,6 +154,12 @@ const onSubmit = async () => {
     }, 1000);
   }
 };
+
+const contactZoneNames = ["Zone 1", "Zone 2", "Zone 3"];
+
+const allContactZones = computed(() =>
+  contactZoneNames.map((name) => getContactZoneByName(name)).filter(Boolean)
+);
 
 const mainSwabAreaNameRequiredState = computed(() =>
   isFormInvalid("mainSwabAreaName", ["required"])
@@ -196,15 +212,21 @@ watch(
       if (swabArea) {
         form.mainSwabAreaName = swabArea.swabAreaName;
         form.facility = { id: swabArea.facilityId };
+        form.contactZone = swabArea.contactZoneId
+          ? { id: swabArea.contactZoneId }
+          : null;
 
         if (swabArea.subSwabAreaIds.length) {
           const subSwabAreas = getSwabAreaByMainSwabAreaId(swabArea.id);
 
           if (subSwabAreas.length) {
-            form.subSwabAreas = subSwabAreas.map(({ id, swabAreaName }) => ({
-              id,
-              subSwabAreaName: swabAreaName,
-            }));
+            form.subSwabAreas = subSwabAreas.map(
+              ({ id, swabAreaName, contactZoneId }) => ({
+                id,
+                subSwabAreaName: swabAreaName,
+                contactZone: contactZoneId ? { id: contactZoneId } : null,
+              })
+            );
           }
         }
       }
@@ -216,6 +238,10 @@ watch(
 );
 
 defineExpose({ clearState });
+
+onBeforeMount(async () => {
+  await swabApi().loadAllContactZone();
+});
 </script>
 
 <template>
@@ -240,7 +266,7 @@ defineExpose({ clearState });
             <b-form-group
               id="fieldset-main-swab-area-name"
               label-cols-lg="4"
-              label="จุดตรวจหลัก"
+              label="ชื่อจุดตรวจหลัก"
               label-for="mainSwabAreaName"
               :state="formInvalidState.mainSwabAreaName"
             >
@@ -249,7 +275,7 @@ defineExpose({ clearState });
                 v-model="form.mainSwabAreaName"
                 :state="formInvalidState.mainSwabAreaName"
                 type="text"
-                placeholder="กรอกจุดตรวจหลัก"
+                placeholder="จุดตรวจหลัก"
               ></b-form-input>
 
               <b-form-invalid-feedback
@@ -269,6 +295,16 @@ defineExpose({ clearState });
           </b-col>
         </b-row>
         <b-row class="mt-2">
+          <b-col cols="12">
+            <contact-zone-select
+              id="contact-zone"
+              :options="allContactZones"
+              v-model="form.contactZone"
+              show-label
+              clearable
+              label-cols-lg="4"
+            ></contact-zone-select>
+          </b-col>
           <!-- <div class="input-group align-items-center">
             <label
               for="swabName"
@@ -289,6 +325,8 @@ defineExpose({ clearState });
         <b-row class="mt-3">
           <div class="input-group align-items-center">
             <b-col>
+              <hr />
+
               <div
                 class="d-flex align-items-baseline justify-content-between mb-2"
               >
@@ -321,15 +359,21 @@ defineExpose({ clearState });
                   กรุณาเปลี่ยนชื่อจุดที่ซ้ำกัน
                 </div>
 
-                <swab-area-input-sub-swab-area
+                <template
                   v-for="(_, subIndex) in form.subSwabAreas"
                   :key="`sub-swab-area-${subIndex}`"
-                  :disabled="submitting"
-                  :order="subIndex + 1"
-                  v-model="form.subSwabAreas[subIndex].subSwabAreaName"
-                  @remove="removeSubSwabArea(subIndex)"
                 >
-                </swab-area-input-sub-swab-area>
+                  <hr v-if="subIndex !== 0" />
+
+                  <swab-area-input-sub-swab-area
+                    :disabled="submitting"
+                    :order="subIndex + 1"
+                    :contact-zone-options="allContactZones"
+                    v-model="form.subSwabAreas[subIndex]"
+                    @remove="removeSubSwabArea(subIndex)"
+                  >
+                  </swab-area-input-sub-swab-area>
+                </template>
               </div>
             </b-col>
           </div>

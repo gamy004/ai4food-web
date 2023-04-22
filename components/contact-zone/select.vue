@@ -15,13 +15,14 @@ export interface Props {
   showLabel?: boolean;
   modelValue?: ContactZoneSelectData | null;
   defaultValue?: any | null;
+  options?: ContactZone[];
 }
 
 const attrs = useAttrs();
 
 const toast = useToast();
 
-const { api: swabApi, getContactZoneByIds, getContactZoneByName } = useSwab();
+const { api: swabApi, getContactZoneByName } = useSwab();
 
 const props = withDefaults(defineProps<Props>(), {
   clearable: false,
@@ -30,16 +31,19 @@ const props = withDefaults(defineProps<Props>(), {
   showLabel: false,
   modelValue: null,
   defaultValue: null,
+  options: () => [],
 });
 
 const emit = defineEmits(["update:modelValue"]);
-
+const contactZoneNames = ["Zone 1", "Zone 2", "Zone 3"];
 // const isFetched = ref(false);
 const loading = ref(false);
 const contactZoneIds = ref<String[]>([]);
 
 const contactZoneOptions = computed(() =>
-  getContactZoneByIds(contactZoneIds.value)
+  props.options.length
+    ? props.options
+    : contactZoneNames.map((name) => getContactZoneByName(name)).filter(Boolean)
 );
 
 const modelValue = computed({
@@ -68,6 +72,8 @@ const formGroupLabel = computed(() => (props.showLabel ? "Contact Zone" : ""));
 const formGroupLabelClass = computed(() => (!props.showLabel ? "p-0" : ""));
 
 const fetch = async () => {
+  if (props.options.length) return;
+
   // if (!isFetched.value) {
   loading.value = true;
 
@@ -93,12 +99,6 @@ const fetch = async () => {
   }
   // }
 };
-
-onBeforeMount(async () => {
-  // isFetched.value = false;
-
-  await fetch();
-});
 </script>
 
 <template>

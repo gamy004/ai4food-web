@@ -114,6 +114,7 @@ export interface BodyManageSwabArea {
   swabAreaName?: string;
   subSwabAreas?: SubSwabAreasData[];
   facility: ConnectFacilityData;
+  contactZone: ConnectContactZoneData | null;
 }
 
 export interface BodyUpdateSwabPlanByIdData {
@@ -221,20 +222,24 @@ export const useSwab = () => {
   };
 
   const createMainSwabArea = async (body: BodyManageSwabArea): Promise<any> => {
-    const data = await post<any>(`/swab/area`, {
+    const data = await post<SwabArea>(`/swab/area`, {
       ...body,
     });
 
-    return data;
+    const mainSwabArea = swabAreaRepo.save(data);
+
+    return mainSwabArea;
   };
 
   const upadateMainSwabArea = async (
     id: string,
     body: BodyManageSwabArea
   ): Promise<any> => {
-    const data = await put<any>(`/swab/area/${id}`, body);
+    const data = await put<SwabArea>(`/swab/area/${id}`, body);
 
-    return data;
+    const mainSwabArea = swabAreaRepo.save(data);
+
+    return mainSwabArea;
   };
 
   const deleteMainSwabArea = async (id: string): Promise<Item<SwabArea>> => {
@@ -326,6 +331,10 @@ export const useSwab = () => {
 
   const getSwabPeriodById = (id: string) => {
     return swabPeriodRepo.find(id);
+  };
+
+  const getAllContactZones = () => {
+    return contactZoneRepo.all();
   };
 
   const getContactZoneByIds = (ids: string[]) => {
@@ -738,6 +747,8 @@ export const useSwab = () => {
     getSwabPeriodByIds,
 
     getSwabPeriodByNames,
+
+    getAllContactZones,
 
     getContactZoneByIds,
 
