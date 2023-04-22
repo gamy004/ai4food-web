@@ -9,25 +9,27 @@ export default defineNuxtConfig({
 
   ssr: false,
 
-  target: "static",
-
-  head: {
-    meta: [
-      {
-        title: "Ai4FoodSafety",
-        name: "viewport",
-        content:
-          "width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes, ie=edge",
-      },
-      {
-        charset: "utf-8",
-      },
-    ],
+  app: {
+    head: {
+      title: "Ai4FoodSafety",
+      charset: "utf-8",
+      viewport:
+        "width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes",
+      meta: [{ "http-equiv": "X-UA-Compatible", content: "IE=edge" }],
+    },
   },
 
-  css: ["bootstrap/dist/css/bootstrap.min.css", "~/assets/scss/main.scss"],
+  css: [
+    "bootstrap/dist/css/bootstrap.min.css",
+    "@vuepic/vue-datepicker/src/VueDatePicker/style/main.scss",
+    "~/assets/scss/main.scss",
+  ],
 
   plugins: ["~/plugins/useToast.client.ts"],
+
+  build: {
+    transpile: ["@vuepic/vue-datepicker"],
+  },
 
   runtimeConfig: {
     public: {
