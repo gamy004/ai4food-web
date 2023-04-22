@@ -24,6 +24,7 @@ import {
 } from "./useFilterSwabAreaHistory";
 import SwabCleaningValidation from "~~/models/SwabCleaningValidation";
 import { LoadSwabCleaningValidationFilter } from "./useFilterSwabCleaningValidation";
+import ContactZone from "~/models/ContactZone";
 
 // export interface LoadSwabAreaHistoryData {
 //   date: string;
@@ -85,6 +86,10 @@ export type ConnectFacilityItemData = {
   id: string;
 };
 
+export type ConnectContactZoneData = {
+  id: string;
+};
+
 export type UpsertSwabEnvironmentData = {
   id?: string;
   swabEnvironmentName?: string;
@@ -102,12 +107,13 @@ export type SubSwabAreasData = {
 export interface ParamLoadAllMainSwabArea {
   subSwabAreas?: boolean;
   facility?: boolean;
+  contactZone?: boolean;
 }
 
 export interface BodyManageSwabArea {
   swabAreaName?: string;
   subSwabAreas?: SubSwabAreasData[];
-  facility?: ConnectFacilityData;
+  facility: ConnectFacilityData;
 }
 
 export interface BodyUpdateSwabPlanByIdData {
@@ -157,6 +163,7 @@ export interface BodyUpdateSwabProductHistory
 export const useSwab = () => {
   const { get, post, put, destroy } = useRequest();
   const { timePickerToTimeString } = useDate();
+  const contactZoneRepo = useRepo(ContactZone);
   const swabAreaRepo = useRepo(SwabArea);
   const swabPeriodRepo = useRepo(SwabPeriod);
   const swabAreaHistoryRepo = useRepo(SwabAreaHistory);
@@ -175,6 +182,14 @@ export const useSwab = () => {
     const swabPeriods = swabPeriodRepo.save(data);
 
     return swabPeriods;
+  };
+
+  const loadAllContactZone = async (): Promise<ContactZone[]> => {
+    const data = await get<ContactZone[]>("/contact-zone");
+
+    const contactZones = contactZoneRepo.save(data);
+
+    return contactZones;
   };
 
   const loadAllSwabEnvironment = async (): Promise<SwabEnvironment[]> => {
@@ -311,6 +326,22 @@ export const useSwab = () => {
 
   const getSwabPeriodById = (id: string) => {
     return swabPeriodRepo.find(id);
+  };
+
+  const getContactZoneByIds = (ids: string[]) => {
+    const query = contactZoneRepo.where("id", ids);
+
+    return query.get();
+  };
+
+  const getContactZoneByName = (name: string) => {
+    const query = contactZoneRepo.where("contactZoneName", name);
+
+    return query.first();
+  };
+
+  const getContactZoneById = (id: string) => {
+    return contactZoneRepo.find(id);
   };
 
   const getSwabPeriodByNames = (names: string[]) => {
@@ -708,6 +739,12 @@ export const useSwab = () => {
 
     getSwabPeriodByNames,
 
+    getContactZoneByIds,
+
+    getContactZoneByName,
+
+    getContactZoneById,
+
     getSwabAreaById,
 
     getSwabAreaByIds,
@@ -751,6 +788,7 @@ export const useSwab = () => {
     api() {
       return {
         loadAllSwabPeriod,
+        loadAllContactZone,
         loadAllSwabEnvironment,
         loadAllMainSwabArea,
         loadDeletePermissionSwabArea,
