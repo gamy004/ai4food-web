@@ -7,27 +7,27 @@ export default class Auth {
 
   user!: User;
 
-  setAccessToken (value: string): void {
+  setAccessToken(value: string): void {
     this.accessToken = value;
   }
 
-  getAccessToken (): string {
+  getAccessToken(): string {
     return this.accessToken;
   }
 
-  setUserId (value: string): void {
+  setUserId(value: string): void {
     this.userId = value;
   }
 
-  getUserId (): string {
+  getUserId(): string {
     return this.userId;
   }
 
-  setUser (value: User): void {
+  setUser(value: User): void {
     this.user = value;
   }
 
-  getUser (): User {
+  getUser(): User {
     return this.user;
   }
 }

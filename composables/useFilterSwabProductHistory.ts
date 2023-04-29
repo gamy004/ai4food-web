@@ -45,8 +45,13 @@ export const useFilterSwabProductHistory = () => {
     }
 
     if (dateRange) {
-      params.fromDate = onlyDate(new Date(dateRange.from));
-      params.toDate = onlyDate(new Date(dateRange.to));
+      if (dateRange.from) {
+        params.fromDate = onlyDate(new Date(dateRange.from));
+      }
+
+      if (dateRange.to) {
+        params.toDate = onlyDate(new Date(dateRange.to));
+      }
     }
 
     if (shift && shift !== Shift.ALL) {
@@ -88,6 +93,7 @@ export const useFilterSwabProductHistory = () => {
     if (skip !== undefined) {
       params.skip = skip;
     }
+
     if (take !== undefined) {
       params.take = take;
     }

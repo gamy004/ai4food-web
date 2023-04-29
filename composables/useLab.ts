@@ -1,5 +1,4 @@
 import { useRepo } from "pinia-orm";
-import { filter } from "rxjs";
 import Bacteria from "~~/models/Bacteria";
 import BacteriaSpecie from "~~/models/BacteriaSpecie";
 import Facility from "~~/models/Facility";
@@ -12,7 +11,6 @@ import SwabProductHistory from "~~/models/SwabProductHistory";
 import SwabTest from "~~/models/SwabTest";
 import SwabTestBacteria from "~~/models/SwabTestBacteria";
 import SwabTestBacteriaSpecie from "~~/models/SwabTestBacteriaSpecie";
-import { DateRangeInterface, Shift } from "./useDate";
 import { LoadAllSwabAreaHistoryFilter } from "./useFilterSwabAreaHistory";
 import {
   LoadAllSwabProductHistoryFilter,
@@ -70,7 +68,7 @@ export interface LoadAllLabSwabProductHistoryResponse
 
 export const useLab = () => {
   const { get, put } = useRequest();
-  const { today, onlyDate } = useDate();
+  const { today } = useDate();
 
   //   useRepo(SwabArea);
   //   useRepo(SwabPeriod);
@@ -111,8 +109,8 @@ export const useLab = () => {
       .filter(Boolean);
   };
 
-  const getBacteriaBySwabTestId = (swabTestId: string) => {
-    let bacteria = [];
+  const getBacteriaBySwabTestId = (swabTestId: string): Bacteria[] => {
+    let bacteria: Bacteria[] = [];
 
     const swabTestBacteria = swabTestBacteriaRepo
       .where("swabTestId", swabTestId)
@@ -161,8 +159,10 @@ export const useLab = () => {
       .filter(Boolean);
   };
 
-  const getBacteriaSpecieBySwabTestId = (swabTestId: string) => {
-    let bacteriaSpecies = [];
+  const getBacteriaSpecieBySwabTestId = (
+    swabTestId: string
+  ): BacteriaSpecie[] => {
+    let bacteriaSpecies: BacteriaSpecie[] = [];
 
     const swabTestBacteriaSpecies = swabTestBacteriaSpecieRepo
       .where("swabTestId", swabTestId)
@@ -193,7 +193,7 @@ export const useLab = () => {
     if (swabTestId) {
       const swabTest = getSwabTestById(swabTestId);
 
-      if (swabTest.swabTestRecordedAt !== null) {
+      if (swabTest && swabTest.swabTestRecordedAt !== null) {
         const bacteria = getBacteriaBySwabTestId(swabTestId);
 
         stateBacteria = bacteria.length > 0;
@@ -210,68 +210,38 @@ export const useLab = () => {
   };
 
   const loadAllBacteria = async (): Promise<Bacteria[]> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = get<Bacteria[]>("/bacteria");
+    const data = await get<Bacteria[]>("/bacteria");
 
-      watch(data, (bacteriaData) => {
-        const bacterias = bacteriaRepo.save(bacteriaData);
+    const bacterias = bacteriaRepo.save(data);
 
-        resolve(bacterias);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Load bacteria failed");
-      });
-    });
+    return bacterias;
   };
 
   const loadAllBacteriaWithSpecie = async (): Promise<Bacteria[]> => {
-    return new Promise((resolve, reject) => {
-      const params: SearchParams = {
-        bacteriaSpecies: true,
-      };
+    const params: SearchParams = {
+      bacteriaSpecies: true,
+    };
 
-      const { data, error } = get<Bacteria[]>("/bacteria", {
-        params,
-      });
-
-      watch(data, (bacteriaData) => {
-        const bacterias = bacteriaRepo.save(bacteriaData);
-
-        resolve(bacterias);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Load bacteria failed");
-      });
+    const data = await get<Bacteria[]>("/bacteria", {
+      params,
     });
+
+    const bacterias = bacteriaRepo.save(data);
+
+    return bacterias;
   };
 
   const loadAllBacteriaSpecies = async (): Promise<BacteriaSpecie[]> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = get<BacteriaSpecie[]>("/bacteria-specie");
+    const data = await get<BacteriaSpecie[]>("/bacteria-specie");
 
-      watch(data, (bacteriaSpecieData) => {
-        const bacteriaSpecies = bacteriaSpecieRepo.save(bacteriaSpecieData);
+    const bacteriaSpecies = bacteriaSpecieRepo.save(data);
 
-        resolve(bacteriaSpecies);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Load bacteria species failed");
-      });
-    });
+    return bacteriaSpecies;
   };
 
-  const mapPivotSwabTestBacteria = (swabTest) => {
+  const mapPivotSwabTestBacteria = (swabTest: any) => {
     if (swabTest.bacteria?.length) {
-      swabTest.bacteria = swabTest.bacteria.map((bacteria) => ({
+      swabTest.bacteria = swabTest.bacteria.map((bacteria: any) => ({
         ...bacteria,
         pivot: {
           bacteriaId: bacteria.id,
@@ -283,11 +253,11 @@ export const useLab = () => {
     return swabTest;
   };
 
-  const mapPivotSwabTestBacteriaSpecie = (swabTest) => {
+  const mapPivotSwabTestBacteriaSpecie = (swabTest: any) => {
     if (swabTest.bacteriaSpecies?.length) {
-      const bacteriaSpecies = [];
+      const bacteriaSpecies: any[] = [];
 
-      swabTest.bacteriaSpecies.forEach((bacteriaSpecie) => {
+      swabTest.bacteriaSpecies.forEach((bacteriaSpecie: any) => {
         if (bacteriaSpecie.id) {
           bacteriaSpecies.push({
             ...bacteriaSpecie,
@@ -321,7 +291,7 @@ export const useLab = () => {
     swabTestId: string,
     bacteriaSpecies: BacteriaSpecieData[]
   ) => {
-    const insertedSwabTestBacteria = [];
+    const insertedSwabTestBacteria: any[] = [];
 
     bacteriaSpecies.forEach(({ bacteriaSpecieId }) => {
       if (bacteriaSpecieId) {
@@ -460,35 +430,25 @@ export const useLab = () => {
   const loadAllLabSwabAreaHistory = async (
     loadAllLabSwabAreaHistoryData: LoadAllSwabAreaHistoryFilter
   ): Promise<[SwabAreaHistory[], number]> => {
-    return new Promise((resolve, reject) => {
-      const { toDto } = useFilterSwabAreaHistory();
+    const { toDto } = useFilterSwabAreaHistory();
 
-      const params: SearchParams = toDto(loadAllLabSwabAreaHistoryData);
+    const params: SearchParams = toDto(loadAllLabSwabAreaHistoryData);
 
-      const { data, error } = get<LoadAllLabSwabAreaHistoryResponse>(
-        "/swab/area-history/lab",
-        {
-          params,
-        }
-      );
+    const data = await get<LoadAllLabSwabAreaHistoryResponse>(
+      "/swab/area-history/lab",
+      {
+        params,
+      }
+    );
 
-      watch(data, (response) => {
-        const { swabAreaHistories = [], total } = response;
+    const { swabAreaHistories = [], total = 0 } = data;
 
-        saveRelatedLoadAllLabSwabAreaHistoryResponse(response);
+    saveRelatedLoadAllLabSwabAreaHistoryResponse(data);
 
-        const updatedSwabAreaHistoryData =
-          swabAreaHistoryRepo.save(swabAreaHistories);
+    const updatedSwabAreaHistoryData =
+      swabAreaHistoryRepo.save(swabAreaHistories);
 
-        resolve([updatedSwabAreaHistoryData, total]);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("load all lab swab area history failed");
-      });
-    });
+    return [updatedSwabAreaHistoryData, total];
   };
 
   const saveRelatedLoadAllLabSwabProductHistoryResponse = (
@@ -506,104 +466,71 @@ export const useLab = () => {
   const loadAllLabSwabProductHistory = async (
     filter: LoadAllSwabProductHistoryFilter
   ): Promise<[SwabProductHistory[], number]> => {
-    return new Promise((resolve, reject) => {
-      const { toDto } = useFilterSwabProductHistory();
+    const { toDto } = useFilterSwabProductHistory();
 
-      const params: SearchParams = toDto(filter);
+    const params: SearchParams = toDto(filter);
 
-      const { data, error } = get<LoadAllLabSwabProductHistoryResponse>(
-        "/swab/product-history/lab",
-        {
-          params,
-        }
-      );
+    const data = await get<LoadAllLabSwabProductHistoryResponse>(
+      "/swab/product-history/lab",
+      {
+        params,
+      }
+    );
 
-      watch(data, (response) => {
-        saveRelatedLoadAllLabSwabProductHistoryResponse(response);
+    saveRelatedLoadAllLabSwabProductHistoryResponse(data);
 
-        const { swabProductHistories = [], total } = response;
+    const { swabProductHistories = [], total = 0 } = data;
 
-        const updatedSwabProductHistoryData =
-          swabProductHistoryRepo.save(swabProductHistories);
+    const updatedSwabProductHistoryData =
+      swabProductHistoryRepo.save(swabProductHistories);
 
-        resolve([updatedSwabProductHistoryData, total]);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("load all lab swab product history failed");
-      });
-    });
+    return [updatedSwabProductHistoryData, total];
   };
 
-  const updateSwabTestById = (
+  const updateSwabTestById = async (
     swabTestId: string,
     bacteriaSpecies: BacteriaSpecieData[]
   ): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      const swabTestRecordedAt = today().toISOString();
+    const swabTestRecordedAt = today().toISOString();
 
-      const { data, error } = put<any>(`/swab-test/${swabTestId}`, {
-        swabTestRecordedAt,
-        bacteriaSpecies,
-      });
-
-      watch(data, (responseData) => {
-        swabTestRepo.save({ id: swabTestId, swabTestRecordedAt });
-
-        if (!bacteriaSpecies.length) {
-          clearBacteriaRelationBySwabTestId(swabTestId);
-          clearBacteriaSpecieRelationBySwabTestId(swabTestId);
-        } else {
-          saveBacteriaRelationBySwabTestId(swabTestId, bacteriaSpecies);
-          saveBacteriaSpecieRelationBySwabTestId(swabTestId, bacteriaSpecies);
-        }
-
-        resolve(responseData);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Update swab test by id failed");
-      });
+    const data = await put<any>(`/swab-test/${swabTestId}`, {
+      swabTestRecordedAt,
+      bacteriaSpecies,
     });
+
+    swabTestRepo.save({ id: swabTestId, swabTestRecordedAt });
+
+    if (!bacteriaSpecies.length) {
+      clearBacteriaRelationBySwabTestId(swabTestId);
+      clearBacteriaSpecieRelationBySwabTestId(swabTestId);
+    } else {
+      saveBacteriaRelationBySwabTestId(swabTestId, bacteriaSpecies);
+      saveBacteriaSpecieRelationBySwabTestId(swabTestId, bacteriaSpecies);
+    }
+
+    return data;
   };
 
-  const updateSwabTestBacteriaSpecies = (
+  const updateSwabTestBacteriaSpecies = async (
     swabTestId: string,
     bacteriaSpecies: BacteriaSpecieData[]
   ): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      const bacteriaSpecieRecordedAt = today().toISOString();
+    const bacteriaSpecieRecordedAt = today().toISOString();
 
-      const { data, error } = put<any>(
-        `/swab-test/${swabTestId}/bacteria-specie`,
-        {
-          bacteriaSpecieRecordedAt,
-          bacteriaSpecies: bacteriaSpecies.map(
-            ({ bacteriaSpecieId }) => bacteriaSpecieId
-          ),
-        }
-      );
-
-      watch(data, (responseData) => {
-        swabTestRepo.save({ id: swabTestId, bacteriaSpecieRecordedAt });
-
-        clearBacteriaSpecieRelationBySwabTestId(swabTestId);
-
-        saveBacteriaSpecieRelationBySwabTestId(swabTestId, bacteriaSpecies);
-
-        resolve(responseData);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Update swab test bacteria species failed");
-      });
+    const data = await put<any>(`/swab-test/${swabTestId}/bacteria-specie`, {
+      bacteriaSpecieRecordedAt,
+      bacteriaSpecies: bacteriaSpecies.map(
+        ({ bacteriaSpecieId }) => bacteriaSpecieId
+      ),
     });
+
+    swabTestRepo.save({ id: swabTestId, bacteriaSpecieRecordedAt });
+
+    clearBacteriaSpecieRelationBySwabTestId(swabTestId);
+
+    saveBacteriaSpecieRelationBySwabTestId(swabTestId, bacteriaSpecies);
+
+    return data;
   };
 
   return {

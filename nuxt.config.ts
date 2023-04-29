@@ -1,30 +1,35 @@
-import { defineNuxtConfig } from "nuxt";
 import Icons from "unplugin-icons/vite";
 // import eslintPlugin from "vite-plugin-eslint";
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
-  ssr: false,
-
-  target: "static",
-
-  head: {
-    meta: [
-      {
-        title: "Ai4FoodSafety",
-        name: "viewport",
-        content:
-          "width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes, ie=edge",
-      },
-      {
-        charset: "utf-8",
-      },
-    ],
+  typescript: {
+    shim: true,
   },
 
-  css: ["~/assets/scss/main.scss"],
+  ssr: false,
+
+  app: {
+    head: {
+      title: "Ai4FoodSafety",
+      charset: "utf-8",
+      viewport:
+        "width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes",
+      meta: [{ "http-equiv": "X-UA-Compatible", content: "IE=edge" }],
+    },
+  },
+
+  css: [
+    "bootstrap/dist/css/bootstrap.min.css",
+    "@vuepic/vue-datepicker/src/VueDatePicker/style/main.scss",
+    "~/assets/scss/main.scss",
+  ],
 
   plugins: ["~/plugins/useToast.client.ts"],
+
+  build: {
+    transpile: ["@vuepic/vue-datepicker"],
+  },
 
   runtimeConfig: {
     public: {
@@ -33,12 +38,7 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: [
-    "bootstrap-vue-3/nuxt",
-    "cookie-universal-nuxt",
-    "@pinia/nuxt",
-    "@pinia-orm/nuxt",
-  ],
+  modules: ["@bootstrap-vue-next/nuxt", "@pinia/nuxt", "@pinia-orm/nuxt"],
 
   nitro: {
     externals: {

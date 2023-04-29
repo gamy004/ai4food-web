@@ -1,7 +1,8 @@
-import { useRepo } from "pinia-orm";
+import { Item, useRepo } from "pinia-orm";
 import Product from "~~/models/Product";
 import ProductSchedule from "~~/models/ProductSchedule";
 import { Shift } from "./useDate";
+import { SearchParams } from "./useRequest";
 
 export type createProductInterface = (
   body: BodyManageProduct
@@ -58,7 +59,7 @@ export type ResponseDeletePermission = {
   countProductSchedules: number;
 };
 
-export type deleteProductInterface = (id: string) => Promise<Product>;
+export type deleteProductInterface = (id: string) => Promise<Item<Product>>;
 
 export type LoadProductScheduleParams = {
   fromDate: string;
@@ -80,7 +81,7 @@ export const useProduct = () => {
     return query.orderBy("productCode", "asc").get();
   };
 
-  const getProductById = (id: string): Product => {
+  const getProductById = (id: string): Item<Product> => {
     return productRepo.find(id);
   };
 
@@ -90,7 +91,7 @@ export const useProduct = () => {
     return query.orderBy("productCode", "asc").get();
   };
 
-  const getProductByCode = (code: string): Product => {
+  const getProductByCode = (code: string): Item<Product> => {
     const query = productRepo.where("productCode", code);
 
     return query.first();
@@ -102,182 +103,118 @@ export const useProduct = () => {
     return query.get();
   };
 
-  const getProductScheduleById = (id: string): ProductSchedule => {
+  const getProductScheduleById = (id: string): Item<ProductSchedule> => {
     return productScheduleRepo.find(id);
   };
 
   const loadAllProduct = async (): Promise<Product[]> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = get<Product[]>("/product");
+    const data = await get<Product[]>("/product");
 
-      watch(data, (productData) => {
-        const products = productRepo.save(productData);
+    const products = productRepo.save(data);
 
-        resolve(products);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Load product failed");
-      });
-    });
+    return products;
   };
 
   const loadDeletePermissionProduct = async (
     id: string
   ): Promise<ResponseDeletePermission> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = get<ResponseDeletePermission>(
-        `/product/${id}/delete-permission`
-      );
+    const data = await get<ResponseDeletePermission>(
+      `/product/${id}/delete-permission`
+    );
 
-      watch(data, resolve);
-
-      watch(error, reject);
-    });
+    return data;
   };
 
   const createProduct: createProductInterface = async (
     body: BodyManageProduct
   ): Promise<Product> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = post<Product>(`/product`, body);
+    const data = await post<Product>(`/product`, body);
 
-      watch(data, (productData) => {
-        const product = productRepo.save(productData);
+    const product = productRepo.save(data);
 
-        resolve(product);
-      });
-
-      watch(error, reject);
-    });
+    return product;
   };
 
   const updateProduct: updateProductInterface = async (
     id: string,
     body: BodyManageProduct
   ): Promise<Product> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = put<Product>(`/product/${id}`, body);
+    const data = await put<Product>(`/product/${id}`, body);
 
-      watch(data, (productData) => {
-        const product = productRepo.save(productData);
+    const product = productRepo.save(data);
 
-        resolve(product);
-      });
-
-      watch(error, reject);
-    });
+    return product;
   };
 
   const deleteProduct: deleteProductInterface = async (
     id: string
-  ): Promise<Product> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = destroy<Product>(`/product/${id}`);
+  ): Promise<Item<Product>> => {
+    const data = await destroy<Product>(`/product/${id}`);
 
-      watch(data, (productData) => {
-        const productId: string = productData.id;
+    const productId: string = data.id;
 
-        const product = productRepo.destroy(productId);
+    const product = productRepo.destroy(productId);
 
-        resolve(product);
-      });
-
-      watch(error, reject);
-    });
+    return product;
   };
 
   const loadProductSchedule = async (
-    params: LoadProductScheduleParams
+    filter: LoadProductScheduleParams
   ): Promise<ProductSchedule[]> => {
-    return new Promise((resolve, reject) => {
-      const requestParams: any = {};
+    const params: SearchParams = {};
 
-      if (params.fromDate) {
-        requestParams.fromDate = params.fromDate;
-      }
+    if (filter.fromDate) {
+      params.fromDate = filter.fromDate;
+    }
 
-      if (params.toDate) {
-        requestParams.toDate = params.toDate;
-      }
+    if (filter.toDate) {
+      params.toDate = filter.toDate;
+    }
 
-      const { data, error } = get<LoadProductScheduleData>(
-        "/product-schedule",
-        { params: requestParams }
-      );
-
-      watch(data, (productScheduleData) => {
-        const { productSchedules: insertedProductSchedules = [] } =
-          productScheduleData;
-
-        const productSchedules = productScheduleRepo.save(
-          insertedProductSchedules
-        );
-
-        resolve(productSchedules);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Load product failed");
-      });
+    const data = await get<LoadProductScheduleData>("/product-schedule", {
+      params,
     });
+
+    const { productSchedules: insertedProductSchedules = [] } = data;
+
+    const productSchedules = productScheduleRepo.save(insertedProductSchedules);
+
+    return productSchedules;
   };
 
   const importProductSchedule = async (
     body: BodyImportProductSchedule
   ): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = post<any>(`/product-schedule/import`, {
-        ...body,
-        timezone: "Asia/Bangkok", // force sent timezone as "Asia/Bangkok"
-      });
-
-      watch(data, resolve);
-
-      watch(error, reject);
+    const data = await post<any>(`/product-schedule/import`, {
+      ...body,
+      timezone: "Asia/Bangkok", // force sent timezone as "Asia/Bangkok"
     });
+
+    return data;
   };
 
   const updateProductSchedule = async (
     id: string,
     body: UpdateProductScheduleData
   ): Promise<ProductSchedule> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = put<ProductSchedule>(`/product-schedule/${id}`, {
-        ...body,
-        timezone: "Asia/Bangkok", // force sent timezone as "Asia/Bangkok"
-      });
-
-      watch(data, (productScheduleData) => {
-        const productSchedule = productScheduleRepo.save(productScheduleData);
-
-        resolve(productSchedule);
-      });
-
-      watch(error, reject);
+    const data = await put<ProductSchedule>(`/product-schedule/${id}`, {
+      ...body,
+      timezone: "Asia/Bangkok", // force sent timezone as "Asia/Bangkok"
     });
+
+    const productSchedule = productScheduleRepo.save(data);
+
+    return productSchedule;
   };
 
   const deleteProductSchedule = async (
     id: string
-  ): Promise<ProductSchedule> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = destroy<ProductSchedule>(
-        `/product-schedule/${id}`
-      );
+  ): Promise<Item<ProductSchedule>> => {
+    await destroy<ProductSchedule>(`/product-schedule/${id}`);
 
-      watch(data, () => {
-        const productSchedule = productScheduleRepo.destroy(id);
+    const productSchedule = productScheduleRepo.destroy(id);
 
-        resolve(productSchedule);
-      });
-
-      watch(error, reject);
-    });
+    return productSchedule;
   };
 
   return {

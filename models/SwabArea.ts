@@ -7,6 +7,7 @@ import {
   HasManyBy,
 } from "pinia-orm/dist/decorators";
 import Facility from "./Facility";
+import ContactZone from "./ContactZone";
 
 export default class SwabArea extends Model {
   static entity = "swab_area";
@@ -23,6 +24,9 @@ export default class SwabArea extends Model {
   @Attr(null)
   declare facilityId: string | null;
 
+  @Attr(null)
+  declare contactZoneId: string | null;
+
   @Attr([])
   declare subSwabAreaIds: string[];
 
@@ -34,6 +38,9 @@ export default class SwabArea extends Model {
 
   @BelongsTo(() => Facility, "facilityId")
   declare facility: Facility;
+
+  @BelongsTo(() => ContactZone, "contactZoneId")
+  declare contactZone: ContactZone;
 
   get isMainArea(): boolean {
     return this.mainSwabAreaId === null;

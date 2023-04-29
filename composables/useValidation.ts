@@ -1,3 +1,4 @@
+import { get } from "lodash";
 import useVuelidate from "@vuelidate/core";
 
 export const useValidation = (validationRules, form) => {
@@ -14,7 +15,7 @@ export const useValidation = (validationRules, form) => {
       ? !rules.some((rule) => {
           // console.log(field, rule, v$.value[field][rule].$invalid);
 
-          return v$.value[field][rule].$invalid;
+          return get(v$.value, field)[rule].$invalid;
         })
       : undefined;
   };

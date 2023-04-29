@@ -65,8 +65,8 @@ const pageImportSwabTest = {
 </script>
 
 <template>
-  <div class="page__home mt-4">
-    <div v-if="isAuthenticated" class="row">
+  <div v-if="authUser" class="page__home mt-4">
+    <div class="row">
       <div class="col">
         <h2 class="font-weight-bold">
           ยินดีต้อนรับ, {{ authUser.displayName }}
