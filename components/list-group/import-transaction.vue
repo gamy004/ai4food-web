@@ -162,11 +162,11 @@ defineExpose({ fetch });
                   v-if="item.file"
                   class="list-group-item__import-transaction-file"
                 >
-                  <a
-                    class="list-group-item__import-transaction-file-link"
-                    :href="filePresenter.getFileSource(item.file)"
-                    :download="item.file.fileName"
-                    >{{ item.file.fileName }}</a
+                  <b-button
+                    variant="link"
+                    class="list-group-item__import-transaction-file-link p-0"
+                    @click.prevent="filePresenter.downloadFile(item.file)"
+                    >{{ item.file.fileName }}</b-button
                   >
                 </div>
 
