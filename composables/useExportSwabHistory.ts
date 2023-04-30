@@ -282,70 +282,62 @@ export const useExportSwabHistory = () => {
     };
   };
 
-  const fetch = (
+  const fetch = async (
     filter: ExportSwabHistoryFilter,
     options = { save: true }
   ): Promise<ExportSwabHistoryResponse> => {
     const params: SearchParams = toDto(filter);
 
-    return new Promise((resolve, reject) => {
-      const { data, error } = get<ExportSwabHistoryResponse>("/swab/export", {
-        params,
-      });
-
-      watch(data, (swabPlanData) => {
-        let {
-          swabAreaHistories = [],
-          swabProductHistories = [],
-          totalSwabAreaHistories = 0,
-          totalSwabProductHistories = 0,
-        } = swabPlanData;
-
-        if (options.save) {
-          swabAreaHistories.forEach((swabAreaHistory) => {
-            swabTestBacteriaRepo
-              .where("swabTestId", swabAreaHistory.swabTestId)
-              .delete();
-
-            swabTestBacteriaSpecieRepo
-              .where("swabTestId", swabAreaHistory.swabTestId)
-              .delete();
-          });
-
-          swabAreaHistories = swabAreaHistoryRepo.save(swabAreaHistories);
-
-          swabProductHistories.forEach((swabProductHistory) => {
-            swabTestBacteriaRepo
-              .where("swabTestId", swabProductHistory.swabTestId)
-              .delete();
-
-            swabTestBacteriaSpecieRepo
-              .where("swabTestId", swabProductHistory.swabTestId)
-              .delete();
-          });
-
-          swabProductHistories =
-            swabProductHistoryRepo.save(swabProductHistories);
-        }
-
-        resolve({
-          swabAreaHistories,
-          swabProductHistories,
-          totalSwabAreaHistories,
-          totalSwabProductHistories,
-        });
-      });
-
-      watch(error, reject);
+    const data = await get<ExportSwabHistoryResponse>("/swab/export", {
+      params,
     });
+
+    let {
+      swabAreaHistories = [],
+      swabProductHistories = [],
+      totalSwabAreaHistories = 0,
+      totalSwabProductHistories = 0,
+    } = data;
+
+    if (options.save) {
+      swabAreaHistories.forEach((swabAreaHistory) => {
+        swabTestBacteriaRepo
+          .where("swabTestId", swabAreaHistory.swabTestId)
+          .delete();
+
+        swabTestBacteriaSpecieRepo
+          .where("swabTestId", swabAreaHistory.swabTestId)
+          .delete();
+      });
+
+      swabAreaHistories = swabAreaHistoryRepo.save(swabAreaHistories);
+
+      swabProductHistories.forEach((swabProductHistory) => {
+        swabTestBacteriaRepo
+          .where("swabTestId", swabProductHistory.swabTestId)
+          .delete();
+
+        swabTestBacteriaSpecieRepo
+          .where("swabTestId", swabProductHistory.swabTestId)
+          .delete();
+      });
+
+      swabProductHistories = swabProductHistoryRepo.save(swabProductHistories);
+    }
+
+    return {
+      swabAreaHistories,
+      swabProductHistories,
+      totalSwabAreaHistories,
+      totalSwabProductHistories,
+    };
   };
 
   const exportReport = async (filter: ExportSwabHistoryFilter) => {
     const wb = utils.book_new();
 
-    const fromDateString = filter.dateRange.from;
-
-    const toDateString = filter.dateRange.to;
+    const fromDateString = filter.dateRange ? filter.dateRange.from : null;
+    const toDateString = filter.dateRange ? filter.dateRange.to : null;
 
     // const exportedPage = 200;
 
@@ -448,12 +440,15 @@ export const useExportSwabHistory = () => {
       exportedSwabProductHistory = null;
     }
 
-    let fileNames = [
-      "รายงานจุดswab",
-      fromDateString === toDateString
-        ? fromDateString
-        : `${fromDateString}-${toDateString}`,
-    ];
+    let fileNames = ["รายงานจุดswab"];
+
+    if (fromDateString && toDateString) {
+      fileNames.push(
+        fromDateString === toDateString
+          ? fromDateString
+          : `${fromDateString}-${toDateString}`
+      );
+    }
 
     if (filter.swabStatus !== SwabStatus.ALL) {
       fileNames.push(SwabStatusMapper[filter.swabStatus]);

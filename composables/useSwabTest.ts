@@ -1,4 +1,4 @@
-import { useRepo } from "pinia-orm";
+import { Item, useRepo } from "pinia-orm";
 import SwabTest from "~~/models/SwabTest";
 import { LoadSwabTestFilter } from "./useFilterSwabTest";
 import { SearchParams } from "./useRequest";
@@ -25,14 +25,14 @@ export type BodyImportSwabTest = {
 };
 
 export const useSwabTest = () => {
-  const { get, post, put, destroy } = useRequest();
+  const { get, post } = useRequest();
 
   const swabTestRepo = useRepo(SwabTest);
 
-  const getSwabTestById = (id: string): SwabTest => {
-    const query = swabTestRepo.find(id);
+  const getSwabTestById = (id: string): Item<SwabTest> => {
+    const swabTest = swabTestRepo.find(id);
 
-    return query;
+    return swabTest;
   };
 
   const getSwabTestByIds = (ids: string[]): SwabTest[] => {
@@ -41,7 +41,7 @@ export const useSwabTest = () => {
     return query.orderBy("id", "asc").get();
   };
 
-  const getSwabTestByCode = (code: string): SwabTest => {
+  const getSwabTestByCode = (code: string): Item<SwabTest> => {
     const query = swabTestRepo.where("swabTestCode", code);
 
     return query.first();
@@ -56,56 +56,36 @@ export const useSwabTest = () => {
   const loadSwabTest = async (
     filter: LoadSwabTestFilter
   ): Promise<SwabTest[]> => {
-    return new Promise((resolve, reject) => {
-      const { toDto } = useFilterSwabTest();
+    const { toDto } = useFilterSwabTest();
 
-      const params: SearchParams = toDto(filter);
+    const params: SearchParams = toDto(filter);
 
-      const { data, error } = get<SwabTest[]>("/swab-test", { params });
+    const data = await get<SwabTest[]>("/swab-test", { params });
 
-      watch(data, (dataResponse) => {
-        const swabTests = swabTestRepo.save(dataResponse);
+    const swabTests = swabTestRepo.save(data);
 
-        resolve(swabTests);
-      });
-
-      watch(error, reject);
-    });
+    return swabTests;
   };
 
   const loadSwabTestByCodes = async (
     swabTestCodes = []
   ): Promise<SwabTest[]> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = post<SwabTest[]>("/swab-test/codes", {
-        swabTestCodes,
-      });
-
-      watch(data, (swabTestData) => {
-        const swabTests = swabTestRepo.save(swabTestData);
-
-        resolve(swabTests);
-      });
-
-      watch(error, (e) => {
-        console.log(e);
-
-        reject("Load swab test failed");
-      });
+    const data = await post<SwabTest[]>("/swab-test/codes", {
+      swabTestCodes,
     });
+
+    const swabTests = swabTestRepo.save(data);
+
+    return swabTests;
   };
 
   const importSwabTest = async (body: BodyImportSwabTest): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      const { data, error } = post<any>(`/swab-test/import`, {
-        ...body,
-        timezone: "Asia/Bangkok", // force sent timezone as "Asia/Bangkok"
-      });
-
-      watch(data, resolve);
-
-      watch(error, reject);
+    const data = await post<any>(`/swab-test/import`, {
+      ...body,
+      timezone: "Asia/Bangkok", // force sent timezone as "Asia/Bangkok"
     });
+
+    return data;
   };
 
   return {

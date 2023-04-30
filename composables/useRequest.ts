@@ -29,7 +29,14 @@ export interface ResponseErrorData {
 // let authToken = null;
 
 export const useRequest = () => {
-  const { $cookies } = useNuxtApp();
+  // const { $cookies } = useNuxtApp();
+  const authCookie = useCookie("auth_data", {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 14,
+    decode: (value: string | null) =>
+      value ? decodeURIComponent(value) : null,
+    watch: "shallow",
+  });
   const config = useRuntimeConfig();
   const baseURL = config.public.apiBaseUrl;
 
@@ -55,12 +62,12 @@ export const useRequest = () => {
 
     // something was wrong with local variable within composable (the value didn't update after the variable was set)
     // change to detect access token from cookie instead for now
-    const authCookie = $cookies.get("auth_data", {
-      path: "/",
-    });
+    // const authCookie = $cookies.get("auth_data", {
+    //   path: "/",
+    // });
 
-    if (authCookie !== undefined) {
-      const authData = JSON.parse(authCookie);
+    if (authCookie.value) {
+      const authData = JSON.parse(authCookie.value);
 
       if (authData.accessToken) {
         additionalHeaders = {
@@ -88,7 +95,7 @@ export const useRequest = () => {
     };
   }
 
-  function serialize(obj, prefix = null) {
+  function serialize(obj, prefix = null): string {
     var str = [],
       p;
     for (p in obj) {
@@ -123,7 +130,7 @@ export const useRequest = () => {
         requestUrl += `?${serialize(params)}`;
       }
 
-      return useFetch<T, ResponseErrorT>(requestUrl, {
+      return $fetch<T>(requestUrl, {
         method: "get",
         ...getRequestOptions(),
         ...otherFetchOptions,
@@ -135,7 +142,7 @@ export const useRequest = () => {
       body: Record<string, any>,
       options: FetchOptions = {}
     ) {
-      return useFetch<T, ResponseErrorT>(url, {
+      return $fetch<T>(url, {
         body,
         method: "post",
         ...getRequestOptions(),
@@ -144,7 +151,7 @@ export const useRequest = () => {
     },
 
     put<T>(url: string, body: Record<string, any>, options: FetchOptions = {}) {
-      return useFetch<T, ResponseErrorT>(url, {
+      return $fetch<T>(url, {
         body,
         method: "put",
         ...getRequestOptions(),
@@ -157,7 +164,7 @@ export const useRequest = () => {
       body: Record<string, any>,
       options: FetchOptions = {}
     ) {
-      return useFetch<T, ResponseErrorT>(url, {
+      return $fetch<T>(url, {
         body,
         method: "patch",
         ...getRequestOptions(),
@@ -166,7 +173,7 @@ export const useRequest = () => {
     },
 
     destroy<T>(url: string, options: FetchOptions = {}) {
-      return useFetch<T, ResponseErrorT>(url, {
+      return $fetch<T>(url, {
         method: "delete",
         ...getRequestOptions(),
         ...options,

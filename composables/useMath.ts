@@ -1,6 +1,6 @@
 export const useMath = () => {
   return {
-    percentOf(value, total) {
+    percentOf(value: number, total: number) {
       let percent = 0;
 
       if (value > 0 && total > 0) {

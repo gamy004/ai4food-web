@@ -1,5 +1,4 @@
 import { useRepo } from "pinia-orm";
-import { Ref } from "vue";
 import Auth from "~~/models/Auth";
 import User from "~~/models/User";
 
@@ -9,13 +8,23 @@ export interface LoginData {
 
 export const useAuth = () => {
   const { get, post } = useRequest();
-  const { $cookies } = useNuxtApp();
+
+  const authCookie = useCookie("auth_data", {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 14,
+    decode: (value: string | null) =>
+      value ? decodeURIComponent(value) : null,
+    watch: "shallow",
+  });
+
+  // const { $cookies } = useNuxtApp();
   const userRepo = useRepo(User);
 
   function clearAuth(): void {
-    $cookies.remove("auth_data", {
-      path: "/",
-    });
+    authCookie.value = null;
+    // $cookies.remove("auth_data", {
+    //   path: "/",
+    // });
   }
 
   function isAuthenticated() {
@@ -25,14 +34,14 @@ export const useAuth = () => {
   }
 
   function getAuth(): Auth | null {
-    const authCookie = $cookies.get("auth_data", {
-      path: "/",
-    });
+    // const authCookie = $cookies.get("auth_data", {
+    //   path: "/",
+    // });
 
     let auth = null;
 
-    if (authCookie !== undefined) {
-      const authData = JSON.parse(authCookie);
+    if (authCookie.value) {
+      const authData = JSON.parse(authCookie.value);
 
       auth = new Auth();
 
@@ -46,66 +55,56 @@ export const useAuth = () => {
         const user = userRepo.find(authData.userId);
 
         if (user) {
-          auth.setUser(userRepo.find(authData.userId));
+          auth.setUser(new User(user));
         }
       }
 
       if (authData.user) {
-        auth.setUser(userRepo.make({ ...authData.user }));
+        auth.setUser(new User(authData.user));
       }
     }
 
     return auth;
   }
 
-  function saveAuth(data) {
-    $cookies.set("auth_data", data, {
-      path: "/",
-      maxAge: 60 * 60 * 24 * 14,
-    });
+  function saveAuth(authState: Auth) {
+    authCookie.value = JSON.stringify(authState);
+
+    // $cookies.set("auth_data", data, {
+    //   path: "/",
+    //   maxAge: 60 * 60 * 24 * 14,
+    // });
   }
 
-  function login(username: string, password: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const { data, error } = post<LoginData>("/auth/login", {
-        username,
-        password,
-      });
-
-      watch(data, ({ access_token }) => {
-        const auth = new Auth();
-
-        auth.setAccessToken(access_token);
-
-        saveAuth(auth);
-
-        resolve();
-      });
-
-      watch(error, reject);
+  async function login(username: string, password: string): Promise<void> {
+    const { access_token } = await post<LoginData>("/auth/login", {
+      username,
+      password,
     });
+
+    if (access_token) {
+      const auth = new Auth();
+
+      auth.setAccessToken(access_token);
+
+      saveAuth(auth);
+    }
   }
 
   async function loadProfile(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const { data, error } = get<User>("/auth/profile");
+    const auth = getAuth();
 
-      watch(data, (userData) => {
-        const auth = getAuth();
+    if (auth) {
+      const data = await get<User>("/auth/profile");
 
-        const user = userRepo.save({ ...userData });
+      const user = userRepo.save(data);
 
-        auth.setUserId(user.id);
+      auth.setUserId(user.id);
 
-        auth.setUser(user);
+      auth.setUser(user);
 
-        saveAuth(auth);
-
-        resolve();
-      });
-
-      watch(error, reject);
-    });
+      saveAuth(auth);
+    }
   }
 
   return {
@@ -113,10 +112,10 @@ export const useAuth = () => {
 
     getAuth,
 
-    authUser: computed((): User => {
+    authUser: computed((): User | null => {
       const auth = getAuth();
 
-      return auth.getUser();
+      return auth ? new User(auth.getUser()) : null;
     }),
 
     isAuthenticated: computed(isAuthenticated),
