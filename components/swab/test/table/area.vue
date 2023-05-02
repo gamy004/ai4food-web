@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import { useToast } from "vue-toastification";
+import IcBaselineReport from "~icons/ic/baseline-report";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
-import checkLg from "~icons/bi/check-lg";
-import crossIcon from "~icons/akar-icons/cross";
+// import checkLg from "~icons/bi/check-lg";
+// import crossIcon from "~icons/akar-icons/cross";
 import SwabAreaHistory from "~~/models/SwabAreaHistory";
 import { FormData as SwabTestFilterFormData } from "~~/components/swab/test/filter.vue";
 import { Pagination } from "~~/composables/usePagination";
@@ -67,61 +68,85 @@ const tableFields = computed(() => {
     },
   ];
 
+  if (props.editSpecie) {
+    fields.push({
+      key: "report",
+      label: "รายงาน",
+      thClass: "text-center",
+      tdClass: "text-center",
+      thStyle: { width: "10%" },
+    });
+  }
+
   return fields;
 });
 
 const countTotal = ref(0);
 const swabAreaHistoryIds = ref([]);
 const submittingSwabTestId = ref(null);
+const showModalReport = ref(false);
+const reportedSwabTestId = ref<string | null>(null);
 const hasData = ref(true);
 const loading = ref(false);
 const error = ref(false);
 
 const displayData = computed(() => {
-  return swabAreaHistoryIds.value.map((swabAreaHistoryId, idx) => {
-    const swabAreaHistory = getSwabAreaHistoryById(swabAreaHistoryId);
+  return swabAreaHistoryIds.value
+    .map((swabAreaHistoryId, idx) => {
+      const swabAreaHistory = getSwabAreaHistoryById(swabAreaHistoryId);
 
-    let facility = null;
-    const swabTest = getSwabTestById(swabAreaHistory.swabTestId);
+      if (swabAreaHistory) {
+        let facility = null;
 
-    const bacteria = getBacteriaBySwabTestId(swabAreaHistory.swabTestId);
+        const swabTest = getSwabTestById(swabAreaHistory.swabTestId);
 
-    const stateBacteria = getBacteriaStateBySwabTestId(
-      swabAreaHistory.swabTestId
-    );
+        const bacteria = getBacteriaBySwabTestId(swabAreaHistory.swabTestId);
 
-    const swabPeriod = getSwabPeriodById(swabAreaHistory.swabPeriodId);
+        const stateBacteria = getBacteriaStateBySwabTestId(
+          swabAreaHistory.swabTestId
+        );
 
-    const swabArea = getSwabAreaById(swabAreaHistory.swabAreaId);
+        const swabPeriod = getSwabPeriodById(swabAreaHistory.swabPeriodId);
 
-    const facilityItem = getFacilityItemById(swabAreaHistory.facilityItemId);
+        const swabArea = getSwabAreaById(swabAreaHistory.swabAreaId);
 
-    if (swabArea) {
-      facility = getFacilityById(swabArea.facilityId);
-    }
+        const facilityItem = getFacilityItemById(
+          swabAreaHistory.facilityItemId
+        );
 
-    return {
-      index: idx,
-      order: idx + 1,
-      date: formatThLocale(new Date(swabAreaHistory.swabAreaDate), "ddMMyy"),
-      time: swabAreaHistory.swabAreaSwabedAt
-        ? formatTimeThLocale(swabAreaHistory.swabAreaSwabedAt)
-        : "",
-      shift: swabAreaHistory.shift,
-      swabTestCode: swabTest ? swabTest.swabTestCode : "",
-      swabPeriodName: swabPeriod ? swabPeriod.swabPeriodName : "",
-      facilityName: facility ? facility.facilityName : "",
-      facilityItemName: facilityItem ? facilityItem.facilityItemName : "",
-      swabAreaName: swabArea ? swabArea.swabAreaName : "",
-      id: swabAreaHistory.id,
-      swabStatus: swabAreaHistory.swabStatus,
-      swabTestId: swabAreaHistory.swabTestId,
-      swabTest,
-      stateBacteria,
-      bacteria,
-      bacteriaSpecie: [],
-    };
-  });
+        if (swabArea) {
+          facility = getFacilityById(swabArea.facilityId);
+        }
+
+        return {
+          index: idx,
+          order: idx + 1,
+          date: formatThLocale(
+            new Date(swabAreaHistory.swabAreaDate),
+            "ddMMyy"
+          ),
+          time: swabAreaHistory.swabAreaSwabedAt
+            ? formatTimeThLocale(swabAreaHistory.swabAreaSwabedAt)
+            : "",
+          shift: swabAreaHistory.shift,
+          swabTestCode: swabTest ? swabTest.swabTestCode : "",
+          swabPeriodName: swabPeriod ? swabPeriod.swabPeriodName : "",
+          facilityName: facility ? facility.facilityName : "",
+          facilityItemName: facilityItem ? facilityItem.facilityItemName : "",
+          swabAreaName: swabArea ? swabArea.swabAreaName : "",
+          id: swabAreaHistory.id,
+          swabStatus: swabAreaHistory.swabStatus,
+          swabTestId: swabAreaHistory.swabTestId,
+          swabTest,
+          stateBacteria,
+          bacteria,
+          bacteriaSpecie: [],
+        };
+      } else {
+        return false;
+      }
+    })
+    .filter(Boolean);
 });
 
 // const swabTestData = computed(() =>
@@ -177,6 +202,11 @@ const fetch = async function fetch(props) {
   } finally {
     loading.value = false;
   }
+};
+
+const openModalReportLost = (swabTestId: string) => {
+  showModalReport.value = true;
+  reportedSwabTestId.value = swabTestId;
 };
 
 watch(() => props, fetch, { immediate: true, deep: true });
@@ -238,6 +268,17 @@ watch(() => props, fetch, { immediate: true, deep: true });
               ></swab-test-form-radio-bacteria>
             </div>
           </template>
+
+          <template #cell(report)="{ item }">
+            <b-button
+              variant="danger"
+              size="sm"
+              @click="openModalReportLost(item.swabTestId)"
+              ><ic-baseline-report
+                :style="{ fontSize: '1em' }"
+              />รายงาน</b-button
+            >
+          </template>
         </b-table>
 
         <base-pagination
@@ -245,6 +286,11 @@ watch(() => props, fetch, { immediate: true, deep: true });
           :per-page="pagination.$state.perPage"
           :total-rows="countTotal"
           aria-controls="swabTestAreaTable"
+        />
+
+        <swab-test-modal-report
+          v-model:show-value="showModalReport"
+          v-model="reportedSwabTestId"
         />
       </div>
 
