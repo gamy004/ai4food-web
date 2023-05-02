@@ -11,7 +11,7 @@ import { PaginationState } from "~~/composables/usePagination";
 import { SwabStatus } from "~~/composables/useSwab";
 
 export interface FormData extends SwabFilterFormData {
-  swabTestCode?: string;
+  swabTestCode?: string | null;
   swabStatus?: SwabStatus;
 }
 
@@ -27,6 +27,7 @@ export interface Props {
     | "mainSwabArea"
     | "swabTestCode"
     | "swabStatus"
+    | "product"
   >;
   clearableState?: BooleanState<
     | "date"
@@ -35,6 +36,7 @@ export interface Props {
     | "facility"
     | "facilityItem"
     | "mainSwabArea"
+    | "product"
   >;
   colState?: ColState<
     | "date"
@@ -45,6 +47,7 @@ export interface Props {
     | "mainSwabArea"
     | "swabTestCode"
     | "swabStatus"
+    | "product"
   >;
   paginationState?: PaginationState;
   placeholderDate?: string;
