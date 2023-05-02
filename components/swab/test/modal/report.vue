@@ -63,6 +63,10 @@ const onReportReasonOptionSelected = (option: string) => {
   }
 };
 
+const onReportReasonCustomInput = (text: string) => {
+  reportReason.value = text;
+};
+
 const onCancel = () => {
   resetValidation();
   showValue.value = false;
@@ -130,6 +134,7 @@ const onSubmit = async () => {
               name="reportReasonCustom"
               class="mt-2"
               v-model="reportReasonCustom"
+              @input="onReportReasonCustomInput"
             ></b-form-input>
           </b-form-radio>
 
