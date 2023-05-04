@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { useToast } from "vue-toastification";
-import IcBaselineReport from "~icons/ic/baseline-report";
+// import IcBaselineReport from "~icons/ic/baseline-report";
+import IcBaselineFlag from "~icons/ic/baseline-flag";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 // import checkLg from "~icons/bi/check-lg";
 // import crossIcon from "~icons/akar-icons/cross";
@@ -74,7 +75,7 @@ const tableFields = computed(() => {
       label: "รายงาน",
       thClass: "text-center",
       tdClass: "text-center",
-      thStyle: { width: "10%" },
+      thStyle: { width: "5%" },
     });
   }
 
@@ -271,13 +272,11 @@ watch(() => props, fetch, { immediate: true, deep: true });
 
           <template #cell(report)="{ item }">
             <b-button
-              variant="danger"
+              :variant="item.swabTest.isReported ? 'danger' : 'light'"
               size="sm"
               @click="openModalReportLost(item.swabTestId)"
-              ><ic-baseline-report
-                :style="{ fontSize: '1em' }"
-              />รายงาน</b-button
-            >
+              ><ic-baseline-flag :style="{ fontSize: '1em' }"
+            /></b-button>
           </template>
         </b-table>
 

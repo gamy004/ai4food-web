@@ -25,6 +25,19 @@ export type BacteriaSpecieData = {
   bacteriaSpecieId?: string;
 };
 
+export interface ReportSwabTestData {
+  reportReason: string;
+  reportDetail?: string | null;
+}
+
+export interface ReportSwabTestResponse {
+  ok: string;
+  message: string;
+  result: SwabTest;
+}
+
+export interface RemoveReportSwabTestResponse extends ReportSwabTestResponse {}
+
 // export interface LoadAllLabSwabAreaHistoryData {
 //   date?: string;
 //   dateRange?: DateRangeInterface;
@@ -533,6 +546,27 @@ export const useLab = () => {
     return data;
   };
 
+  const reportSwabTest = async (
+    swabTestId: string,
+    body: ReportSwabTestData
+  ): Promise<void> => {
+    const data = await put<ReportSwabTestResponse>(
+      `/swab-test/${swabTestId}/report`,
+      body
+    );
+
+    swabTestRepo.save(data.result);
+  };
+
+  const removeReportSwabTest = async (swabTestId: string): Promise<void> => {
+    const data = await put<RemoveReportSwabTestResponse>(
+      `/swab-test/${swabTestId}/remove-report`,
+      {}
+    );
+
+    swabTestRepo.save(data.result);
+  };
+
   return {
     getBacteriaByIds,
     getBacteriaById,
@@ -560,6 +594,8 @@ export const useLab = () => {
         loadAllLabSwabProductHistory,
         updateSwabTestById,
         updateSwabTestBacteriaSpecies,
+        reportSwabTest,
+        removeReportSwabTest,
       };
     },
   };
