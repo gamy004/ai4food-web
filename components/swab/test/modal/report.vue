@@ -5,6 +5,7 @@ import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import { ReportSwabTestData } from "~/composables/useLab";
 
 export interface Props {
+  isReadonly?: boolean;
   showValue?: boolean;
   modelValue: string | null;
 }
@@ -12,6 +13,7 @@ export interface Props {
 const { getSwabTestById, api: labApi } = useLab();
 
 const props = withDefaults(defineProps<Props>(), {
+  isReadonly: false,
   showValue: false,
 });
 
@@ -184,11 +186,11 @@ const onRemoveReport = async () => {
           {{ swabTest?.reportReason }}
         </div>
 
-        <div v-if="swabTest?.isReported">
+        <div v-if="swabTest?.isReported && swabTest?.reportDetail">
           รายละเอียดเพิ่มเติม: {{ swabTest?.reportDetail }}
         </div>
 
-        <div v-if="swabTest?.isReported" class="mt-3">
+        <div v-if="!isReadonly && swabTest?.isReported" class="mt-3">
           หากคุณต้องการยกเลิกการรายงาน กรุณากดปุ่ม <b>"ถอนการรายงาน"</b>
         </div>
 
@@ -249,10 +251,12 @@ const onRemoveReport = async () => {
       </template>
 
       <template #footer>
-        <b-button variant="light" @click.prevent="onCancel"> ยกเลิก </b-button>
+        <b-button variant="light" @click.prevent="onCancel">
+          {{ isReadonly ? "ปิด" : "ยกเลิก" }}
+        </b-button>
 
         <b-button
-          v-if="!swabTest?.isReported"
+          v-if="!isReadonly && !swabTest?.isReported"
           type="submit"
           variant="danger"
           @click.prevent="onSubmit"
@@ -266,7 +270,7 @@ const onRemoveReport = async () => {
         </b-button>
 
         <b-button
-          v-if="swabTest?.isReported"
+          v-if="!isReadonly && swabTest?.isReported"
           type="submit"
           variant="danger"
           @click.prevent="onRemoveReport"

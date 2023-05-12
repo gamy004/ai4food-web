@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { useToast } from "vue-toastification";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
+import IcBaselineFlag from "~icons/ic/baseline-flag";
 import IcBaselineRefresh from "~icons/ic/baseline-refresh";
 import DownloadIcon from "~icons/carbon/download";
 import { Shift, DateRangeInterface } from "~~/composables/useDate";
@@ -44,6 +45,8 @@ const loading = ref(false);
 const error = ref(false);
 const loaded = ref(false);
 const view = ref((route.query.view as string) || "area");
+const showModalReport = ref(false);
+const reportedSwabTestId = ref<string | null>(null);
 const swabAreaHistories = ref([]);
 const swabProductHistories = ref([]);
 const totalSwabAreaHistories = ref(0);
@@ -170,6 +173,12 @@ const tableFields = computed(() => {
         tdClass: "text-center",
         // thStyle: { width: "20%" },
       },
+      {
+        key: "report",
+        label: "รายงาน",
+        thClass: "text-center",
+        tdClass: "text-center",
+      },
     ];
   }
 
@@ -201,6 +210,12 @@ const tableFields = computed(() => {
         thClass: "text-center",
         tdClass: "text-center",
         // thStyle: { width: "20%" },
+      },
+      {
+        key: "report",
+        label: "การรายงาน",
+        thClass: "text-center",
+        tdClass: "text-center",
       },
     ];
   }
@@ -335,8 +350,6 @@ const fetchExport = async (
   acc.swabAreaHistories = [
     ...acc.swabAreaHistories,
     ...exportedData.swabAreaHistories.map((swabAreaHistory, idx) => {
-      console.log(startIndexSwabAreaHistory + idx + 1);
-
       return {
         ลำดับ: startIndexSwabAreaHistory + idx + 1,
         ...tranformRawSwabAreaHistory(swabAreaHistory),
@@ -347,8 +360,6 @@ const fetchExport = async (
   acc.swabProductHistories = [
     ...acc.swabProductHistories,
     ...exportedData.swabProductHistories.map((swabProductHistory, idx) => {
-      console.log(startIndexSwabProductHistory + idx + 1);
-
       return {
         ลำดับ: startIndexSwabProductHistory + idx + 1,
         ...tranformRawSwabProductHistory(swabProductHistory),
@@ -389,6 +400,11 @@ const refresh = async () => {
   } finally {
     refreshing.value = false;
   }
+};
+
+const openModalReportLost = (swabTestId: string) => {
+  showModalReport.value = true;
+  reportedSwabTestId.value = swabTestId;
 };
 
 onBeforeMount(async () => {
@@ -566,6 +582,18 @@ watch(
               :swab-test-id="(item.swabTestId as string)"
             ></badge-bacteria-specie>
           </template>
+
+          <template #cell(report)="{ item }">
+            <b-button
+              variant="light"
+              size="sm"
+              title="คลิ๊กเพื่อดูรายละเอียดการรายงาน"
+              @click="openModalReportLost(item.swabTestId)"
+              ><ic-baseline-flag
+                :style="{ fontSize: '1em' }"
+                class="text-danger"
+            /></b-button>
+          </template>
         </b-table>
 
         <base-pagination
@@ -573,6 +601,12 @@ watch(
           :per-page="pagination.$state.perPage"
           :total-rows="totalDisplayData"
           aria-controls="exportedSwabProductTable"
+        />
+
+        <swab-test-modal-report
+          is-readonly
+          v-model:show-value="showModalReport"
+          v-model="reportedSwabTestId"
         />
       </b-col>
 

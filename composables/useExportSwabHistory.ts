@@ -193,6 +193,7 @@ export const useExportSwabHistory = () => {
         : "",
       ไลน์ที่ตรวจ: facilityItem ? facilityItem.facilityItemName : "",
       สายพันธุ์เชื้อ: bacteriaSpecieNames,
+      swabTest: swabTest ? swabTest : null,
       swabTestId: swabAreaHistory.swabTestId,
     };
   };
@@ -278,6 +279,7 @@ export const useExportSwabHistory = () => {
         : "",
       ไลน์ที่ตรวจ: facilityItem ? facilityItem.facilityItemName : "",
       สายพันธุ์เชื้อ: bacteriaSpecieNames,
+      swabTest: swabTest ? swabTest : null,
       swabTestId: swabProductHistory.swabTestId,
     };
   };
