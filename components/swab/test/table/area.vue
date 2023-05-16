@@ -39,6 +39,17 @@ const {
   getBacteriaStateBySwabTestId,
   api: labApi,
 } = useLab();
+const { showModalReport, reportedSwabTestId, openModalReport } =
+  useReportSwabTest();
+
+const countTotal = ref(0);
+const swabAreaHistoryIds = ref([]);
+const submittingSwabTestId = ref(null);
+// const showModalReport = ref(false);
+// const reportedSwabTestId = ref<string | null>(null);
+const hasData = ref(true);
+const loading = ref(false);
+const error = ref(false);
 
 const tableFields = computed(() => {
   const fields = [
@@ -81,15 +92,6 @@ const tableFields = computed(() => {
 
   return fields;
 });
-
-const countTotal = ref(0);
-const swabAreaHistoryIds = ref([]);
-const submittingSwabTestId = ref(null);
-const showModalReport = ref(false);
-const reportedSwabTestId = ref<string | null>(null);
-const hasData = ref(true);
-const loading = ref(false);
-const error = ref(false);
 
 const displayData = computed(() => {
   return swabAreaHistoryIds.value
@@ -205,11 +207,6 @@ const fetch = async function fetch(props) {
   }
 };
 
-const openModalReportLost = (swabTestId: string) => {
-  showModalReport.value = true;
-  reportedSwabTestId.value = swabTestId;
-};
-
 watch(() => props, fetch, { immediate: true, deep: true });
 </script>
 
@@ -274,7 +271,7 @@ watch(() => props, fetch, { immediate: true, deep: true });
             <b-button
               :variant="item.swabTest.isReported ? 'danger' : 'light'"
               size="sm"
-              @click="openModalReportLost(item.swabTestId)"
+              @click="openModalReport(item.swabTestId)"
               ><ic-baseline-flag :style="{ fontSize: '1em' }"
             /></b-button>
           </template>

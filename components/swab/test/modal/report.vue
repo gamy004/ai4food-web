@@ -2,7 +2,7 @@
 import { required } from "@vuelidate/validators";
 import { useToast } from "vue-toastification";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
-import { ReportSwabTestData } from "~/composables/useLab";
+import { ReportSwabTestData } from "~/composables/useReportSwabTest";
 
 export interface Props {
   isReadonly?: boolean;
@@ -10,7 +10,8 @@ export interface Props {
   modelValue: string | null;
 }
 
-const { getSwabTestById, api: labApi } = useLab();
+const { getSwabTestById } = useLab();
+const { api: reportApi } = useReportSwabTest();
 
 const props = withDefaults(defineProps<Props>(), {
   isReadonly: false,
@@ -131,7 +132,7 @@ const onSubmit = async () => {
     };
 
     if (swabTest.value) {
-      await labApi().reportSwabTest(swabTest.value.id, payload);
+      await reportApi().report(swabTest.value.id, payload);
     }
 
     toast.success("รายงานสำเร็จเรียบร้อย", { timeout: 1000 });
@@ -149,7 +150,7 @@ const onRemoveReport = async () => {
 
   try {
     if (swabTest.value) {
-      await labApi().removeReportSwabTest(swabTest.value.id);
+      await reportApi().remove(swabTest.value.id);
     }
 
     toast.success("ถอนการรายงานสำเร็จเรียบร้อย", { timeout: 1000 });

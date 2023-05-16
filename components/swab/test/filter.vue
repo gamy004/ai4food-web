@@ -13,6 +13,7 @@ import { SwabStatus } from "~~/composables/useSwab";
 export interface FormData extends SwabFilterFormData {
   swabTestCode?: string | null;
   swabStatus?: SwabStatus;
+  isReported?: boolean;
 }
 
 export interface Props {
@@ -27,6 +28,7 @@ export interface Props {
     | "mainSwabArea"
     | "swabTestCode"
     | "swabStatus"
+    | "isReported"
     | "product"
   >;
   clearableState?: BooleanState<
@@ -47,6 +49,7 @@ export interface Props {
     | "mainSwabArea"
     | "swabTestCode"
     | "swabStatus"
+    | "isReported"
     | "product"
   >;
   paginationState?: PaginationState;
@@ -111,13 +114,33 @@ const formSwabStatus = computed({
     return form.value.swabStatus;
   },
   set: (value) => {
-    let query: any = getCurrentQuery();
+    let query: any = getUpdatedQuery();
+
+    updatePaginateState();
 
     form.value.swabStatus = value;
 
     updateQueryParams({
       ...query,
       swabStatus: value,
+    });
+  },
+});
+
+const formIsReported = computed({
+  get: () => {
+    return form.value.isReported;
+  },
+  set: (value) => {
+    let query: any = getUpdatedQuery();
+
+    updatePaginateState();
+
+    form.value.isReported = value;
+
+    updateQueryParams({
+      ...query,
+      isReported: value,
     });
   },
 });
@@ -235,6 +258,23 @@ const onClearSwabTestCode = () => {
                 </b-input-group-text>
               </b-input-group-append>
             </b-input-group>
+          </div>
+
+          <div
+            v-if="!swabTestHiddenState.isHidden('isReported', true)"
+            :class="[swabTestFilterColState.colClass('isReported', 4)]"
+          >
+            <div class="input-group align-items-end mt-2">
+              <b-form-checkbox
+                id="isReported"
+                v-model="formIsReported"
+                name="isReported"
+                :value="true"
+                :unchecked-value="false"
+              >
+                แสดงเฉพาะตัวอย่างที่ถูกรายงาน
+              </b-form-checkbox>
+            </div>
           </div>
         </swab-filter>
       </b-row>

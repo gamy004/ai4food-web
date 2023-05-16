@@ -21,6 +21,7 @@ export interface ExportSwabHistoryFilter {
   skip?: number;
   take?: number;
   swabStatus?: SwabStatus;
+  isReported?: boolean;
 }
 
 export interface ExportSwabHistoryResponse {
@@ -63,6 +64,7 @@ export const useExportSwabHistory = () => {
       skip,
       take,
       swabStatus,
+      isReported,
     } = data;
 
     const params: any = {};
@@ -111,8 +113,13 @@ export const useExportSwabHistory = () => {
     if (skip !== undefined) {
       params.skip = skip;
     }
+
     if (take !== undefined) {
       params.take = take;
+    }
+
+    if (isReported) {
+      params.isReported = true;
     }
 
     return params;
@@ -151,6 +158,7 @@ export const useExportSwabHistory = () => {
       );
     }
 
+    const isReported = swabTest && swabTest.isReported;
     let status = SwabStatus.NOT_RECORDED;
     let bacteriaSpecieNames = "";
 
@@ -195,6 +203,15 @@ export const useExportSwabHistory = () => {
       สายพันธุ์เชื้อ: bacteriaSpecieNames,
       swabTest: swabTest ? swabTest : null,
       swabTestId: swabAreaHistory.swabTestId,
+      ถูกรายงาน: isReported ? "Yes" : "No",
+      สาเหตุ:
+        isReported && swabTest.reportReason?.length
+          ? swabTest.reportReason
+          : "",
+      รายละเอียดเพิ่มเติม:
+        isReported && swabTest.reportDetail?.length
+          ? swabTest.reportDetail
+          : "",
     };
   };
 
@@ -237,6 +254,7 @@ export const useExportSwabHistory = () => {
       );
     }
 
+    const isReported = swabTest && swabTest.isReported;
     let status = SwabStatus.NOT_RECORDED;
     let bacteriaSpecieNames = "";
 
@@ -281,6 +299,15 @@ export const useExportSwabHistory = () => {
       สายพันธุ์เชื้อ: bacteriaSpecieNames,
       swabTest: swabTest ? swabTest : null,
       swabTestId: swabProductHistory.swabTestId,
+      ถูกรายงาน: isReported ? "Yes" : "No",
+      สาเหตุ:
+        isReported && swabTest.reportReason?.length
+          ? swabTest.reportReason
+          : "",
+      รายละเอียดเพิ่มเติม:
+        isReported && swabTest.reportDetail?.length
+          ? swabTest.reportDetail
+          : "",
     };
   };
 
@@ -374,6 +401,9 @@ export const useExportSwabHistory = () => {
         "เวลาที่ตรวจ",
         "ไลน์ที่ตรวจ",
         "สายพันธุ์เชื้อ",
+        "ถูกรายงาน",
+        "สาเหตุ",
+        "รายละเอียดเพิ่มเติม",
       ];
 
       let wsSwabAreaHistory = utils.json_to_sheet(
@@ -418,6 +448,9 @@ export const useExportSwabHistory = () => {
         "เวลาที่ตรวจ",
         "ไลน์ที่ตรวจ",
         "สายพันธุ์เชื้อ",
+        "ถูกรายงาน",
+        "สาเหตุ",
+        "รายละเอียดเพิ่มเติม",
       ];
 
       let wsSwabProductHistory = utils.json_to_sheet(
