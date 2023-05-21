@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { useToast } from "vue-toastification";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
+import IcBaselineWarning from "~icons/ic/baseline-warning";
+import IcBaselineMessage from "~icons/ic/baseline-message";
 import IcBaselineRefresh from "~icons/ic/baseline-refresh";
 import DownloadIcon from "~icons/carbon/download";
 import { Shift, DateRangeInterface } from "~~/composables/useDate";
@@ -17,6 +19,7 @@ export type FormType = {
   productId: string | null;
   swabTestCode: string | null;
   swabStatus: SwabStatus;
+  isReported: boolean;
 };
 
 definePageMeta({
@@ -44,6 +47,8 @@ const loading = ref(false);
 const error = ref(false);
 const loaded = ref(false);
 const view = ref((route.query.view as string) || "area");
+const showModalReport = ref(false);
+const reportedSwabTestId = ref<string | null>(null);
 const swabAreaHistories = ref([]);
 const swabProductHistories = ref([]);
 const totalSwabAreaHistories = ref(0);
@@ -62,6 +67,7 @@ const form = reactive<FormType>({
   productId: (route.query.productId as string) || null,
   swabTestCode: (route.query.swabTestCode as string) || null,
   swabStatus: (route.query.swabStatus as SwabStatus) || SwabStatus.ALL,
+  isReported: (route.query.isReported as string) === "true" || false,
 });
 
 const dateRange = reactive({
@@ -111,7 +117,7 @@ const tableFields = computed(() => {
     {
       key: "ลำดับ",
       label: "ลำดับ",
-      thClass: "text-end",
+      thClass: "text-end ",
       tdClass: "text-end",
       thStyle: { width: "5%" },
     },
@@ -170,6 +176,12 @@ const tableFields = computed(() => {
         tdClass: "text-center",
         // thStyle: { width: "20%" },
       },
+      {
+        key: "report",
+        label: "",
+        thClass: "text-center",
+        tdClass: "text-center",
+      },
     ];
   }
 
@@ -201,6 +213,12 @@ const tableFields = computed(() => {
         thClass: "text-center",
         tdClass: "text-center",
         // thStyle: { width: "20%" },
+      },
+      {
+        key: "report",
+        label: "",
+        thClass: "text-center",
+        tdClass: "text-center",
       },
     ];
   }
@@ -335,8 +353,6 @@ const fetchExport = async (
   acc.swabAreaHistories = [
     ...acc.swabAreaHistories,
     ...exportedData.swabAreaHistories.map((swabAreaHistory, idx) => {
-      console.log(startIndexSwabAreaHistory + idx + 1);
-
       return {
         ลำดับ: startIndexSwabAreaHistory + idx + 1,
         ...tranformRawSwabAreaHistory(swabAreaHistory),
@@ -347,8 +363,6 @@ const fetchExport = async (
   acc.swabProductHistories = [
     ...acc.swabProductHistories,
     ...exportedData.swabProductHistories.map((swabProductHistory, idx) => {
-      console.log(startIndexSwabProductHistory + idx + 1);
-
       return {
         ลำดับ: startIndexSwabProductHistory + idx + 1,
         ...tranformRawSwabProductHistory(swabProductHistory),
@@ -368,6 +382,8 @@ const onExported = async () => {
     try {
       await exportSwabHistoryApi().exportReport(form);
     } catch (error) {
+      console.log(error);
+
       toast.error("นำออกรายงานไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", {
         timeout: 1000,
       });
@@ -389,6 +405,11 @@ const refresh = async () => {
   } finally {
     refreshing.value = false;
   }
+};
+
+const openModalReportLost = (swabTestId: string) => {
+  showModalReport.value = true;
+  reportedSwabTestId.value = swabTestId;
 };
 
 onBeforeMount(async () => {
@@ -474,6 +495,7 @@ watch(
                         mainSwabArea: isView('product'),
                         product: isView('area'),
                         swabStatus: false,
+                        isReported: false,
                       }"
                       :col-state="{
                         dateRange: 'sm-6 md-4',
@@ -484,6 +506,7 @@ watch(
                         mainSwabArea: 'sm-12 md-6',
                         product: 'sm-12 md-6',
                         swabStatus: 'sm-12 md-6',
+                        isReported: 'sm-6 md-3',
                         swabTestCode: '12',
                       }"
                       :clearable-state="{
@@ -555,6 +578,15 @@ watch(
           :fields="tableFields"
           :items="displayData"
         >
+          <template #cell(ลำดับ)="{ item }">
+            <ic-baseline-warning
+              v-if="item.swabTest.isReported"
+              :style="{ fontSize: '1em' }"
+              class="text-danger"
+            />
+            {{ item["ลำดับ"] }}
+          </template>
+
           <template #cell(status)="{ item }">
             <badge-swab-status
               :swab-status="(item.status as SwabStatus)"
@@ -566,6 +598,19 @@ watch(
               :swab-test-id="(item.swabTestId as string)"
             ></badge-bacteria-specie>
           </template>
+
+          <template #cell(report)="{ item }">
+            <b-button
+              v-if="item.swabTest.isReported"
+              variant="light"
+              size="sm"
+              title="คลิ๊กเพื่อดูรายละเอียดการรายงาน"
+              @click="openModalReportLost(item.swabTestId)"
+              ><ic-baseline-message
+                :style="{ fontSize: '1em' }"
+                class="text-danger"
+            /></b-button>
+          </template>
         </b-table>
 
         <base-pagination
@@ -573,6 +618,12 @@ watch(
           :per-page="pagination.$state.perPage"
           :total-rows="totalDisplayData"
           aria-controls="exportedSwabProductTable"
+        />
+
+        <swab-test-modal-report
+          is-readonly
+          v-model:show-value="showModalReport"
+          v-model="reportedSwabTestId"
         />
       </b-col>
 

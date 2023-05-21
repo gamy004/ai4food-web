@@ -5,12 +5,15 @@ import {
   BelongsToMany,
   Uid,
   HasManyBy,
+  BelongsTo,
+  Bool,
 } from "pinia-orm/dist/decorators";
 import Bacteria from "./Bacteria";
 import BacteriaSpecie from "./BacteriaSpecie";
 import SwabTestBacteria from "./SwabTestBacteria";
 import SwabTestBacteriaSpecie from "./SwabTestBacteriaSpecie";
 import { SwabStatusMapper } from "@/composables/useSwab";
+import User from "./User";
 
 const { formatThLocale } = useDate();
 
@@ -31,6 +34,21 @@ export default class SwabTest extends Model {
 
   @Attr(null)
   declare swabTestNote: string | null;
+
+  @Bool(false)
+  declare isReported: boolean;
+
+  @Attr(null)
+  declare reportReason: string | null;
+
+  @Attr(null)
+  declare reportDetail: string | null;
+
+  @Attr(null)
+  declare reportedUserId: string | null;
+
+  @BelongsTo(() => User, "reportedUserId")
+  declare reportedUser: User;
 
   @BelongsToMany(
     () => Bacteria,

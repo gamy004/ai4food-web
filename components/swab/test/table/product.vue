@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { useToast } from "vue-toastification";
+import IcBaselineFlag from "~icons/ic/baseline-flag";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 import SwabProductHistory from "~~/models/SwabProductHistory";
 import { FormData as SwabTestFilterFormData } from "~~/components/swab/test/filter.vue";
@@ -27,38 +28,54 @@ const { getProductById } = useProduct();
 const { getFacilityById, getFacilityItemById } = useFacility();
 const { getSwabPeriodById, getSwabProductHistoryById } = useSwab();
 const { getSwabTestById, getBacteriaStateBySwabTestId, api: labApi } = useLab();
-
+const { showModalReport, reportedSwabTestId, openModalReport } =
+  useReportSwabTest();
 // const form = computed({
 //   get: () => props.modelValue,
 //   set: (value) => emit("update:modelValue", value),
 // });
 
-const tableFields = [
-  { key: "order", label: "ลำดับ" },
-  { key: "date", label: "วัน" },
-  { key: "time", label: "เวลา" },
-  { key: "shift", label: "กะ" },
-  { key: "swabTestCode", label: "รหัส" },
-  { key: "swabPeriodName", label: "ช่วงตรวจ" },
-  { key: "facilityName", label: "เครื่อง" },
-  { key: "facilityItemName", label: "ไลน์" },
-  { key: "productName", label: "สินค้า" },
-  { key: "productDate", label: "วันที่ผลิต" },
-  { key: "productLot", label: "SubLot" },
-  {
-    key: "status",
-    thClass: "text-center",
-    tdClass: "text-center",
-    label: "สถานะ",
-  },
-  {
-    key: "action",
-    label: props.editSpecie ? "ผลตรวจสายพันธุ์เชื้อ" : "ผลตรวจเชื้อ",
-    thClass: "text-center",
-    tdClass: "text-center",
-    thStyle: props.editSpecie ? { width: "40%" } : {},
-  },
-];
+const tableFields = computed(() => {
+  const fields = [
+    { key: "order", label: "ลำดับ" },
+    { key: "date", label: "วัน" },
+    { key: "time", label: "เวลา" },
+    { key: "shift", label: "กะ" },
+    { key: "swabTestCode", label: "รหัส" },
+    { key: "swabPeriodName", label: "ช่วงตรวจ" },
+    { key: "facilityName", label: "เครื่อง" },
+    { key: "facilityItemName", label: "ไลน์" },
+    { key: "productName", label: "สินค้า" },
+    { key: "productDate", label: "วันที่ผลิต" },
+    { key: "productLot", label: "SubLot" },
+    {
+      key: "status",
+      thClass: "text-center",
+      tdClass: "text-center",
+      label: "สถานะ",
+    },
+    {
+      key: "action",
+      label: props.editSpecie ? "ผลตรวจสายพันธุ์เชื้อ" : "ผลตรวจเชื้อ",
+      thClass: "text-center",
+      tdClass: "text-center",
+      thStyle: props.editSpecie ? { width: "40%" } : {},
+    },
+  ];
+
+  if (props.editSpecie) {
+    fields.push({
+      key: "report",
+      label: "รายงาน",
+      thClass: "text-center",
+      tdClass: "text-center",
+      thStyle: { width: "5%" },
+    });
+  }
+
+  return fields;
+});
+
 const countTotal = ref(0);
 const swabProductHistoryIds = ref([]);
 const submittingSwabTestId = ref(null);
@@ -225,6 +242,15 @@ watch(() => props, fetch, { immediate: true, deep: true });
               ></swab-test-form-radio-bacteria>
             </div>
           </template>
+
+          <template #cell(report)="{ item }">
+            <b-button
+              :variant="item.swabTest.isReported ? 'danger' : 'light'"
+              size="sm"
+              @click="openModalReport(item.swabTestId)"
+              ><ic-baseline-flag :style="{ fontSize: '1em' }"
+            /></b-button>
+          </template>
         </b-table>
 
         <base-pagination
@@ -232,6 +258,11 @@ watch(() => props, fetch, { immediate: true, deep: true });
           :per-page="pagination.$state.perPage"
           :total-rows="countTotal"
           aria-controls="swabTestProductTable"
+        />
+
+        <swab-test-modal-report
+          v-model:show-value="showModalReport"
+          v-model="reportedSwabTestId"
         />
       </div>
 

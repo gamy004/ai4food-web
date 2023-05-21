@@ -64,7 +64,7 @@ const stateBacteria = computed({
 });
 </script>
 <template>
-  <div class="d-flex justify-content-center">
+  <div class="d-flex justify-content-center radio__bacteria">
     <b-form-radio
       v-model="stateBacteria"
       :name="`radio-${swabTestId}-has-bateria`"
@@ -90,3 +90,11 @@ const stateBacteria = computed({
     </b-form-radio>
   </div>
 </template>
+
+<style lang="scss">
+.radio__bacteria {
+  .btn {
+    margin-right: 0.25rem;
+  }
+}
+</style>
