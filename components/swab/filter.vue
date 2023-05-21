@@ -10,11 +10,11 @@ export interface FormData {
   date?: string;
   dateRange?: DateRangeInterface;
   shift?: Shift;
-  swabPeriodId?: string;
-  facilityId?: string;
-  facilityItemId?: string;
-  mainSwabAreaId?: string;
-  productId?: string;
+  swabPeriodId?: string | null;
+  facilityId?: string | null;
+  facilityItemId?: string | null;
+  mainSwabAreaId?: string | null;
+  productId?: string | null;
 }
 
 export interface Props {

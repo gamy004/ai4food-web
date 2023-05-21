@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { Shift } from "~~/composables/useDate";
+import { FormData } from "~/components/swab/test/filter.vue";
 import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
 
 definePageMeta({
@@ -18,7 +19,7 @@ const { api: labApi } = useLab();
 const currentDate = today();
 const loading = ref(false);
 const error = ref(false);
-const form = reactive({
+const form = reactive<FormData>({
   date: (route.query.date as string) || onlyDate(currentDate),
   shift: stringToShift(route.query.shift as string) || Shift.ALL,
   swabPeriodId: (route.query.swabPeriodId as string) || null,
