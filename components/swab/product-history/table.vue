@@ -30,6 +30,7 @@ const {
   getSwabProductHistoryById,
   getSwabPeriodById,
   getSwabTestById,
+  getSwabSampleTypeById,
   api: swabApi,
 } = useSwab();
 const { getFacilityById, getFacilityItemById } = useFacility();
@@ -72,57 +73,83 @@ const tableFields = [
   { key: "action", label: "", thClass: "text-center", tdClass: "text-center" },
 ];
 
-const tableData = computed(() => {
-  return swabProductHistories.value.reduce((acc, swabProductHistory) => {
-    const swabPeriod = getSwabPeriodById(swabProductHistory.swabPeriodId);
-    const swabTest = getSwabTestById(swabProductHistory.swabTestId);
-    const facilityItem = getFacilityItemById(swabProductHistory.facilityItemId);
-    const product = getProductById(swabProductHistory.productId);
+const tableData = computed<any[]>(() => {
+  return swabProductHistories.value.reduce<any[]>((acc, swabProductHistory) => {
+    if (swabProductHistory) {
+      let swabPeriod,
+        swabTest,
+        swabSampleType,
+        product,
+        facilityItem,
+        facility;
 
-    let facility = facilityItem
-      ? getFacilityById(facilityItem.facilityId)
-      : null;
+      if (swabProductHistory.swabPeriodId) {
+        swabPeriod = getSwabPeriodById(swabProductHistory.swabPeriodId);
+      }
 
-    const tableRecord = {
-      id: swabProductHistory.id,
-      // date: swabProductHistory.swabProductDate,
-      time: swabProductHistory.readableSwabProductTime,
-      code: swabTest.swabTestCode,
-      shift: swabProductHistory.shift,
-      swabPeriodName: swabPeriod ? swabPeriod.swabPeriodName : "",
-      facilityName: facility ? facility.facilityName : "",
-      facilityItemName: facilityItem ? facilityItem.facilityItemName : "",
-      productName: product ? product.productName : "",
-      productDate: swabProductHistory.shortProductDate,
-      productLot: swabProductHistory.productLot || "",
-      isCompleted: swabProductHistory.isCompleted,
-    };
+      if (swabProductHistory.swabTestId) {
 
-    // if (swabProductHistory.facilityItemId) {
-    //   const facilityItem = getFacilityItemById(
-    //     swabProductHistory.facilityItemId
-    //   );
+        swabTest = getSwabTestById(swabProductHistory.swabTestId);
 
-    //   tableRecord.facilityItemName = facilityItem.facilityItemName;
-    // }
+        if (swabTest?.swabSampleTypeId) {
+          swabSampleType = getSwabSampleTypeById(swabTest.swabSampleTypeId);
+        }
+      }
 
-    // if (swabProductHistory.productId) {
-    //   const product = getProductById(swabProductHistory.productId);
+      if (swabProductHistory.facilityItemId) {
+        facilityItem = getFacilityItemById(swabProductHistory.facilityItemId);
 
-    //   tableRecord.productName = product.productName;
-    // }
+        if (facilityItem?.facilityId) {
+          facility = getFacilityById(facilityItem.facilityId);
+        }
+      }
 
-    // if (swabProductHistory.productDate) {
-    //   tableRecord.productDate = formatThLocale(
-    //     new Date(swabProductHistory.productDate)
-    //   );
-    // }
+      if (swabProductHistory.productId) {
+        product = getProductById(swabProductHistory.productId);
+      }
 
-    // if (swabProductHistory.productLot) {
-    //   tableRecord.productLot = swabProductHistory.productLot;
-    // }
+      const tableRecord: any = {
+        id: swabProductHistory.id,
+        // date: swabProductHistory.swabProductDate,
+        time: swabProductHistory.readableSwabProductTime,
+        code: swabTest ? swabTest.swabTestCode : "",
+        shift: swabProductHistory.shift,
+        swabPeriodName: swabPeriod ? swabPeriod.swabPeriodName : "",
+        facilityName: facility ? facility.facilityName : "",
+        facilityItemName: facilityItem ? facilityItem.facilityItemName : "",
+        productName: product ? product.productName : "",
+        productDate: swabProductHistory.shortProductDate,
+        productLot: swabProductHistory.productLot || "",
+        isCompleted: swabProductHistory.isCompleted,
+        swabSampleTypeName: swabSampleType ? swabSampleType.swabSampleTypeName : ""
+      };
 
-    acc.push(tableRecord);
+      // if (swabProductHistory.facilityItemId) {
+      //   const facilityItem = getFacilityItemById(
+      //     swabProductHistory.facilityItemId
+      //   );
+
+      //   tableRecord.facilityItemName = facilityItem.facilityItemName;
+      // }
+
+      // if (swabProductHistory.productId) {
+      //   const product = getProductById(swabProductHistory.productId);
+
+      //   tableRecord.productName = product.productName;
+      // }
+
+      // if (swabProductHistory.productDate) {
+      //   tableRecord.productDate = formatThLocale(
+      //     new Date(swabProductHistory.productDate)
+      //   );
+      // }
+
+      // if (swabProductHistory.productLot) {
+      //   tableRecord.productLot = swabProductHistory.productLot;
+      // }
+
+      acc.push(tableRecord);
+    }
 
     return acc;
   }, []);
@@ -190,51 +217,40 @@ watch(() => props, fetch, { immediate: true, deep: true });
       <b-col v-else>
         <div v-if="tableData.length" class="d-grid gap-3">
           <b-list-group id="swabProductHistoryTable">
-            <b-list-group-item
-              v-for="item in tableData"
-              :key="`swab-product-history-data-${item.id}`"
-              class="d-flex justify-content-between align-items-start"
-              :to="getRouteManageSwabProductHistory(item.id)"
-            >
+            <b-list-group-item v-for="item in tableData" :key="`swab-product-history-data-${item.id}`"
+              class="d-flex justify-content-between align-items-start" :to="getRouteManageSwabProductHistory(item.id)">
               <icon-complete :active="item.isCompleted"></icon-complete>
 
               <div class="ms-2 me-auto">
                 <div class="fw-bold mb-1">
                   {{ item.code }}
-                  <span v-if="item.productName.length"
-                    >: {{ item.productName }}</span
-                  >
+                  <span v-if="item.productName.length">: {{ item.productName }}</span>
                 </div>
                 <div>ช่วงตรวจ: {{ item.swabPeriodName }}</div>
                 <small>
                   <span>กะ: {{ shiftToAbbreviation(item.shift) }}</span>
                   <!-- <span class="mx-2">|</span> -->
                   <!-- <span>ช่วงตรวจ: {{ item.swabPeriodName }}</span> -->
+                  <span v-if="item.swabSampleTypeName.length" class="mx-2">|</span>
+
+                  <span v-if="item.swabSampleTypeName.length">ประเภทตัวอย่าง: {{ item.swabSampleTypeName }}</span>
+
                   <span v-if="item.facilityName.length" class="mx-2">|</span>
 
-                  <span v-if="item.facilityName.length"
-                    >เครื่อง: {{ item.facilityName }}</span
-                  >
+                  <span v-if="item.facilityName.length">เครื่อง: {{ item.facilityName }}</span>
 
-                  <span v-if="item.facilityItemName.length" class="mx-2"
-                    >|</span
-                  >
+                  <span v-if="item.facilityItemName.length" class="mx-2">|</span>
 
-                  <span v-if="item.facilityItemName.length"
-                    >ไลน์: {{ item.facilityItemName }}</span
-                  >
+                  <span v-if="item.facilityItemName.length">ไลน์: {{ item.facilityItemName }}</span>
 
                   <span v-if="item.productLot.length" class="mx-2">|</span>
 
-                  <span v-if="item.productLot.length"
-                    >SubLot: {{ item.productLot }}</span
-                  >
+                  <span v-if="item.productLot.length">SubLot: {{ item.productLot }}</span>
 
                   <span v-if="item.productDate.length" class="mx-2">|</span>
 
-                  <span v-if="item.productDate.length"
-                    >วันที่ผลิต: {{ item.productDate }}</span
-                  >
+                  <span v-if="item.productDate.length">วันที่ผลิต: {{ item.productDate }}</span>
+
                 </small>
               </div>
 
@@ -245,10 +261,8 @@ watch(() => props, fetch, { immediate: true, deep: true });
                 :in-complete-text="`บันทึกแล้ว ${item.countComplete}/${item.countArea} จุด`"
               ></badge-complete-status> -->
 
-              <badge-complete-status
-                class="position-absolute end-0 me-2"
-                :is-completed="(item.isCompleted as boolean)"
-              ></badge-complete-status>
+              <badge-complete-status class="position-absolute end-0 me-2"
+                :is-completed="(item.isCompleted as boolean)"></badge-complete-status>
             </b-list-group-item>
           </b-list-group>
 
@@ -310,12 +324,8 @@ watch(() => props, fetch, { immediate: true, deep: true });
             </template>
           </b-table> -->
 
-          <base-pagination
-            v-model="pagination.$state.currentPage"
-            :per-page="pagination.$state.perPage"
-            :total-rows="countTotal"
-            aria-controls="swabProductHistoryTable"
-          />
+          <base-pagination v-model="pagination.$state.currentPage" :per-page="pagination.$state.perPage"
+            :total-rows="countTotal" aria-controls="swabProductHistoryTable" />
         </div>
 
         <b-card v-else bg-variant="light">
