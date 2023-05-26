@@ -25,6 +25,7 @@ import {
 import SwabCleaningValidation from "~~/models/SwabCleaningValidation";
 import { LoadSwabCleaningValidationFilter } from "./useFilterSwabCleaningValidation";
 import ContactZone from "~/models/ContactZone";
+import SwabSampleType from "~/models/SwabSampleType";
 
 // export interface LoadSwabAreaHistoryData {
 //   date: string;
@@ -159,7 +160,7 @@ export interface GetSwabPlanResponse {
 }
 
 export interface BodyUpdateSwabProductHistory
-  extends BodyCreateSwabProductHistory {}
+  extends BodyCreateSwabProductHistory { }
 
 export const useSwab = () => {
   const { get, post, put, destroy } = useRequest();
@@ -175,6 +176,7 @@ export const useSwab = () => {
   const swabAreaHistoryEnvironmentRepo = useRepo(SwabAreaHistoryEnvironment);
   const swabProductHistoryRepo = useRepo(SwabProductHistory);
   const swabCleaningValidationRepo = useRepo(SwabCleaningValidation);
+  const swabSampleTypeRepo = useRepo(SwabSampleType);
   const { today } = useDate();
 
   const loadAllSwabPeriod = async (): Promise<SwabPeriod[]> => {
@@ -209,6 +211,14 @@ export const useSwab = () => {
     const swabAreas = swabAreaRepo.save(data);
 
     return swabAreas;
+  };
+
+  const loadAllSwabSampleType = async (): Promise<SwabSampleType[]> => {
+    const data = await get<SwabSampleType[]>(`/swab-sample-type`);
+
+    const swabSampleTypes = swabSampleTypeRepo.save(data);
+
+    return swabSampleTypes;
   };
 
   const loadDeletePermissionSwabArea = async (
@@ -481,6 +491,12 @@ export const useSwab = () => {
   const getSwabTestById = (id: string): SwabTest | null => {
     return swabTestRepo.find(id);
   };
+
+  const getSwabSampleTypeById = (id: string): SwabSampleType | null => {
+    const query = swabSampleTypeRepo.where("id", id);
+
+    return query.first();
+  }
 
   const loadSwabAreaToSwabAreaHistory = (
     histories: SwabAreaHistory[]
@@ -776,6 +792,8 @@ export const useSwab = () => {
 
     getSwabTestById,
 
+    getSwabSampleTypeById,
+
     getSwabAreaHistoryImagesByIds,
 
     getSwabEnvironmentByIds,
@@ -802,6 +820,7 @@ export const useSwab = () => {
         loadAllContactZone,
         loadAllSwabEnvironment,
         loadAllMainSwabArea,
+        loadAllSwabSampleType,
         loadDeletePermissionSwabArea,
         createMainSwabArea,
         upadateMainSwabArea,
