@@ -160,7 +160,7 @@ export interface GetSwabPlanResponse {
 }
 
 export interface BodyUpdateSwabProductHistory
-  extends BodyCreateSwabProductHistory { }
+  extends BodyCreateSwabProductHistory {}
 
 export const useSwab = () => {
   const { get, post, put, destroy } = useRequest();
@@ -343,6 +343,10 @@ export const useSwab = () => {
     return swabPeriodRepo.find(id);
   };
 
+  const getAllSwabSampleTypes = () => {
+    return swabSampleTypeRepo.all();
+  };
+
   const getAllContactZones = () => {
     return contactZoneRepo.all();
   };
@@ -496,7 +500,7 @@ export const useSwab = () => {
     const query = swabSampleTypeRepo.where("id", id);
 
     return query.first();
-  }
+  };
 
   const loadSwabAreaToSwabAreaHistory = (
     histories: SwabAreaHistory[]
@@ -763,6 +767,8 @@ export const useSwab = () => {
     getSwabPeriodByIds,
 
     getSwabPeriodByNames,
+
+    getAllSwabSampleTypes,
 
     getAllContactZones,
 
