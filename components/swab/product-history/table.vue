@@ -15,6 +15,7 @@ export interface Props {
   swabPeriodId?: string;
   productId?: string;
   swabTestCode?: string;
+  swabSampleTypeId?: string;
   pagination: Pagination;
 }
 
@@ -22,7 +23,7 @@ const props = withDefaults(defineProps<Props>(), {
   pagination: () => usePagination({ perPage: 20, currentPage: 1 }),
 });
 const route = useRoute();
-const router = useRouter();
+// const router = useRouter();
 const toast = useToast();
 const { shiftToAbbreviation } = useDate();
 
@@ -76,19 +77,13 @@ const tableFields = [
 const tableData = computed<any[]>(() => {
   return swabProductHistories.value.reduce<any[]>((acc, swabProductHistory) => {
     if (swabProductHistory) {
-      let swabPeriod,
-        swabTest,
-        swabSampleType,
-        product,
-        facilityItem,
-        facility;
+      let swabPeriod, swabTest, swabSampleType, product, facilityItem, facility;
 
       if (swabProductHistory.swabPeriodId) {
         swabPeriod = getSwabPeriodById(swabProductHistory.swabPeriodId);
       }
 
       if (swabProductHistory.swabTestId) {
-
         swabTest = getSwabTestById(swabProductHistory.swabTestId);
 
         if (swabTest?.swabSampleTypeId) {
@@ -121,7 +116,9 @@ const tableData = computed<any[]>(() => {
         productDate: swabProductHistory.shortProductDate,
         productLot: swabProductHistory.productLot || "",
         isCompleted: swabProductHistory.isCompleted,
-        swabSampleTypeName: swabSampleType ? swabSampleType.swabSampleTypeName : ""
+        swabSampleTypeName: swabSampleType
+          ? swabSampleType.swabSampleTypeName
+          : "",
       };
 
       // if (swabProductHistory.facilityItemId) {
@@ -194,9 +191,9 @@ const fetch = async function fetch(props) {
   }
 };
 
-const onTableRowClicked = (item): void => {
-  router.push(getRouteManageSwabProductHistory(item.id));
-};
+// const onTableRowClicked = (item): void => {
+//   router.push(getRouteManageSwabProductHistory(item.id));
+// };
 
 watch(() => props, fetch, { immediate: true, deep: true });
 </script>
@@ -217,40 +214,59 @@ watch(() => props, fetch, { immediate: true, deep: true });
       <b-col v-else>
         <div v-if="tableData.length" class="d-grid gap-3">
           <b-list-group id="swabProductHistoryTable">
-            <b-list-group-item v-for="item in tableData" :key="`swab-product-history-data-${item.id}`"
-              class="d-flex justify-content-between align-items-start" :to="getRouteManageSwabProductHistory(item.id)">
+            <b-list-group-item
+              v-for="item in tableData"
+              :key="`swab-product-history-data-${item.id}`"
+              class="d-flex justify-content-between align-items-start"
+              :to="getRouteManageSwabProductHistory(item.id)"
+            >
               <icon-complete :active="item.isCompleted"></icon-complete>
 
               <div class="ms-2 me-auto">
                 <div class="fw-bold mb-1">
                   {{ item.code }}
-                  <span v-if="item.productName.length">: {{ item.productName }}</span>
+                  <span v-if="item.productName.length"
+                    >: {{ item.productName }}</span
+                  >
                 </div>
                 <div>ช่วงตรวจ: {{ item.swabPeriodName }}</div>
                 <small>
                   <span>กะ: {{ shiftToAbbreviation(item.shift) }}</span>
                   <!-- <span class="mx-2">|</span> -->
                   <!-- <span>ช่วงตรวจ: {{ item.swabPeriodName }}</span> -->
-                  <span v-if="item.swabSampleTypeName.length" class="mx-2">|</span>
+                  <span v-if="item.swabSampleTypeName.length" class="mx-2"
+                    >|</span
+                  >
 
-                  <span v-if="item.swabSampleTypeName.length">ประเภทตัวอย่าง: {{ item.swabSampleTypeName }}</span>
+                  <span v-if="item.swabSampleTypeName.length"
+                    >ประเภทตัวอย่าง: {{ item.swabSampleTypeName }}</span
+                  >
 
                   <span v-if="item.facilityName.length" class="mx-2">|</span>
 
-                  <span v-if="item.facilityName.length">เครื่อง: {{ item.facilityName }}</span>
+                  <span v-if="item.facilityName.length"
+                    >เครื่อง: {{ item.facilityName }}</span
+                  >
 
-                  <span v-if="item.facilityItemName.length" class="mx-2">|</span>
+                  <span v-if="item.facilityItemName.length" class="mx-2"
+                    >|</span
+                  >
 
-                  <span v-if="item.facilityItemName.length">ไลน์: {{ item.facilityItemName }}</span>
+                  <span v-if="item.facilityItemName.length"
+                    >ไลน์: {{ item.facilityItemName }}</span
+                  >
 
                   <span v-if="item.productLot.length" class="mx-2">|</span>
 
-                  <span v-if="item.productLot.length">SubLot: {{ item.productLot }}</span>
+                  <span v-if="item.productLot.length"
+                    >SubLot: {{ item.productLot }}</span
+                  >
 
                   <span v-if="item.productDate.length" class="mx-2">|</span>
 
-                  <span v-if="item.productDate.length">วันที่ผลิต: {{ item.productDate }}</span>
-
+                  <span v-if="item.productDate.length"
+                    >วันที่ผลิต: {{ item.productDate }}</span
+                  >
                 </small>
               </div>
 
@@ -261,8 +277,10 @@ watch(() => props, fetch, { immediate: true, deep: true });
                 :in-complete-text="`บันทึกแล้ว ${item.countComplete}/${item.countArea} จุด`"
               ></badge-complete-status> -->
 
-              <badge-complete-status class="position-absolute end-0 me-2"
-                :is-completed="(item.isCompleted as boolean)"></badge-complete-status>
+              <badge-complete-status
+                class="position-absolute end-0 me-2"
+                :is-completed="(item.isCompleted as boolean)"
+              ></badge-complete-status>
             </b-list-group-item>
           </b-list-group>
 
@@ -324,8 +342,12 @@ watch(() => props, fetch, { immediate: true, deep: true });
             </template>
           </b-table> -->
 
-          <base-pagination v-model="pagination.$state.currentPage" :per-page="pagination.$state.perPage"
-            :total-rows="countTotal" aria-controls="swabProductHistoryTable" />
+          <base-pagination
+            v-model="pagination.$state.currentPage"
+            :per-page="pagination.$state.perPage"
+            :total-rows="countTotal"
+            aria-controls="swabProductHistoryTable"
+          />
         </div>
 
         <b-card v-else bg-variant="light">
