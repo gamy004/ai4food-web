@@ -24,6 +24,7 @@ const form = reactive({
   swabPeriodId: (route.query.swabPeriodId as string) || null,
   productId: (route.query.productId as string) || null,
   swabTestCode: (route.query.swabTestCode as string) || null,
+  swabSampleTypeId: (route.query.swabSampleTypeId as string) || null,
 });
 
 // const pageManageSwabProduct = computed(() => {
@@ -47,6 +48,7 @@ const form = reactive({
         v-model="form"
         :hidden-state="{
           product: false,
+          swabSampleType: false,
         }"
         :col-state="{
           date: 'sm-6 md-4',
@@ -55,7 +57,8 @@ const form = reactive({
           facility: 'sm-12 md-4',
           facilityItem: 'sm-12 md-4',
           product: 'sm-12 md-4',
-          swabTestCode: '12',
+          swabSampleType: 'sm-12 md-4',
+          swabTestCode: 'sm-12 md-8',
         }"
         :pagination-state="pagination.$state"
         :clearable-state="{
@@ -77,6 +80,7 @@ const form = reactive({
         :shift="form.shift"
         :product-id="form.productId"
         :swab-test-code="form.swabTestCode"
+        :swab-sample-type-id="form.swabSampleTypeId"
         :pagination="pagination"
       />
     </div>

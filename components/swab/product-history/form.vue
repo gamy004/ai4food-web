@@ -43,6 +43,7 @@ const form = reactive({
   // facilityItem: null,
   shift: dateToShift(currentDate),
   swabPeriod: null,
+  swabSampleType: null,
 });
 
 const validationRules = {
@@ -108,6 +109,12 @@ const fetch = async (id) => {
       form.facility = { id: swabProductHistory.facilityItem.facilityId };
 
       form.facilityItem = { id: swabProductHistory.facilityItem.id };
+    }
+
+    if (swabProductHistory.swabTest?.swabSampleType) {
+      form.swabSampleType = {
+        id: swabProductHistory.swabTest.swabSampleType.id,
+      };
     }
   } catch (e) {
     exception.value = e;
@@ -212,7 +219,7 @@ watch(
       </b-col>
 
       <b-form v-else id="formSwabProductHistory" @submit="onFormSubmitted">
-        <b-row class="mt-3">
+        <b-row class="mt-4">
           <b-col>
             <h6 class="fw-bold">ข้อมูลจุดตรวจ :</h6>
 
@@ -367,6 +374,33 @@ watch(
               :invalid-state="productFormInvalidState"
               class="px-3"
             />
+          </b-col>
+        </b-row>
+
+        <b-row class="mt-4">
+          <b-col md="6">
+            <h6 class="fw-bold">ข้อมูลตัวอย่าง :</h6>
+
+            <b-row class="px-3">
+              <b-col>
+                <div class="input-group align-items-baseline">
+                  <label
+                    for="swabSampleType"
+                    class="form-label min-w-125px d-block col-12 col-md-auto"
+                    >ประเภทตัวอย่าง
+                  </label>
+
+                  <div class="form-control p-0 border-0">
+                    <swab-sample-type-select
+                      id="swabSampleType"
+                      lazy
+                      disabled
+                      v-model="form.swabSampleType"
+                    ></swab-sample-type-select>
+                  </div>
+                </div>
+              </b-col>
+            </b-row>
           </b-col>
         </b-row>
 

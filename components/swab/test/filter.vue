@@ -9,10 +9,13 @@ import { useHiddenState } from "~~/composables/useHiddenState";
 import { FormData as SwabFilterFormData } from "../filter.vue";
 import { PaginationState } from "~~/composables/usePagination";
 import { SwabStatus } from "~~/composables/useSwab";
+import SwabSampleType from "~/models/SwabSampleType";
+import { SwabSampleTypeSelectData } from "../sample-type/select.vue";
 
 export interface FormData extends SwabFilterFormData {
   swabTestCode?: string | null;
   swabStatus?: SwabStatus;
+  swabSampleTypeId?: string | null;
   isReported?: boolean;
 }
 
@@ -28,6 +31,7 @@ export interface Props {
     | "mainSwabArea"
     | "swabTestCode"
     | "swabStatus"
+    | "swabSampleType"
     | "isReported"
     | "product"
   >;
@@ -49,6 +53,7 @@ export interface Props {
     | "mainSwabArea"
     | "swabTestCode"
     | "swabStatus"
+    | "swabSampleType"
     | "isReported"
     | "product"
   >;
@@ -123,6 +128,33 @@ const formSwabStatus = computed({
     updateQueryParams({
       ...query,
       swabStatus: value,
+    });
+  },
+});
+
+const formSwabSampleType = computed({
+  get: () => {
+    return form.value.swabSampleTypeId
+      ? { id: form.value.swabSampleTypeId }
+      : null;
+  },
+  set: (value) => {
+    let query: any = getUpdatedQuery();
+
+    updatePaginateState();
+
+    if (value?.id) {
+      form.value.swabSampleTypeId = value.id;
+
+      query.swabSampleTypeId = value.id;
+    } else {
+      form.value.swabSampleTypeId = null;
+
+      delete query.swabSampleTypeId;
+    }
+
+    updateQueryParams({
+      ...query,
     });
   },
 });
@@ -214,6 +246,25 @@ const onClearSwabTestCode = () => {
                 :options="swabStatusOptions"
                 v-model="formSwabStatus"
               ></swab-status-select>
+            </div>
+          </div>
+
+          <div
+            v-if="!swabTestHiddenState.isHidden('swabSampleType', true)"
+            :class="[swabTestFilterColState.colClass('swabSampleType', 4)]"
+          >
+            <div class="input-group align-items-baseline">
+              <label for="swabSampleType" class="form-label d-block min-w-125px"
+                >ประเภทตัวอย่าง</label
+              >
+
+              <swab-sample-type-select
+                id="swabSampleType"
+                class="col"
+                once
+                clearable
+                v-model="formSwabSampleType"
+              ></swab-sample-type-select>
             </div>
           </div>
 
