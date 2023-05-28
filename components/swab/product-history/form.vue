@@ -393,7 +393,6 @@ watch(
                   <div class="form-control p-0 border-0">
                     <swab-sample-type-select
                       id="swabSampleType"
-                      required
                       lazy
                       disabled
                       v-model="form.swabSampleType"
