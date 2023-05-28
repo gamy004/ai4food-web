@@ -10,7 +10,7 @@ export const useValidation = (validationRules, form) => {
 
   const isInvalid = computed(() => v$.value.$invalid === true);
 
-  const isFormInvalid = (field, rules = []) => {
+  const isFormInvalid = (field: string, rules: string[] = []) => {
     return isInvalid.value
       ? !rules.some((rule) => {
           // console.log(field, rule, v$.value[field][rule].$invalid);

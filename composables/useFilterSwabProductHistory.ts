@@ -16,6 +16,7 @@ export interface LoadAllSwabProductHistoryFilter {
   skip?: number;
   take?: number;
   swabStatus?: SwabStatus;
+  swabSampleTypeId?: string;
 }
 
 export const useFilterSwabProductHistory = () => {
@@ -34,6 +35,7 @@ export const useFilterSwabProductHistory = () => {
       productId,
       hasBacteria,
       swabStatus,
+      swabSampleTypeId,
       skip,
       take,
     } = data;
@@ -88,6 +90,10 @@ export const useFilterSwabProductHistory = () => {
 
     if (swabStatus && swabStatus !== SwabStatus.ALL) {
       params.swabStatus = swabStatus;
+    }
+
+    if (swabSampleTypeId) {
+      params.swabSampleTypeId = swabSampleTypeId;
     }
 
     if (skip !== undefined) {

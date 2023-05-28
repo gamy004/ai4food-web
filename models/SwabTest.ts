@@ -14,6 +14,7 @@ import SwabTestBacteria from "./SwabTestBacteria";
 import SwabTestBacteriaSpecie from "./SwabTestBacteriaSpecie";
 import { SwabStatusMapper } from "@/composables/useSwab";
 import User from "./User";
+import SwabSampleType from "./SwabSampleType";
 
 const { formatThLocale } = useDate();
 
@@ -65,6 +66,12 @@ export default class SwabTest extends Model {
     "bacteriaSpecieId"
   )
   declare bacteriaSpecies: BacteriaSpecie[];
+
+  @Attr(null)
+  declare swabSampleTypeId: string | null;
+
+  @BelongsTo(() => SwabSampleType, "swabSampleTypeId")
+  declare swabSampleType: SwabSampleType;
 
   get isRecorded() {
     return this.swabTestRecordedAt !== null;
@@ -119,8 +126,8 @@ export default class SwabTest extends Model {
 
     return this.hasBacteria && hasBacteriaSpecies
       ? bacteriaSpecies
-          .map(({ bacteriaSpecieName }) => bacteriaSpecieName)
-          .join(",")
+        .map(({ bacteriaSpecieName }) => bacteriaSpecieName)
+        .join(",")
       : "";
   }
   // @Attr([])

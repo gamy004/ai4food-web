@@ -15,6 +15,7 @@ export interface Props {
   swabPeriodId?: string;
   productId?: string;
   swabTestCode?: string;
+  swabSampleTypeId?: string;
   pagination: Pagination;
 }
 
@@ -22,7 +23,7 @@ const props = withDefaults(defineProps<Props>(), {
   pagination: () => usePagination({ perPage: 20, currentPage: 1 }),
 });
 const route = useRoute();
-const router = useRouter();
+// const router = useRouter();
 const toast = useToast();
 const { shiftToAbbreviation } = useDate();
 
@@ -30,6 +31,7 @@ const {
   getSwabProductHistoryById,
   getSwabPeriodById,
   getSwabTestById,
+  getSwabSampleTypeById,
   api: swabApi,
 } = useSwab();
 const { getFacilityById, getFacilityItemById } = useFacility();
@@ -72,57 +74,79 @@ const tableFields = [
   { key: "action", label: "", thClass: "text-center", tdClass: "text-center" },
 ];
 
-const tableData = computed(() => {
-  return swabProductHistories.value.reduce((acc, swabProductHistory) => {
-    const swabPeriod = getSwabPeriodById(swabProductHistory.swabPeriodId);
-    const swabTest = getSwabTestById(swabProductHistory.swabTestId);
-    const facilityItem = getFacilityItemById(swabProductHistory.facilityItemId);
-    const product = getProductById(swabProductHistory.productId);
+const tableData = computed<any[]>(() => {
+  return swabProductHistories.value.reduce<any[]>((acc, swabProductHistory) => {
+    if (swabProductHistory) {
+      let swabPeriod, swabTest, swabSampleType, product, facilityItem, facility;
 
-    let facility = facilityItem
-      ? getFacilityById(facilityItem.facilityId)
-      : null;
+      if (swabProductHistory.swabPeriodId) {
+        swabPeriod = getSwabPeriodById(swabProductHistory.swabPeriodId);
+      }
 
-    const tableRecord = {
-      id: swabProductHistory.id,
-      // date: swabProductHistory.swabProductDate,
-      time: swabProductHistory.readableSwabProductTime,
-      code: swabTest.swabTestCode,
-      shift: swabProductHistory.shift,
-      swabPeriodName: swabPeriod ? swabPeriod.swabPeriodName : "",
-      facilityName: facility ? facility.facilityName : "",
-      facilityItemName: facilityItem ? facilityItem.facilityItemName : "",
-      productName: product ? product.productName : "",
-      productDate: swabProductHistory.shortProductDate,
-      productLot: swabProductHistory.productLot || "",
-      isCompleted: swabProductHistory.isCompleted,
-    };
+      if (swabProductHistory.swabTestId) {
+        swabTest = getSwabTestById(swabProductHistory.swabTestId);
 
-    // if (swabProductHistory.facilityItemId) {
-    //   const facilityItem = getFacilityItemById(
-    //     swabProductHistory.facilityItemId
-    //   );
+        if (swabTest?.swabSampleTypeId) {
+          swabSampleType = getSwabSampleTypeById(swabTest.swabSampleTypeId);
+        }
+      }
 
-    //   tableRecord.facilityItemName = facilityItem.facilityItemName;
-    // }
+      if (swabProductHistory.facilityItemId) {
+        facilityItem = getFacilityItemById(swabProductHistory.facilityItemId);
 
-    // if (swabProductHistory.productId) {
-    //   const product = getProductById(swabProductHistory.productId);
+        if (facilityItem?.facilityId) {
+          facility = getFacilityById(facilityItem.facilityId);
+        }
+      }
 
-    //   tableRecord.productName = product.productName;
-    // }
+      if (swabProductHistory.productId) {
+        product = getProductById(swabProductHistory.productId);
+      }
 
-    // if (swabProductHistory.productDate) {
-    //   tableRecord.productDate = formatThLocale(
-    //     new Date(swabProductHistory.productDate)
-    //   );
-    // }
+      const tableRecord: any = {
+        id: swabProductHistory.id,
+        // date: swabProductHistory.swabProductDate,
+        time: swabProductHistory.readableSwabProductTime,
+        code: swabTest ? swabTest.swabTestCode : "",
+        shift: swabProductHistory.shift,
+        swabPeriodName: swabPeriod ? swabPeriod.swabPeriodName : "",
+        facilityName: facility ? facility.facilityName : "",
+        facilityItemName: facilityItem ? facilityItem.facilityItemName : "",
+        productName: product ? product.productName : "",
+        productDate: swabProductHistory.shortProductDate,
+        productLot: swabProductHistory.productLot || "",
+        isCompleted: swabProductHistory.isCompleted,
+        swabSampleTypeName: swabSampleType
+          ? swabSampleType.swabSampleTypeName
+          : "",
+      };
 
-    // if (swabProductHistory.productLot) {
-    //   tableRecord.productLot = swabProductHistory.productLot;
-    // }
+      // if (swabProductHistory.facilityItemId) {
+      //   const facilityItem = getFacilityItemById(
+      //     swabProductHistory.facilityItemId
+      //   );
 
-    acc.push(tableRecord);
+      //   tableRecord.facilityItemName = facilityItem.facilityItemName;
+      // }
+
+      // if (swabProductHistory.productId) {
+      //   const product = getProductById(swabProductHistory.productId);
+
+      //   tableRecord.productName = product.productName;
+      // }
+
+      // if (swabProductHistory.productDate) {
+      //   tableRecord.productDate = formatThLocale(
+      //     new Date(swabProductHistory.productDate)
+      //   );
+      // }
+
+      // if (swabProductHistory.productLot) {
+      //   tableRecord.productLot = swabProductHistory.productLot;
+      // }
+
+      acc.push(tableRecord);
+    }
 
     return acc;
   }, []);
@@ -167,9 +191,9 @@ const fetch = async function fetch(props) {
   }
 };
 
-const onTableRowClicked = (item): void => {
-  router.push(getRouteManageSwabProductHistory(item.id));
-};
+// const onTableRowClicked = (item): void => {
+//   router.push(getRouteManageSwabProductHistory(item.id));
+// };
 
 watch(() => props, fetch, { immediate: true, deep: true });
 </script>
@@ -210,6 +234,14 @@ watch(() => props, fetch, { immediate: true, deep: true });
                   <span>กะ: {{ shiftToAbbreviation(item.shift) }}</span>
                   <!-- <span class="mx-2">|</span> -->
                   <!-- <span>ช่วงตรวจ: {{ item.swabPeriodName }}</span> -->
+                  <span v-if="item.swabSampleTypeName.length" class="mx-2"
+                    >|</span
+                  >
+
+                  <span v-if="item.swabSampleTypeName.length"
+                    >ประเภทตัวอย่าง: {{ item.swabSampleTypeName }}</span
+                  >
+
                   <span v-if="item.facilityName.length" class="mx-2">|</span>
 
                   <span v-if="item.facilityName.length"
