@@ -35,6 +35,9 @@ export default defineNuxtConfig({
     public: {
       apiBaseUrl: "http://localhost:3001/api",
       cdnUrl: "",
+      dashboardConfig: {
+        embedUrl: "",
+      },
     },
   },
 
