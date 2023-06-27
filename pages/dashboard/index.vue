@@ -5,6 +5,8 @@ definePageMeta({
   title: "Ai4FoodSafety - Dashboard",
 
   middleware: ["auth"],
+
+  canGoBack: true,
 });
 
 const config = useRuntimeConfig();

@@ -83,7 +83,6 @@ const pageImportSwabTest = {
         <div
           v-if="
             authUser.isInProductionTeam ||
-            authUser.isInSwabTeam ||
             authUser.isInLabTeam ||
             authUser.isInAdminTeam
           "
