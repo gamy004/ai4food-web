@@ -8,6 +8,10 @@ definePageMeta({
 // const route = useRoute();
 const { isAuthenticated, authUser } = useAuth();
 
+const pageDashboard = {
+  name: "dashboard",
+};
+
 const pageExportSwabPlan = {
   name: "export-swab-report",
   query: {
@@ -79,7 +83,6 @@ const pageImportSwabTest = {
         <div
           v-if="
             authUser.isInProductionTeam ||
-            authUser.isInSwabTeam ||
             authUser.isInLabTeam ||
             authUser.isInAdminTeam
           "
@@ -161,6 +164,27 @@ const pageImportSwabTest = {
           class="d-grid gap-2 mt-4"
         >
           <h4 class="font-weight-bold">ออกรายงานและรายการข้อมูล</h4>
+
+          <nuxt-link
+            v-if="
+              authUser.isInSwabTeam ||
+              authUser.isInLabTeam ||
+              authUser.isInAdminTeam
+            "
+            v-slot="{ navigate }"
+            :to="pageDashboard"
+            custom
+          >
+            <button-arrow-right
+              variant="outline-primary"
+              block
+              size="lg"
+              class="w-100"
+              @click="navigate"
+            >
+              Dashboard
+            </button-arrow-right>
+          </nuxt-link>
 
           <nuxt-link
             v-if="
