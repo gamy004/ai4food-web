@@ -54,6 +54,10 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     return format(parseDate(date), "yyyy-MM-dd", { timeZone });
   }
 
+  function onlyMonth(date) {
+    return format(parseDate(date), "yyyy-MM", { timeZone });
+  }
+
   function onlyTime(date, includeSeconds = true) {
     let timeFormat = "HH:mm";
 
@@ -221,6 +225,7 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     today,
     timezone,
     onlyDate,
+    onlyMonth,
     onlyTime,
     toObject,
     toTimestamp,
