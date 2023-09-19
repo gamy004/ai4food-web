@@ -8,15 +8,26 @@ definePageMeta({
   },
 });
 
+const show = ref(false);
+
 const route = useRoute();
 
-const { today, onlyMonth } = useDate();
+const { today, onlyMonth, onlyDate, formatShortYear } = useDate();
 
 const currentDate = today();
 
-const form = reactive({
+const filter = reactive({
   date: (route.query.date as string) || onlyMonth(currentDate),
 });
+
+const from = reactive({
+  swabPlanDate: onlyDate(currentDate),
+  swabRound: formatShortYear(currentDate),
+});
+
+const createPlan = () => {
+  show.value = true;
+};
 </script>
 
 <template>
@@ -25,11 +36,18 @@ const form = reactive({
 
     <b-row align-v="end">
       <b-col cols="12" md="9">
-        <swab-plan-filter v-model="form"></swab-plan-filter>
+        <swab-plan-filter v-model="filter"></swab-plan-filter>
       </b-col>
       <b-col cols="12" md="3" class="text-end">
-        <b-button variant="outline-primary"> สร้างแผน </b-button>
+        <b-button variant="outline-primary" @click="createPlan">
+          สร้างแผน
+        </b-button>
       </b-col>
     </b-row>
+
+    <swab-plan-modal-manage
+      v-model:show-value="show"
+      v-model:model-value="from"
+    />
   </div>
 </template>

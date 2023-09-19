@@ -181,6 +181,10 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     return format(mockDate, formatType, { locale: th });
   }
 
+  function formatShortYear(date, formatType = "M-yy"): string {
+    return format(parseDate(date), formatType, { timeZone });
+  }
+
   function updateDateRangeQueryParams(
     dateRangeValue: DateRangeInterface,
     additionalParams = {}
@@ -238,6 +242,7 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     shiftToAbbreviation,
     formatThLocale,
     formatTimeThLocale,
+    formatShortYear,
     updateDateRangeQueryParams,
   };
 };
