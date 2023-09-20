@@ -1,20 +1,20 @@
 <script lang="ts" setup>
 import Datepicker from "@vuepic/vue-datepicker";
+import { ResponseErrorT } from "~~/composables/useRequest";
+import { Ref } from "vue";
+import { useToast } from "vue-toastification";
+import { BodyManageSwabPlan } from "~~/composables/useSwab";
 
-export interface FormData {
-  swabPlanDate?: string;
-  swabRound?: string;
-  swabPeriodId: string | null;
-  shift: string | null;
-  swabPlanNote: string | null;
-}
+const toast = useToast();
+const { today, onlyDate, formatShortYear } = useDate();
 
-const { onlyDate, formatShortYear } = useDate();
+const { api: swabApi } = useSwab();
+
+const currentDate = today();
 
 export interface Props {
   idValue: string | null;
   showValue: boolean;
-  modelValue: FormData;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -22,12 +22,19 @@ const props = withDefaults(defineProps<Props>(), {
   showValue: false,
 });
 
+const form = reactive({
+  swabPlanDate: onlyDate(currentDate),
+  swabPlanCode: formatShortYear(currentDate),
+  swabPeriod: {},
+  shift: "",
+  swabPlanNote: "",
+});
+
 const emit = defineEmits([
   "update:idValue",
   "update:showValue",
   "success",
   "error",
-  "update:modelValue",
 ]);
 
 const showValue = computed({
@@ -42,45 +49,121 @@ const idValue = computed({
   set: (value) => emit("update:idValue", value),
 });
 
-const form = computed({
-  get: () => props.modelValue,
-  set: (value) => emit("update:modelValue", value),
-});
-
-const onCancel = () => {
-  if (idValue.value) {
-    idValue.value = null;
-  } else {
-    // clearState();
-  }
-
-  showValue.value = false;
-};
-
 const formDate = computed({
-  get: () => form.value.swabPlanDate,
+  get: () => form.swabPlanDate,
   set: (value) => {
     const updatedValue = onlyDate(value);
 
-    form.value.swabPlanDate = updatedValue;
+    form.swabPlanDate = updatedValue;
 
-    form.value.swabRound = formatShortYear(value);
+    form.swabPlanCode = formatShortYear(value);
   },
 });
 
 const formSwabPeriod = computed({
   get: () => {
-    return form.value.swabPeriodId ? { id: form.value.swabPeriodId } : null;
+    return form.swabPeriod ? { id: form.swabPeriod.id } : null;
   },
 
   set: (value) => {
     if (value && value.id) {
-      form.value.swabPeriodId = value.id;
+      form.swabPeriod = { id: value.id };
     } else {
-      form.value.swabPeriodId = null;
+      form.swabPeriod = {};
     }
   },
 });
+
+const validationRules = {};
+
+const { validate, isInvalid, isFormInvalid, resetValidation } = useValidation(
+  validationRules,
+  form
+);
+
+const modalRef = ref();
+const submitting = ref(false);
+const error: Ref<ResponseErrorT | null> = ref(null);
+
+const clearState = () => {
+  resetValidation();
+
+  error.value = null;
+
+  form.swabPlanDate = onlyDate(currentDate);
+  form.swabPlanCode = formatShortYear(currentDate);
+  form.swabPeriod = {};
+  form.shift = "";
+  form.swabPlanNote = "";
+};
+
+const onCancel = () => {
+  if (idValue.value) {
+    idValue.value = null;
+  } else {
+    clearState();
+  }
+
+  showValue.value = false;
+};
+
+const onSubmit = async () => {
+  error.value = null;
+
+  validate();
+
+  if (isInvalid.value) {
+    return toast.error("ไม่สามารถส่งข้อมูลได้ กรุณาเช็คข้อผิดพลาด");
+  }
+
+  submitting.value = true;
+
+  try {
+    const body: BodyManageSwabPlan = {
+      swabPlanDate: form.swabPlanDate,
+      swabPlanCode: form.swabPlanCode,
+      swabPeriod: form.swabPeriod,
+      shift: form.shift,
+      swabPlanNote: form.swabPlanNote,
+    };
+
+    let swabPlan;
+
+    if (idValue.value) {
+      // swabPlan = await swabApi().createSwabPlan(idValue.value, body);
+    } else {
+      swabPlan = await swabApi().createSwabPlan(body);
+    }
+
+    setTimeout(() => {
+      showValue.value = false;
+
+      if (idValue.value) {
+        idValue.value = null;
+      } else {
+        clearState();
+      }
+
+      toast.success("เพิ่มแผนการตรวจสำเร็จ", { timeout: 1000 });
+
+      console.log(swabPlan);
+
+      emit("success", swabPlan);
+    }, 1000);
+  } catch (errorResponse) {
+    error.value = errorResponse;
+
+    toast.error("ไม่สามารถเพิ่มแผนการตรวจได้ กรุณาลองใหม่อีกครั้ง");
+
+    emit("error", errorResponse);
+  } finally {
+    setTimeout(() => {
+      submitting.value = false;
+    }, 1000);
+  }
+};
+
+defineExpose({ clearState });
 </script>
 
 <template>
@@ -102,7 +185,7 @@ const formSwabPeriod = computed({
                 :enable-time-picker="false"
                 locale="th"
                 utc
-                :disabled="disabled"
+                :disabled="submitting"
                 auto-apply
                 :clearable="false"
               />
@@ -114,7 +197,7 @@ const formSwabPeriod = computed({
               <label for="date" class="form-label d-block min-w-50px"
                 >รอบ</label
               >
-              <b-form-input v-model="form.swabRound" type="text" disabled />
+              <b-form-input v-model="form.swabPlanCode" type="text" disabled />
             </div>
           </b-col>
         </b-row>
@@ -128,6 +211,8 @@ const formSwabPeriod = computed({
               <swab-period-select
                 v-model="formSwabPeriod"
                 class="col"
+                required
+                :disabled="submitting"
               ></swab-period-select>
             </div>
           </b-col>
@@ -135,7 +220,12 @@ const formSwabPeriod = computed({
           <b-col cols="4">
             <div class="input-group align-items-baseline">
               <label for="date" class="form-label d-block min-w-50px">กะ</label>
-              <shift-select v-model="form.shift" class="col"></shift-select>
+              <shift-select
+                v-model="form.shift"
+                class="col"
+                required
+                :disabled="submitting"
+              ></shift-select>
             </div>
           </b-col>
         </b-row>
@@ -149,6 +239,7 @@ const formSwabPeriod = computed({
               <b-form-textarea
                 v-model="form.swabPlanNote"
                 class="col"
+                :disabled="submitting"
               ></b-form-textarea>
             </div>
           </b-col>

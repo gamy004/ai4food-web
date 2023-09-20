@@ -96,6 +96,10 @@ export type UpsertSwabEnvironmentData = {
   swabEnvironmentName?: string;
 };
 
+export type ConenctSwabPeriod = {
+  id: string;
+};
+
 export type UpsertSwabAreaHistoryImageData = {
   id?: string;
   file?: UpsertFileData;
@@ -116,6 +120,14 @@ export interface BodyManageSwabArea {
   subSwabAreas?: SubSwabAreasData[];
   facility: ConnectFacilityData;
   contactZone: ConnectContactZoneData | null;
+}
+
+export interface BodyManageSwabPlan {
+  swabPlanDate: string;
+  swabPeriod: ConenctSwabPeriod;
+  shift: string;
+  swabPlanNote?: string;
+  swabPlanCode?: string;
 }
 
 export interface BodyUpdateSwabPlanByIdData {
@@ -761,6 +773,14 @@ export const useSwab = () => {
     return data;
   };
 
+  const createSwabPlan = async (body: BodyManageSwabPlan): Promise<any> => {
+    const data = await post<any>(`/swab/plan`, {
+      payload: { ...body },
+    });
+
+    return data;
+  };
+
   return {
     getSwabPeriodById,
 
@@ -843,6 +863,7 @@ export const useSwab = () => {
         createSwabProductHistory,
         updateSwabProductHistory,
         deleteSwabProductHistory,
+        createSwabPlan,
       };
     },
   };
