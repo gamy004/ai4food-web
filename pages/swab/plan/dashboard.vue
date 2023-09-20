@@ -40,6 +40,12 @@ const createPlan = () => {
       </b-col>
     </b-row>
 
+    <b-row class="mt-5">
+      <b-col cols="12">
+        <swab-plan-list></swab-plan-list>
+      </b-col>
+    </b-row>
+
     <swab-plan-modal-manage v-model:show-value="show" />
   </div>
 </template>
