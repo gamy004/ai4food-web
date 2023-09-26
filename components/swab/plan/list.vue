@@ -18,7 +18,6 @@ import LineMdLoadingTwotoneLoop from "~icons/line-md/loading-twotone-loop";
       <b-col v-else>
         <b-list-group v-if="true" class="list-group__swab-plan">
           <swab-plan-list-item></swab-plan-list-item>
-          <swab-plan-list-item></swab-plan-list-item>
         </b-list-group>
 
         <b-card v-else bg-variant="light">

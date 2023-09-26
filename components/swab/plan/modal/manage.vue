@@ -25,8 +25,8 @@ const props = withDefaults(defineProps<Props>(), {
 const form = reactive({
   swabPlanDate: onlyDate(currentDate),
   swabPlanCode: formatShortYear(currentDate),
-  swabPeriod: {},
-  shift: "",
+  swabPeriod: null,
+  shift: null,
   swabPlanNote: "",
 });
 
@@ -69,7 +69,7 @@ const formSwabPeriod = computed({
     if (value && value.id) {
       form.swabPeriod = { id: value.id };
     } else {
-      form.swabPeriod = {};
+      form.swabPeriod = null;
     }
   },
 });
@@ -92,8 +92,8 @@ const clearState = () => {
 
   form.swabPlanDate = onlyDate(currentDate);
   form.swabPlanCode = formatShortYear(currentDate);
-  form.swabPeriod = {};
-  form.shift = "";
+  form.swabPeriod = null;
+  form.shift = null;
   form.swabPlanNote = "";
 };
 
@@ -176,7 +176,7 @@ defineExpose({ clearState });
           <b-col cols="8">
             <div class="input-group align-items-baseline">
               <label for="date" class="form-label d-block min-w-125px"
-                >วันที่ (เดือน/ปี)</label
+                >วันที่</label
               >
               <Datepicker
                 id="swabPlanDate"

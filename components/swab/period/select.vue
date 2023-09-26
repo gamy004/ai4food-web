@@ -2,6 +2,7 @@
 import { useToast } from "vue-toastification";
 import SwabPeriod from "~~/models/SwabPeriod";
 import vSelect from "vue-select";
+import { requiredIf } from "@vuelidate/validators";
 
 export type SwabPeriodSelectData = {
   id: string;
@@ -11,7 +12,9 @@ export interface Props {
   clearable?: boolean;
   disabled?: boolean;
   modelValue?: SwabPeriodSelectData | null;
+  required?: boolean;
 }
+const attrs = useAttrs();
 
 const toast = useToast();
 
@@ -55,6 +58,21 @@ const modelValue = computed({
   set: (value) => emit("update:modelValue", value),
 });
 
+const validationRules = {
+  modelValue: {
+    requiredIfPropsRequired: requiredIf(() => props.required),
+    $lazy: true,
+  },
+};
+
+const { isInvalid, isFormInvalid } = useValidation(validationRules, {
+  modelValue,
+});
+
+const swabPeriodRequiredState = computed(() =>
+  isFormInvalid("modelValue", ["requiredIfPropsRequired"])
+);
+
 const fetch = async () => {
   // if (!isFetched.value) {
   loading.value = true;
@@ -83,23 +101,34 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <v-select
-    v-model="modelValue"
-    :options="swabPeriodOptions"
-    label="swabPeriodName"
-    :loading="loading"
-    :clearable="clearable"
-    :disabled="disabled"
-    :reduce="({ id }) => ({ id })"
-    deselect-from-dropdown
-    @open="fetch"
+  <b-form-group
+    id="fieldset-swab-period"
+    label-for="swabPeriod"
+    :state="swabPeriodRequiredState"
+    v-bind="{ ...attrs }"
   >
-    <template #selected-option="{ swabPeriodName }">
-      {{ swabPeriodName }}
-    </template>
+    <v-select
+      v-model="modelValue"
+      :options="swabPeriodOptions"
+      label="swabPeriodName"
+      :loading="loading"
+      :clearable="clearable"
+      :disabled="disabled"
+      :reduce="({ id }) => ({ id })"
+      deselect-from-dropdown
+      @open="fetch"
+    >
+      <template #selected-option="{ swabPeriodName }">
+        {{ swabPeriodName }}
+      </template>
 
-    <template #option="{ swabPeriodName }">
-      {{ swabPeriodName }}
-    </template>
-  </v-select>
+      <template #option="{ swabPeriodName }">
+        {{ swabPeriodName }}
+      </template>
+    </v-select>
+
+    <b-form-invalid-feedback v-if="isInvalid" :state="swabPeriodRequiredState">
+      กรุณาเลือกช่วงเวลา
+    </b-form-invalid-feedback>
+  </b-form-group>
 </template>
