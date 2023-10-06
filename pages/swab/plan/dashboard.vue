@@ -10,6 +10,8 @@ definePageMeta({
 
 const show = ref(false);
 
+const swabPlanListRef = ref(null);
+
 const route = useRoute();
 
 const { today, onlyMonth } = useDate();
@@ -22,6 +24,10 @@ const filter = reactive({
 
 const createPlan = () => {
   show.value = true;
+};
+
+const onManagedSuccess = async () => {
+  swabPlanListRef.value?.fetch({ date: filter.date });
 };
 </script>
 
@@ -42,10 +48,16 @@ const createPlan = () => {
 
     <b-row class="mt-5">
       <b-col cols="12">
-        <swab-plan-list></swab-plan-list>
+        <swab-plan-list
+          ref="swabPlanListRef"
+          :date="filter.date"
+        ></swab-plan-list>
       </b-col>
     </b-row>
 
-    <swab-plan-modal-manage v-model:show-value="show" />
+    <swab-plan-modal-manage
+      v-model:show-value="show"
+      @success="onManagedSuccess"
+    />
   </div>
 </template>

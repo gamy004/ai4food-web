@@ -26,6 +26,8 @@ import SwabCleaningValidation from "~~/models/SwabCleaningValidation";
 import { LoadSwabCleaningValidationFilter } from "./useFilterSwabCleaningValidation";
 import ContactZone from "~/models/ContactZone";
 import SwabSampleType from "~/models/SwabSampleType";
+import SwabPlan from "~/models/SwabPlan";
+import { LoadAllSwabPlanFilter, useFilterSwabPlan } from "./useFilterSwabPlan";
 
 // export interface LoadSwabAreaHistoryData {
 //   date: string;
@@ -781,6 +783,20 @@ export const useSwab = () => {
     return data;
   };
 
+  const loadAllSwabPlan = async (
+    filter: LoadAllSwabPlanFilter
+  ): Promise<SwabPlan> => {
+    const { toDto } = useFilterSwabPlan();
+
+    const params: SearchParams = toDto(filter);
+
+    let data = await get<SwabPlan[]>("/swab/plan", {
+      params,
+    });
+
+    return data;
+  };
+
   return {
     getSwabPeriodById,
 
@@ -864,6 +880,7 @@ export const useSwab = () => {
         updateSwabProductHistory,
         deleteSwabProductHistory,
         createSwabPlan,
+        loadAllSwabPlan,
       };
     },
   };

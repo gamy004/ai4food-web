@@ -225,6 +225,17 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     });
   }
 
+  function getFirstAndLastDateOfMonth(date) {
+    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+    const lastDayCurrentMonth = new Date(
+      date.getFullYear(),
+      date.getMonth() + 1,
+      0
+    );
+
+    return { from: firstDay, to: lastDayCurrentMonth };
+  }
+
   return {
     today,
     timezone,
@@ -244,5 +255,6 @@ export const useDate = (timeZone = "Asia/Bangkok") => {
     formatTimeThLocale,
     formatShortYear,
     updateDateRangeQueryParams,
+    getFirstAndLastDateOfMonth,
   };
 };
