@@ -1,29 +1,27 @@
 <script lang="ts" setup>
 import SwabPlan from "~/models/SwabPlan";
+import CarbonEdit from "~icons/carbon/edit";
+import CarbonTrashCan from "~icons/carbon/trash-can";
 
 export interface Props {
   items: Array<SwabPlan>;
 }
 
-const { getSwabPeriodById } = useSwab();
-
 const props = defineProps<Props>();
 
 const displayData = computed(() => {
-  return props.items.reduce((acc, swabPlan) => {
-    const swabPeriod = getSwabPeriodById(swabPlan.swabPeriodId);
-    // const { isCompleted, countComplete, countArea } =
-    //   isAllRelatedSwabAreaCompleted(swabAreaHistory);
-
-    const tableRecord = {
-      ...swabPlan,
-      swabPeriod,
-    };
-    acc.push(tableRecord);
-
-    return acc;
-  }, []);
+  return props.items;
 });
+
+const emit = defineEmits(["update:item", "delete:item"]);
+
+const promptEdit = (id) => {
+  emit("update:item", id);
+};
+
+const promptRemove = (id) => {
+  emit("delete:item", id);
+};
 </script>
 
 <template>
@@ -43,7 +41,9 @@ const displayData = computed(() => {
               </div>
               <div class="col col-8">
                 <div>{{ item.totalItems }} จุด</div>
-                <div>{{ item.swabPlanNote ? item.swabPlanNote : "-" }}</div>
+                <div style="word-wrap: break-word">
+                  {{ item.swabPlanNote ? item.swabPlanNote : "-" }}
+                </div>
               </div>
             </div>
           </b-col>
@@ -78,7 +78,30 @@ const displayData = computed(() => {
               </b-badge>
             </h5>
           </b-col>
-          <b-col cols="8" md="1"> ... </b-col>
+          <b-col cols="8" md="1">
+            <b-button variant="link" class="p-0" @click="promptEdit(item.id)">
+              <CarbonEdit
+                style="
+                   {
+                    fontsize: '1em';
+                  }
+                "
+              />
+            </b-button>
+            <b-button
+              variant="link"
+              class="ms-3 p-0 text-danger"
+              @click="promptRemove(item.id)"
+            >
+              <CarbonTrashCan
+                style="
+                   {
+                    fontsize: '1em';
+                  }
+                "
+              />
+            </b-button>
+          </b-col>
         </b-row>
       </b-container>
     </b-list-group-item>

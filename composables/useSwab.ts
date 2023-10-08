@@ -191,6 +191,7 @@ export const useSwab = () => {
   const swabProductHistoryRepo = useRepo(SwabProductHistory);
   const swabCleaningValidationRepo = useRepo(SwabCleaningValidation);
   const swabSampleTypeRepo = useRepo(SwabSampleType);
+  const swabPlanRepo = useRepo(SwabPlan);
   const { today } = useDate();
 
   const loadAllSwabPeriod = async (): Promise<SwabPeriod[]> => {
@@ -516,6 +517,12 @@ export const useSwab = () => {
     return query.first();
   };
 
+  const getSwabPlanById = (id: string): SwabPlan | null => {
+    const query = swabPlanRepo.where("id", id);
+
+    return query.first();
+  };
+
   const loadSwabAreaToSwabAreaHistory = (
     histories: SwabAreaHistory[]
   ): SwabAreaHistory[] => {
@@ -783,6 +790,23 @@ export const useSwab = () => {
     return data;
   };
 
+  const updateSwabPlan = async (
+    id: string,
+    body: BodyManageSwabPlan
+  ): Promise<any> => {
+    const data = await put<any>(`/swab/plan/${id}`, {
+      payload: { ...body },
+    });
+
+    return data;
+  };
+
+  const deleteSwabPlan = async (id: string): Promise<any> => {
+    const data = await destroy<any>(`/swab/plan/${id}`);
+
+    return data;
+  };
+
   const loadAllSwabPlan = async (
     filter: LoadAllSwabPlanFilter
   ): Promise<SwabPlan> => {
@@ -790,11 +814,13 @@ export const useSwab = () => {
 
     const params: SearchParams = toDto(filter);
 
-    let data = await get<SwabPlan[]>("/swab/plan", {
+    const data = await get<SwabPlan[]>("/swab/plan", {
       params,
     });
 
-    return data;
+    const swabPlans = swabPlanRepo.save(data);
+
+    return swabPlans;
   };
 
   return {
@@ -856,6 +882,8 @@ export const useSwab = () => {
 
     loadBacteriaSpeciesToSwabTest,
 
+    getSwabPlanById,
+
     api() {
       return {
         loadAllSwabPeriod,
@@ -880,6 +908,8 @@ export const useSwab = () => {
         updateSwabProductHistory,
         deleteSwabProductHistory,
         createSwabPlan,
+        updateSwabPlan,
+        deleteSwabPlan,
         loadAllSwabPlan,
       };
     },

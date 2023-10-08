@@ -8,7 +8,7 @@ import { BodyManageSwabPlan } from "~~/composables/useSwab";
 const toast = useToast();
 const { today, onlyDate, formatShortYear } = useDate();
 
-const { api: swabApi } = useSwab();
+const { api: swabApi, getSwabPlanById } = useSwab();
 
 const currentDate = today();
 
@@ -49,6 +49,8 @@ const idValue = computed({
   set: (value) => emit("update:idValue", value),
 });
 
+const actionText = computed(() => (idValue.value ? "อัพเดต" : "เพิ่ม"));
+
 const formDate = computed({
   get: () => form.swabPlanDate,
   set: (value) => {
@@ -76,7 +78,7 @@ const formSwabPeriod = computed({
 
 const validationRules = {};
 
-const { validate, isInvalid, isFormInvalid, resetValidation } = useValidation(
+const { validate, isInvalid, resetValidation } = useValidation(
   validationRules,
   form
 );
@@ -130,7 +132,7 @@ const onSubmit = async () => {
     let swabPlan;
 
     if (idValue.value) {
-      // swabPlan = await swabApi().createSwabPlan(idValue.value, body);
+      swabPlan = await swabApi().updateSwabPlan(idValue.value, body);
     } else {
       swabPlan = await swabApi().createSwabPlan(body);
     }
@@ -144,16 +146,18 @@ const onSubmit = async () => {
         clearState();
       }
 
-      toast.success("เพิ่มแผนการตรวจสำเร็จ", { timeout: 1000 });
-
-      console.log(swabPlan);
+      toast.success(`${actionText.value}เพิ่มแผนการตรวจสำเร็จ`, {
+        timeout: 1000,
+      });
 
       emit("success", swabPlan);
     }, 1000);
   } catch (errorResponse) {
     error.value = errorResponse;
 
-    toast.error("ไม่สามารถเพิ่มแผนการตรวจได้ กรุณาลองใหม่อีกครั้ง");
+    toast.error(
+      `ไม่สามารถ${actionText.value}แผนการตรวจได้ กรุณาลองใหม่อีกครั้ง`
+    );
 
     emit("error", errorResponse);
   } finally {
@@ -164,11 +168,29 @@ const onSubmit = async () => {
 };
 
 defineExpose({ clearState });
+watch(
+  () => idValue.value,
+  (id) => {
+    if (id) {
+      const swabPlanData = getSwabPlanById(id);
+      if (swabPlanData) {
+        form.swabPlanDate = onlyDate(swabPlanData.swabPlanDate);
+        form.swabPlanCode = formatShortYear(swabPlanData.swabPlanDate);
+        form.swabPeriod = { id: swabPlanData.swabPeriodId };
+        form.shift = swabPlanData.shift;
+        form.swabPlanNote = swabPlanData.swabPlanNote;
+      }
+    } else {
+      clearState();
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <template>
   <modal id="swabPlanCreateModal" ref="modalRef" v-model="showValue" size="lg">
-    <template #title> เพิ่มแผนการตรวจ </template>
+    <template #title> {{ actionText }}แผนการตรวจ </template>
 
     <template #default>
       <b-container>
@@ -261,7 +283,7 @@ defineExpose({ clearState });
           :style="{ fontSize: '1em' }"
         />
 
-        <span v-else>บันทึก</span>
+        <span v-else>{{ actionText }}</span>
       </b-button>
     </template>
   </modal>
