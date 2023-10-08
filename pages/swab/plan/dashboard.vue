@@ -3,9 +3,7 @@ definePageMeta({
   title: "Ai4FoodSafety - Swab Plan Create Page",
   middleware: ["auth"],
   canGoBack: true,
-  fallBackRedirect: {
-    name: "/",
-  },
+  fallBackRedirect: "/",
 });
 
 const show = ref(false);

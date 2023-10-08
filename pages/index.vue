@@ -66,6 +66,10 @@ const pageImportProductSchedule = {
 const pageImportSwabTest = {
   name: "import-swab-test",
 };
+
+const pageSwabPlan = {
+  name: "swab-plan-dashboard",
+};
 </script>
 
 <template>
@@ -344,6 +348,22 @@ const pageImportSwabTest = {
               @click="navigate"
             >
               บันทึกผลตรวจ specie สินค้า
+            </button-arrow-right>
+          </nuxt-link>
+
+          <nuxt-link
+            v-if="authUser.isInAdminTeam || authUser.isInLabTeam"
+            v-slot="{ navigate }"
+            :to="pageSwabPlan"
+            custom
+          >
+            <button-arrow-right
+              variant="outline-primary"
+              size="lg"
+              class="w-100"
+              @click="navigate"
+            >
+              แผนการตรวจ
             </button-arrow-right>
           </nuxt-link>
         </div>
