@@ -143,7 +143,7 @@ const invalidState = computed(() => ({
           <b-form-invalid-feedback
             :state="isFormInvalid('swabAreaHumidity', ['numeric'])"
           >
-            อุณหภูมิต้องเป็นตัวเลขเท่านั้น
+            ความชื้นต้องเป็นตัวเลขเท่านั้น
           </b-form-invalid-feedback>
         </div>
       </div>
